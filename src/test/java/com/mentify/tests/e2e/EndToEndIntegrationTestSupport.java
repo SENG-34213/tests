@@ -1,0 +1,53 @@
+package com.mentify.tests.e2e;
+
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
+import com.mentify.tests.api.ApiClient;
+import com.mentify.tests.api.ApiClientConfiguration;
+import com.mentify.tests.auth.AuthenticationClient;
+import com.mentify.tests.auth.AuthenticationConfiguration;
+import com.mentify.tests.auth.AuthenticationSession;
+import com.mentify.tests.auth.TestRole;
+import com.mentify.tests.course.CourseClient;
+import com.mentify.tests.enrollment.EnrollmentClient;
+import com.mentify.tests.environment.BackendReadinessClient;
+import com.mentify.tests.environment.RequiredService;
+import com.mentify.tests.environment.TestEnvironmentConfiguration;
+import com.mentify.tests.user.UserClient;
+import org.junit.jupiter.api.BeforeAll;
+
+abstract class EndToEndIntegrationTestSupport {
+
+    protected static ApiClient api;
+    protected static AuthenticationClient authentication;
+    protected static UserClient users;
+    protected static CourseClient courses;
+    protected static EnrollmentClient enrollments;
+
+    @BeforeAll
+    static void requireGatewayEnvironment() {
+        EndToEndTestConfiguration e2e = EndToEndTestConfiguration.fromEnvironment();
+        assumeTrue(e2e.enabled(), "Set TEST_E2E_ENABLED=true to run cross-service journeys");
+        TestEnvironmentConfiguration environment = TestEnvironmentConfiguration.fromEnvironment();
+        BackendReadinessClient readiness = new BackendReadinessClient(environment);
+        readiness.awaitRequiredServices();
+        readiness.awaitService(RequiredService.USER_SERVICE);
+        api = new ApiClient(ApiClientConfiguration.fromEnvironment(environment, false));
+        authentication = new AuthenticationClient(api, AuthenticationConfiguration.fromEnvironment());
+        users = new UserClient(api);
+        courses = new CourseClient(api);
+        enrollments = new EnrollmentClient(api);
+    }
+
+    protected static AuthenticationSession login(TestRole role) {
+        return authentication.login(role);
+    }
+
+    protected static void logout(AuthenticationSession session) {
+        if (session != null && session.refreshable()) {
+            authentication.logout(session);
+        } else if (session != null) {
+            session.clear();
+        }
+    }
+}

@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   test:
-    name: Build and Test
+    name: Static Build and Test
     runs-on: ubuntu-latest
 
     steps:
@@ -24,7 +24,10 @@ jobs:
           cache: maven
 
       - name: Run verification
-        run: mvn --batch-mode --no-transfer-progress verify
+        env:
+          TEST_ENV_ENABLED: 'false'
+          TEST_E2E_ENABLED: 'false'
+        run: mvn --batch-mode --no-transfer-progress clean verify
 
       - name: Upload Surefire reports
         if: always()
@@ -32,4 +35,12 @@ jobs:
         with:
           name: surefire-reports-${{ github.run_number }}
           path: target/surefire-reports/
+          if-no-files-found: warn
+
+      - name: Upload Failsafe reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failsafe-reports-${{ github.run_number }}
+          path: target/failsafe-reports/
           if-no-files-found: warn
