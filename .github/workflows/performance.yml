@@ -1,0 +1,57 @@
+name: Optional Performance Baseline
+
+on:
+  workflow_dispatch:
+    inputs:
+      enabled:
+        description: Run against the approved dedicated environment
+        required: true
+        default: false
+        type: boolean
+      base_url:
+        description: Dedicated API Gateway URL
+        required: true
+        default: http://localhost:8080
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  performance:
+    if: ${{ inputs.enabled == true }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Run bounded performance baseline
+        env:
+          PERFORMANCE_TEST_ENABLED: 'true'
+          PERFORMANCE_ENVIRONMENT: dedicated-ci
+          PERFORMANCE_BASE_URL: ${{ inputs.base_url }}
+          PERFORMANCE_WARMUP_REQUESTS: '5'
+          PERFORMANCE_MEASURED_REQUESTS: '30'
+          PERFORMANCE_CONCURRENCY: '2'
+          PERFORMANCE_TIMEOUT_MS: '10000'
+          PERFORMANCE_MAX_ERROR_RATE_PERCENT: '1.0'
+          PERFORMANCE_MAX_P95_MS: '2000'
+          PERFORMANCE_MAX_P99_MS: '5000'
+          STUDENT_TEST_USERNAME: ${{ secrets.PERFORMANCE_STUDENT_USERNAME }}
+          STUDENT_TEST_PASSWORD: ${{ secrets.PERFORMANCE_STUDENT_PASSWORD }}
+        run: mvn --batch-mode --no-transfer-progress -Dtest="*PerformanceTest,*ConcurrencyTest" test
+
+      - name: Upload performance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-reports-${{ github.run_number }}
+          path: target/surefire-reports/
+          if-no-files-found: warn

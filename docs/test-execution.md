@@ -75,6 +75,21 @@ Security tests skip when security execution is disabled. Resilience and
 provider-failure tests skip unless controlled fault-injection infrastructure is
 enabled. They never target production and never use real provider credentials.
 
+## Performance baseline
+
+Performance tests are disabled by default and are separate from functional CI:
+
+```powershell
+$env:PERFORMANCE_TEST_ENABLED="true"
+$env:PERFORMANCE_ENVIRONMENT="dedicated-local"
+$env:PERFORMANCE_MEASURED_REQUESTS="30"
+$env:PERFORMANCE_CONCURRENCY="2"
+mvn -Dtest="*PerformanceTest,*ConcurrencyTest" test
+```
+
+They use bounded requests, configurable p95/p99/error thresholds, synthetic
+data, and safe provider settings. See [docs/performance-testing.md](performance-testing.md).
+
 ## Repeatability and reports
 
 ```powershell

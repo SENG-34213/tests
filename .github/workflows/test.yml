@@ -42,6 +42,8 @@ jobs:
           test -f docs/security-testing.md
           test -f docs/resilience-testing.md
           test -f docs/negative-path-test-cases.md
+          test -f docs/performance-testing.md
+          test -f docs/performance-baseline.md
           test ! -f .env
 
       - name: Upload Surefire reports
