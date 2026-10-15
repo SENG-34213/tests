@@ -2,7 +2,7 @@
 
 ## Current ticket
 
-TEST-001 requires only Java 17, Maven, and Git. TEST-002 adds an optional integration profile that checks the running backend. The default foundation smoke test does not require Docker or a running Mentify backend.
+TEST-006 adds Calendar Service integration coverage to the optional integration profile. The default unit-test build does not require Docker or a running Mentify backend.
 
 ## Prerequisites
 
@@ -26,6 +26,8 @@ Run backend readiness checks only when the required backend environment is runni
     mvn verify -Pintegration
 
 The integration profile checks the services listed in `TEST_REQUIRED_SERVICES`. By default this is `API_GATEWAY,KEYCLOAK`. It retries temporary failures and stops after `READINESS_TIMEOUT_SECONDS`.
+
+Calendar integration tests additionally verify `CALENDAR_SERVICE`. Set `TEST_REQUIRED_SERVICES=API_GATEWAY,KEYCLOAK,CALENDAR_SERVICE` when running the complete calendar environment. The calendar service uses the backend API paths under `/api/v1/calendar` and is configured with `CALENDAR_SERVICE_BASE_URL` for readiness checks.
 
 If a required service is unavailable, the integration command fails with the service URL and the last observed failure. This is intentional; an unavailable environment must not be reported as a passing integration test.
 
