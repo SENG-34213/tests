@@ -59,6 +59,22 @@ mvn -Dtest="*Gateway*IT,*JourneyIT" verify -Pintegration
 Provider journeys remain disabled unless provider test mode and write flags are
 explicitly approved. Never put credentials or provider keys in source files.
 
+## Security and resilience regression tests
+
+```powershell
+$env:TEST_ENV_ENABLED="true"
+$env:TEST_SECURITY_ENABLED="true"
+mvn -Dtest="*Security*IT" verify -Pintegration
+
+$env:TEST_RESILIENCE_ENABLED="true"
+$env:FAULT_INJECTION_ENABLED="true"
+mvn -Dtest="*FailureIT,*TimeoutIT,*ResilienceIT,*IdempotencyIT" verify -Pintegration
+```
+
+Security tests skip when security execution is disabled. Resilience and
+provider-failure tests skip unless controlled fault-injection infrastructure is
+enabled. They never target production and never use real provider credentials.
+
 ## Repeatability and reports
 
 ```powershell
