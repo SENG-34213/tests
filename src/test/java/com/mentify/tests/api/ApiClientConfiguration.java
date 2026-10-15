@@ -19,8 +19,8 @@ public record ApiClientConfiguration(
                 booleanValue("API_LOGGING_ENABLED", false));
     }
 
-    static ApiClientConfiguration fromEnvironment(TestEnvironmentConfiguration environment,
-                                                   boolean loggingEnabled) {
+    public static ApiClientConfiguration fromEnvironment(TestEnvironmentConfiguration environment,
+                                                         boolean loggingEnabled) {
         return new ApiClientConfiguration(
                 environment.serviceUrls().get(com.mentify.tests.environment.RequiredService.API_GATEWAY),
                 environment.connectTimeout(),
