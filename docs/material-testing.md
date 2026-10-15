@@ -1,0 +1,69 @@
+# TEST-013 Material Service Testing
+
+## Purpose
+
+This ticket verifies the Material Service through the API gateway and its public
+REST contract. It does not modify the backend, access the database directly, or
+test a production object-storage account.
+
+## Covered API
+
+- `POST /api/v1/materials` multipart upload (`title`, `description`, `purpose`, `courseId`, `file`)
+- `GET /api/v1/materials` list, search, pagination, and course filtering
+- `GET /api/v1/materials/{id}` retrieval
+- `GET /api/v1/materials/{id}/download` download metadata
+- `PUT /api/v1/materials/{id}` metadata update
+- `POST /api/v1/materials/{id}/archive` archive
+- `DELETE /api/v1/materials/{id}` delete
+- `POST /api/v1/materials/maintenance/audit` maintenance audit
+- `POST /api/v1/materials/maintenance/cleanup` non-destructive cleanup preview
+
+## Environment
+
+The integration profile requires the gateway, Keycloak, Course Service,
+Enrollment Service, and Material Service. Configure these values outside source
+control:
+
+```text
+TEST_ENV_ENABLED=true
+TEST_REQUIRED_SERVICES=API_GATEWAY,KEYCLOAK,COURSE_SERVICE,ENROLLMENT_SERVICE,MATERIAL_SERVICE
+MATERIAL_SERVICE_BASE_URL=http://localhost:8091
+COURSE_SERVICE_BASE_URL=http://localhost:8082
+ENROLLMENT_SERVICE_BASE_URL=http://localhost:8083
+TEST_MATERIAL_COURSE_ID=<approved non-production course UUID>
+TEST_MATERIAL_WRITE_ENABLED=false
+```
+
+Configure `STUDENT_TEST_*`, `TEACHER_TEST_*`, and `ADMIN_TEST_*` with dedicated
+non-production users. Do not commit credentials or storage-provider secrets.
+The read-fixture ID is required for read-only fixture checks; write tests need a
+course ID and explicit `TEST_MATERIAL_WRITE_ENABLED=true`.
+
+## File and storage isolation
+
+Tests create small unique `.txt` files in the operating system temporary
+directory. The `AutoCloseable` test-file wrapper deletes each file after use.
+The suite checks download metadata only; it does not follow provider URLs or
+print storage keys, credentials, tokens, or response bodies in logs.
+
+## Cleanup behavior
+
+The lifecycle test deletes the material it creates. Maintenance cleanup is
+always called with `{"dryRun":true}` so it cannot delete unrelated records.
+The suite does not configure or test destructive retention cleanup, S3/MinIO
+infrastructure, or production storage.
+
+## Verification commands
+
+From the test repository:
+
+```powershell
+mvn clean verify
+mvn verify -Pintegration -Dtest="Material*IT"
+mvn verify -Pintegration -Dtest="Assignment*IT,Submission*IT,Material*IT"
+```
+
+With `TEST_ENV_ENABLED=false`, the integration tests must make no API request;
+the readiness guard stops them before endpoint execution. Live integration runs
+also require the backend services, Keycloak users, approved fixtures, and the
+configured non-production storage provider to be available.
