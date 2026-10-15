@@ -44,6 +44,9 @@ jobs:
           test -f docs/negative-path-test-cases.md
           test -f docs/performance-testing.md
           test -f docs/performance-baseline.md
+          test -f docs/api-contract-testing.md
+          test -f docs/contract-baseline.md
+          test -f docs/contract-change-process.md
           test ! -f .env
 
       - name: Upload Surefire reports

@@ -1,0 +1,53 @@
+name: Optional API Contract Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      enabled:
+        description: Run against the approved dedicated environment
+        required: true
+        default: false
+        type: boolean
+      base_url:
+        description: Dedicated API Gateway URL
+        required: true
+        default: http://localhost:8080
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    if: ${{ inputs.enabled == true }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Run strict contract tests
+        env:
+          CONTRACT_TEST_ENABLED: 'true'
+          CONTRACT_BASE_URL: ${{ inputs.base_url }}
+          CONTRACT_SCHEMA_STRICT: 'true'
+          CONTRACT_FAIL_ON_EXTRA_REQUIRED_FIELDS: 'true'
+          CONTRACT_FAIL_ON_MISSING_FIELDS: 'true'
+          CONTRACT_COURSE_ID: ${{ secrets.CONTRACT_COURSE_ID }}
+          STUDENT_TEST_USERNAME: ${{ secrets.CONTRACT_STUDENT_USERNAME }}
+          STUDENT_TEST_PASSWORD: ${{ secrets.CONTRACT_STUDENT_PASSWORD }}
+        run: mvn --batch-mode --no-transfer-progress -Dtest="*ContractTest" test
+
+      - name: Upload contract reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-reports-${{ github.run_number }}
+          path: target/surefire-reports/
+          if-no-files-found: warn

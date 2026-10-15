@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mentify common error response",
+  "type": "object",
+  "properties": {
+    "status": { "type": "string" },
+    "statusCode": { "type": "integer" },
+    "message": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "errors": { "type": "object" }
+  },
+  "additionalProperties": true
+}
