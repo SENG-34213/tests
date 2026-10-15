@@ -9,5 +9,6 @@ test:
   readiness-poll-interval-millis: ${READINESS_POLL_INTERVAL_MILLIS:2000}
   http-connect-timeout-millis: ${HTTP_CONNECT_TIMEOUT_MILLIS:5000}
   http-read-timeout-millis: ${HTTP_READ_TIMEOUT_MILLIS:10000}
+  api-logging-enabled: ${API_LOGGING_ENABLED:false}
   username: ${TEST_USERNAME:}
   password: ${TEST_PASSWORD:}
