@@ -20,7 +20,26 @@ public class CalendarClient {
         return apiClient.get(UPCOMING_PATH, bearerToken, Map.of("limit", limit), Map.of());
     }
 
+    public Response events(String bearerToken) {
+        return apiClient.get(EVENTS_PATH, bearerToken, Map.of(), Map.of());
+    }
+
     public Response create(Object request, String bearerToken) {
         return apiClient.post(EVENTS_PATH, request, bearerToken);
+    }
+
+    public Response update(String eventId, Object request, String bearerToken) {
+        return apiClient.put(eventPath(eventId), request, bearerToken);
+    }
+
+    public Response cancel(String eventId, String bearerToken) {
+        return apiClient.post(eventPath(eventId) + "/cancel", null, bearerToken);
+    }
+
+    private static String eventPath(String eventId) {
+        if (eventId == null || eventId.isBlank()) {
+            throw new IllegalArgumentException("eventId must not be blank");
+        }
+        return EVENTS_PATH + "/" + eventId;
     }
 }
