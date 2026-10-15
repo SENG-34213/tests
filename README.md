@@ -61,6 +61,8 @@ Authentication client usage and safe local credential configuration are document
 - [Security testing](docs/security-testing.md)
 - [Resilience testing](docs/resilience-testing.md)
 - [Negative-path test cases](docs/negative-path-test-cases.md)
+- [Performance testing](docs/performance-testing.md)
+- [Performance baseline](docs/performance-baseline.md)
 
 ## Standards
 
@@ -76,7 +78,8 @@ Authentication client usage and safe local credential configuration are document
 GitHub Actions runs static verification on pushes and pull requests, configures
 Java 17, caches Maven dependencies, runs `mvn clean verify`, and uploads
 Surefire/Failsafe reports. Live service tests remain opt-in and are documented
-separately.
+separately. Performance baselines are manual-only through
+`.github/workflows/performance.yml`.
 
 ## Branch strategy
 
