@@ -2,7 +2,7 @@
 
 This repository contains the Mentify platform's repository-level integration and end-to-end test suites. It complements the unit and service-level tests in [Mentify-backend](https://github.com/SENG-34213/Mentify-backend).
 
-The repository foundation and reusable API/authentication clients are implemented through `TEST-004`. Backend API, database, messaging, security, and end-to-end suites will be added in later tickets.
+The repository foundation, reusable API/authentication clients, and authentication/authorization integration tests are implemented through `TEST-005`. Database, messaging, and end-to-end suites will be added in later tickets.
 
 ## Prerequisites
 
