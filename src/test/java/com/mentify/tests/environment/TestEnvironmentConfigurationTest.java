@@ -47,4 +47,22 @@ class TestEnvironmentConfigurationTest {
         assertEquals(URI.create("http://test-backend:8080"),
                 configuration.serviceUrls().get(RequiredService.API_GATEWAY));
     }
+
+    @Test
+    void shouldParseCalendarServiceConfigurationWhenCalendarTestingIsEnabled() {
+        Map<String, String> environment = Map.of(
+                "TEST_REQUIRED_SERVICES", "API_GATEWAY,KEYCLOAK,CALENDAR_SERVICE",
+                "CALENDAR_SERVICE_BASE_URL", "http://calendar.test:8092");
+
+        TestEnvironmentConfiguration configuration =
+                TestEnvironmentConfiguration.fromEnvironment(environment);
+
+        assertEquals(java.util.List.of(
+                        RequiredService.API_GATEWAY,
+                        RequiredService.KEYCLOAK,
+                        RequiredService.CALENDAR_SERVICE),
+                configuration.requiredServices());
+        assertEquals(URI.create("http://calendar.test:8092"),
+                configuration.serviceUrls().get(RequiredService.CALENDAR_SERVICE));
+    }
 }
