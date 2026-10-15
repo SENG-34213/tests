@@ -1,0 +1,66 @@
+name: Test Repository CI
+
+on:
+  push:
+  pull_request:
+    branches:
+      - development
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Static Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Run verification
+        env:
+          TEST_ENV_ENABLED: 'false'
+          TEST_E2E_ENABLED: 'false'
+        run: mvn --batch-mode --no-transfer-progress clean verify
+
+      - name: Check documentation and repository hygiene
+        shell: bash
+        run: |
+          test -f docs/requirement-traceability.md
+          test -f docs/test-case-index.md
+          test -f docs/known-limitations.md
+          test -f docs/test-execution.md
+          test -f docs/security-testing.md
+          test -f docs/resilience-testing.md
+          test -f docs/negative-path-test-cases.md
+          test -f docs/performance-testing.md
+          test -f docs/performance-baseline.md
+          test -f docs/api-contract-testing.md
+          test -f docs/contract-baseline.md
+          test -f docs/contract-change-process.md
+          test ! -f .env
+
+      - name: Upload Surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports-${{ github.run_number }}
+          path: target/surefire-reports/
+          if-no-files-found: warn
+
+      - name: Upload Failsafe reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failsafe-reports-${{ github.run_number }}
+          path: target/failsafe-reports/
+          if-no-files-found: warn

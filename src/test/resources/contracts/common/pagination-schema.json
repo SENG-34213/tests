@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mentify pagination response",
+  "type": "object",
+  "properties": {
+    "content": { "type": "array" },
+    "data": {},
+    "page": { "type": "integer" },
+    "size": { "type": "integer" },
+    "totalElements": { "type": "integer" },
+    "totalPages": { "type": "integer" },
+    "first": { "type": "boolean" },
+    "last": { "type": "boolean" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mentify common API response",
+  "type": "object",
+  "properties": {
+    "status": { "type": "string" },
+    "message": { "type": "string" },
+    "data": {},
+    "meta": { "type": "object" }
+  },
+  "additionalProperties": true
+}
