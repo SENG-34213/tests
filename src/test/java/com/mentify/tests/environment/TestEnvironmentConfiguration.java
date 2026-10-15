@@ -21,7 +21,7 @@ public record TestEnvironmentConfiguration(
         return fromEnvironment(System.getenv());
     }
 
-    static TestEnvironmentConfiguration fromEnvironment(Map<String, String> environment) {
+    public static TestEnvironmentConfiguration fromEnvironment(Map<String, String> environment) {
         Map<RequiredService, URI> urls = new EnumMap<>(RequiredService.class);
         for (RequiredService service : RequiredService.values()) {
             String fallback = service == RequiredService.API_GATEWAY
