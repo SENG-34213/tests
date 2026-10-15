@@ -3,6 +3,9 @@ name: Test Repository CI
 on:
   push:
   pull_request:
+    branches:
+      - development
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -28,6 +31,15 @@ jobs:
           TEST_ENV_ENABLED: 'false'
           TEST_E2E_ENABLED: 'false'
         run: mvn --batch-mode --no-transfer-progress clean verify
+
+      - name: Check documentation and repository hygiene
+        shell: bash
+        run: |
+          test -f docs/requirement-traceability.md
+          test -f docs/test-case-index.md
+          test -f docs/known-limitations.md
+          test -f docs/test-execution.md
+          test ! -f .env
 
       - name: Upload Surefire reports
         if: always()
