@@ -3,6 +3,7 @@ package com.mentify.tests.api;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import java.io.File;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -45,6 +46,26 @@ public class ApiClient {
         return execute(HttpMethod.POST, path, body, bearerToken, Map.of(), Map.of());
     }
 
+    public Response postMultipart(String path, Map<String, ?> fields, File file, String bearerToken) {
+        validatePath(path);
+        Objects.requireNonNull(fields, "fields must not be null");
+        String effectiveBearerToken = bearerToken == null ? defaultBearerToken : bearerToken;
+        RequestSpecification request = RestAssured.given(
+                        specificationFactory.create(effectiveBearerToken, Map.of()));
+        if (file != null) {
+            request.multiPart("file", file);
+        }
+        fields.forEach((name, value) -> request.multiPart(name, String.valueOf(value)));
+        if (configuration.loggingEnabled()) {
+            LOGGER.info(() -> "POST " + path + " (multipart fields, file, and credentials are omitted)");
+        }
+        Response response = request.when().post(path);
+        if (configuration.loggingEnabled()) {
+            LOGGER.info(() -> "POST " + path + " -> " + response.statusCode());
+        }
+        return response;
+    }
+
     public Response put(String path, Object body, String bearerToken) {
         return execute(HttpMethod.PUT, path, body, bearerToken, Map.of(), Map.of());
     }
@@ -64,9 +85,7 @@ public class ApiClient {
 
     private Response execute(HttpMethod method, String path, Object body, String bearerToken,
                              Map<String, ?> queryParameters, Map<String, String> headers) {
-        if (path == null || path.isBlank() || !path.startsWith("/")) {
-            throw new IllegalArgumentException("API path must be non-empty and start with '/'");
-        }
+        validatePath(path);
 
         String effectiveBearerToken = bearerToken == null ? defaultBearerToken : bearerToken;
         RequestSpecification request = RestAssured.given(specificationFactory.create(effectiveBearerToken, headers))
@@ -91,5 +110,11 @@ public class ApiClient {
             LOGGER.info(() -> method + " " + path + " -> " + response.statusCode());
         }
         return response;
+    }
+
+    private static void validatePath(String path) {
+        if (path == null || path.isBlank() || !path.startsWith("/")) {
+            throw new IllegalArgumentException("API path must be non-empty and start with '/'");
+        }
     }
 }
