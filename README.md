@@ -2,7 +2,10 @@
 
 This repository contains the Mentify platform's repository-level integration and end-to-end test suites. It complements the unit and service-level tests in [Mentify-backend](https://github.com/SENG-34213/Mentify-backend).
 
-The repository foundation, reusable API/authentication clients, authentication/authorization integration tests, Calendar Service coverage, and Course Service integration foundation are implemented through `TEST-008`. Database, messaging, and end-to-end suites will be added in later tickets.
+The repository contains reusable API/authentication clients, service integration
+tests, authentication and authorization coverage, and gateway end-to-end smoke
+tests completed through TEST-022. TEST-023 provides the final quality-gate,
+traceability, execution, and limitation documentation.
 
 ## Prerequisites
 
@@ -20,12 +23,14 @@ mvn verify
 
 The foundation smoke test does not require the Mentify backend, Docker, Keycloak, PostgreSQL, Kafka, Mailpit, AI providers, or Stripe.
 
-When the backend environment is running, execute the readiness checks with:
+When the backend environment is running, execute live integration tests with:
 
     $env:TEST_ENV_ENABLED="true"
     mvn verify -Pintegration
 
-The integration profile checks the configured services and fails clearly if a required service is unavailable.
+The integration profile checks configured services and fails clearly if a
+required service is unavailable. See [docs/test-execution.md](docs/test-execution.md)
+for service and E2E selectors.
 
 ## Configuration
 
@@ -46,6 +51,14 @@ The backend repository is a Java 17 Spring Boot microservice monorepo. This repo
 
 Authentication client usage and safe local credential configuration are documented in [docs/authentication-testing.md](docs/authentication-testing.md).
 
+## Quality and traceability
+
+- [Requirement traceability](docs/requirement-traceability.md)
+- [Test-case index](docs/test-case-index.md)
+- [Test execution](docs/test-execution.md)
+- [CI test execution](docs/ci-test-execution.md)
+- [Known limitations](docs/known-limitations.md)
+
 ## Standards
 
 - Java 17 and Maven are required.
@@ -57,7 +70,10 @@ Authentication client usage and safe local credential configuration are document
 
 ## CI
 
-GitHub Actions runs on pushes and pull requests. It checks out the repository, configures Java 17, caches Maven dependencies, runs `mvn verify`, and uploads Surefire reports. Service-backed tests will be enabled by later tickets.
+GitHub Actions runs static verification on pushes and pull requests, configures
+Java 17, caches Maven dependencies, runs `mvn clean verify`, and uploads
+Surefire/Failsafe reports. Live service tests remain opt-in and are documented
+separately.
 
 ## Branch strategy
 
