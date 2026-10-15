@@ -83,6 +83,11 @@ public class ApiClient {
         return ApiResponse.from(execute(method, path, body, bearerToken, queryParameters, headers));
     }
 
+    public Response requestResponse(HttpMethod method, String path, Object body, String bearerToken,
+                                    Map<String, ?> queryParameters, Map<String, String> headers) {
+        return execute(method, path, body, bearerToken, queryParameters, headers);
+    }
+
     private Response execute(HttpMethod method, String path, Object body, String bearerToken,
                              Map<String, ?> queryParameters, Map<String, String> headers) {
         validatePath(path);
