@@ -13,10 +13,23 @@ public class ApiClient {
 
     private final ApiClientConfiguration configuration;
     private final ApiRequestSpecificationFactory specificationFactory;
+    private final String defaultBearerToken;
 
     public ApiClient(ApiClientConfiguration configuration) {
+        this(configuration, null);
+    }
+
+    private ApiClient(ApiClientConfiguration configuration, String defaultBearerToken) {
         this.configuration = Objects.requireNonNull(configuration, "configuration must not be null");
         this.specificationFactory = new ApiRequestSpecificationFactory(configuration);
+        this.defaultBearerToken = defaultBearerToken;
+    }
+
+    public ApiClient withBearerToken(String bearerToken) {
+        if (bearerToken == null || bearerToken.isBlank()) {
+            throw new IllegalArgumentException("bearerToken must not be blank");
+        }
+        return new ApiClient(configuration, bearerToken);
     }
 
     public Response get(String path) {
@@ -55,7 +68,8 @@ public class ApiClient {
             throw new IllegalArgumentException("API path must be non-empty and start with '/'");
         }
 
-        RequestSpecification request = RestAssured.given(specificationFactory.create(bearerToken, headers))
+        String effectiveBearerToken = bearerToken == null ? defaultBearerToken : bearerToken;
+        RequestSpecification request = RestAssured.given(specificationFactory.create(effectiveBearerToken, headers))
                 .queryParams(queryParameters);
         if (body != null) {
             request.body(body);

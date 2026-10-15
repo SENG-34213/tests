@@ -2,7 +2,7 @@
 
 This repository contains the Mentify platform's repository-level integration and end-to-end test suites. It complements the unit and service-level tests in [Mentify-backend](https://github.com/SENG-34213/Mentify-backend).
 
-The initial foundation is implemented in `TEST-001`. Backend API, Keycloak, database, messaging, security, and end-to-end tests will be added in later tickets.
+The repository foundation and reusable API/authentication clients are implemented through `TEST-004`. Backend API, database, messaging, security, and end-to-end suites will be added in later tickets.
 
 ## Prerequisites
 
@@ -43,6 +43,8 @@ The backend repository is a Java 17 Spring Boot microservice monorepo. This repo
 4. Kafka, Mailpit, WebSocket, AI, and payment-provider integration tests using controlled test doubles or containers.
 5. End-to-end user journeys.
 6. Security, performance, and staging verification.
+
+Authentication client usage and safe local credential configuration are documented in [docs/authentication-testing.md](docs/authentication-testing.md).
 
 ## Standards
 
