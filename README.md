@@ -20,6 +20,13 @@ mvn verify
 
 The foundation smoke test does not require the Mentify backend, Docker, Keycloak, PostgreSQL, Kafka, Mailpit, AI providers, or Stripe.
 
+When the backend environment is running, execute the readiness checks with:
+
+    $env:TEST_ENV_ENABLED="true"
+    mvn verify -Pintegration
+
+The integration profile checks the configured services and fails clearly if a required service is unavailable.
+
 ## Configuration
 
 Copy `.env.example` to `.env` for local overrides. Never commit `.env` or real credentials. Test configuration is read from environment variables, with safe local defaults in `src/test/resources/application-test.yml`.
