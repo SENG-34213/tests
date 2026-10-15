@@ -90,6 +90,19 @@ mvn -Dtest="*PerformanceTest,*ConcurrencyTest" test
 They use bounded requests, configurable p95/p99/error thresholds, synthetic
 data, and safe provider settings. See [docs/performance-testing.md](performance-testing.md).
 
+## API contract tests
+
+Contract checks are disabled by default and can be run against the Gateway:
+
+```powershell
+$env:CONTRACT_TEST_ENABLED="true"
+$env:CONTRACT_SCHEMA_STRICT="true"
+mvn -Dtest="*ContractTest" test
+```
+
+Set `CONTRACT_COURSE_ID` for optional Course and Enrollment contracts. Contract
+failures identify the affected field and do not print complete response bodies.
+
 ## Repeatability and reports
 
 ```powershell

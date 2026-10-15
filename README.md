@@ -63,6 +63,9 @@ Authentication client usage and safe local credential configuration are document
 - [Negative-path test cases](docs/negative-path-test-cases.md)
 - [Performance testing](docs/performance-testing.md)
 - [Performance baseline](docs/performance-baseline.md)
+- [API contract testing](docs/api-contract-testing.md)
+- [Contract baseline](docs/contract-baseline.md)
+- [Contract change process](docs/contract-change-process.md)
 
 ## Standards
 
