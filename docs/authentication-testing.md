@@ -9,6 +9,12 @@ TEST-004 adds a reusable client for the backend authentication bridge. The clien
 - `POST /api/v1/auth/logout` with the current refresh token.
 - Authenticated API calls through `AuthenticationClient.authenticatedApiClient(session)`.
 
+Authorization coverage uses the backend read-only endpoints `/api/v1/auth/public-test`,
+`/api/v1/auth/protected-test`, `/api/v1/auth/admin-test`, `/api/v1/auth/student-test`,
+and the authenticated profile endpoint `/api/v1/users/me`.
+
+Detailed traceability is available in [authentication-test-cases.md](authentication-test-cases.md).
+
 The session object keeps access and refresh tokens in memory only. Its `toString()` and all API logging omit token and password values. Logout clears the session after a successful backend response.
 
 ## Local configuration
