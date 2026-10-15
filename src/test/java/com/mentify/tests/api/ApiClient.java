@@ -46,6 +46,10 @@ public class ApiClient {
         return execute(HttpMethod.POST, path, body, bearerToken, Map.of(), Map.of());
     }
 
+    public Response postWithHeaders(String path, Object body, String bearerToken, Map<String, String> headers) {
+        return execute(HttpMethod.POST, path, body, bearerToken, Map.of(), headers);
+    }
+
     public Response postMultipart(String path, Map<String, ?> fields, File file, String bearerToken) {
         validatePath(path);
         Objects.requireNonNull(fields, "fields must not be null");
