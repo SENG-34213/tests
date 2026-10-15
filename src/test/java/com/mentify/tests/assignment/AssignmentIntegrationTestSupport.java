@@ -17,6 +17,8 @@ abstract class AssignmentIntegrationTestSupport {
     protected static AuthenticationClient authenticationClient;
     protected static AssignmentClient assignmentClient;
     protected static SubmissionClient submissionClient;
+    protected static AssignmentAttachmentClient assignmentAttachmentClient;
+    protected static SubmissionFileClient submissionFileClient;
 
     @BeforeAll
     static void requireAssignmentEnvironment() {
@@ -26,12 +28,15 @@ abstract class AssignmentIntegrationTestSupport {
         readinessClient.awaitService(RequiredService.ASSIGNMENT_SERVICE);
         readinessClient.awaitService(RequiredService.COURSE_SERVICE);
         readinessClient.awaitService(RequiredService.ENROLLMENT_SERVICE);
+        readinessClient.awaitService(RequiredService.MATERIAL_SERVICE);
 
         apiClient = new ApiClient(ApiClientConfiguration.fromEnvironment(environment, false));
         authenticationClient = new AuthenticationClient(
                 apiClient, AuthenticationConfiguration.fromEnvironment());
         assignmentClient = new AssignmentClient(apiClient);
         submissionClient = new SubmissionClient(apiClient);
+        assignmentAttachmentClient = new AssignmentAttachmentClient(apiClient);
+        submissionFileClient = new SubmissionFileClient(apiClient);
     }
 
     protected static AuthenticationSession login(TestRole role) {
