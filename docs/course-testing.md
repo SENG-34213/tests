@@ -15,7 +15,7 @@ The backend Course Service is located in the `course-service` module and uses th
 - `POST /api/v1/course/bulk` requires `ADMIN` or `SUPER_ADMIN`.
 - `DELETE /api/v1/course/{courseId}` requires `ADMIN` or `SUPER_ADMIN`.
 
-TEST-008 verifies readiness, authenticated read access, unauthenticated rejection, and role-based rejection. Persistent Course Service workflows are reserved for later tickets.
+TEST-008 verifies readiness, authenticated read access, unauthenticated rejection, and role-based rejection. TEST-009 adds persistent CRUD workflow coverage with controlled fixtures and cleanup.
 
 ## Environment
 
@@ -26,6 +26,7 @@ Use the existing role-based variables:
 - `STUDENT_TEST_USERNAME` and `STUDENT_TEST_PASSWORD`
 - `TEACHER_TEST_USERNAME` and `TEACHER_TEST_PASSWORD`
 - `ADMIN_TEST_USERNAME` and `ADMIN_TEST_PASSWORD`
+- `TEST_COURSE_GRADE_ID` and `TEST_COURSE_TEACHER_ID` for existing non-production fixtures used by CRUD tests
 
 Never commit credentials, tokens, production data, or production URLs containing secrets.
 
@@ -39,4 +40,4 @@ The default command `mvn clean verify` runs unit tests and does not require the 
 
 ## Test data
 
-TEST-008 uses read-only requests and authorization-only requests. It does not create a persistent course. Course creation, update, and deletion workflows require a later ticket with controlled fixtures and cleanup.
+TEST-008 uses read-only requests and authorization-only requests. TEST-009 creates uniquely named courses with configured fixtures, verifies the lifecycle, and deletes every created course in cleanup. The CRUD tests are skipped when the two fixture IDs are not configured.

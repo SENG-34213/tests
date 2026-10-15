@@ -16,6 +16,13 @@
 | TC-COURSE-012 | Student performs bulk lookup | `POST /api/v1/course/bulk` | `403 Forbidden` | Authorization |
 | TC-COURSE-013 | Course client configuration | Course client construction | Client requires a valid API client | Unit |
 | TC-COURSE-014 | Course environment configuration | `COURSE_SERVICE_BASE_URL` | URL is parsed correctly | Unit |
+| TC-COURSE-015 | Admin creates a course | `POST /api/v1/course` | `201 Created` with a course ID | CRUD integration |
+| TC-COURSE-016 | Admin reads and updates a course | `GET/PUT /api/v1/course/{courseId}` | `200 OK` and updated course data | CRUD integration |
+| TC-COURSE-017 | Student and teacher lookup | `GET /api/v1/course/{courseId}/lookup` | `200 OK` for both roles | CRUD integration |
+| TC-COURSE-018 | Admin bulk lookup | `POST /api/v1/course/bulk` | `200 OK` containing the created course | CRUD integration |
+| TC-COURSE-019 | Admin deletes a course | `DELETE /api/v1/course/{courseId}` | `200 OK`, followed by `404` on read | CRUD integration |
+| TC-COURSE-020 | Admin submits invalid course data | `POST /api/v1/course` | `400 Bad Request` | Validation integration |
+| TC-COURSE-021 | Admin reads an unknown course | `GET /api/v1/course/{courseId}` | `404 Not Found` | Error integration |
 
 ## Preconditions
 
