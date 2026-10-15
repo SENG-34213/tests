@@ -83,4 +83,23 @@ class TestEnvironmentConfigurationTest {
         assertEquals(URI.create("http://course.test:8082"),
                 configuration.serviceUrls().get(RequiredService.COURSE_SERVICE));
     }
+
+    @Test
+    void shouldParseEnrollmentServiceConfigurationWhenEnrollmentTestingIsEnabled() {
+        Map<String, String> environment = Map.of(
+                "TEST_REQUIRED_SERVICES", "API_GATEWAY,KEYCLOAK,COURSE_SERVICE,ENROLLMENT_SERVICE",
+                "ENROLLMENT_SERVICE_BASE_URL", "http://enrollment.test:8083");
+
+        TestEnvironmentConfiguration configuration =
+                TestEnvironmentConfiguration.fromEnvironment(environment);
+
+        assertEquals(java.util.List.of(
+                        RequiredService.API_GATEWAY,
+                        RequiredService.KEYCLOAK,
+                        RequiredService.COURSE_SERVICE,
+                        RequiredService.ENROLLMENT_SERVICE),
+                configuration.requiredServices());
+        assertEquals(URI.create("http://enrollment.test:8083"),
+                configuration.serviceUrls().get(RequiredService.ENROLLMENT_SERVICE));
+    }
 }
