@@ -58,6 +58,9 @@ Authentication client usage and safe local credential configuration are document
 - [Test execution](docs/test-execution.md)
 - [CI test execution](docs/ci-test-execution.md)
 - [Known limitations](docs/known-limitations.md)
+- [Security testing](docs/security-testing.md)
+- [Resilience testing](docs/resilience-testing.md)
+- [Negative-path test cases](docs/negative-path-test-cases.md)
 
 ## Standards
 
