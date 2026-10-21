@@ -23,8 +23,8 @@ paths remain.
 ## Test-to-case traceability status
 
 A source scan of `*IT.java` files found 232 conventional annotated test methods.
-The mapping CSV contains 193 rows, mapping 140 distinct integration methods;
-92 annotated methods do not yet have a CSV case mapping. There are no duplicate
+The mapping CSV contains 208 rows, mapping 155 distinct integration methods;
+77 annotated methods do not yet have a CSV case mapping. There are no duplicate
 case IDs or compound method-name cells. Thus the mappings are useful but are
 not yet a complete register of executable integration coverage. The counts include gateway,
 resilience, staging, and infrastructure tests as well as user-facing services.
@@ -39,7 +39,7 @@ Unmapped methods by test package at this audit:
 | API | 1 |
 | Assignment | 0 |
 | Attendance | 6 |
-| Authentication | 15 |
+| Authentication | 0 |
 | Calendar | 11 |
 | Communication | 8 |
 | End-to-end | 5 |
@@ -55,14 +55,15 @@ Unmapped methods by test package at this audit:
 | Staging | 4 |
 | User | 6 |
 
-Course and Assignment service conventional integration methods were reconciled
-with their case catalogs in this pass; missing role/validation, pagination,
-and security scenarios were added, and stale method-name/ID mismatches were
-corrected. Assignment attachment case IDs now match their documentation.
-Compound mapping cells in Attendance, Quiz, and Enrollment were split into one
-row per JUnit method, and catalogs expanded where a prior case combined
-distinct behaviors. Other package counts above remain explicit traceability
-work rather than evidence that those tests are absent.
+Course, Assignment, Authentication, and User self-service conventional
+integration methods were reconciled with their case catalogs in this pass;
+missing role/validation and ownership scenarios were added, and stale
+method-name/ID mismatches were corrected. Assignment attachment case IDs now
+match their documentation. Compound mapping cells in Attendance, Quiz, and
+Enrollment were split into one row per JUnit method, and catalogs expanded
+where a prior case combined distinct behaviors. Other package counts above
+remain explicit traceability work rather than evidence that those tests are
+absent.
 
 The local evidence-generator run also exposed and fixed a class-name join bug:
 the CSV stores simple Java class names while JUnit XML stores fully qualified

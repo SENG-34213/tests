@@ -18,6 +18,7 @@ These integration test cases use the backend `development` branch contract and e
 | TC-AUTH-ROLE-003 | Verify Teacher authorization | Teacher access is authenticated and restricted | `AuthorizationIT` | Integration | P1 |
 | TC-AUTH-ROLE-004 | Allow Admin resource access | Admin role authorization | `AuthorizationIT` | Integration | P1 |
 | TC-AUTH-USER-001 | Read authenticated user profile | Authenticated user can read `/users/me` | `AuthorizationIT` | Integration | P1 |
+| TC-AUTH-CLIENT-001 | Create an authenticated API client after login | Successful login produces a usable authenticated client and logout clears the session | `AuthenticationClientIT` | Integration | P1 |
 | TC-AUTH-RECOVERY-001 | Request reset for unknown account without account disclosure | Generic recovery response | `AuthenticationRecoveryIT` | Security integration | P1 |
 | TC-AUTH-RECOVERY-002 | Reject invalid reset OTP and token | Recovery cannot proceed without valid OTP/token | `AuthenticationRecoveryIT` | Validation integration | P1 |
 | TC-AUTH-JWKS-001 | Read public signing-key document | JWKS is publicly available | `AuthenticationRecoveryIT` | Contract integration | P1 |
