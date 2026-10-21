@@ -21,6 +21,7 @@ This index records the executable coverage and its environment status.
 | TC-AI-* | AI | Health, conversations, provider boundary | authenticated users | `ai` | integration/security | AI contract and role rules hold | AI; provider optional | Environment-gated |
 | TC-E2E-* | Gateway | Authentication, course/enrollment, authorization | student, teacher | `e2e` | e2e/smoke | Gateway journey succeeds or skips clearly | Gateway, Keycloak, fixtures | Disabled by default |
 | TC-FOUNDATION-* | Repository | Configuration and smoke behavior | n/a | `foundation`, `environment`, `api/*Test` | unit | Support is deterministic without services | Java/Maven | Static CI |
+| TC-TEST-028-* | Staging | Read-only readiness, identity discovery, public/protected gateway probes | n/a | `staging/StagingSmokeIT`, `staging/*Test` | unit/integration/smoke | Only approved staging is probed; required checks pass or the run fails | Protected staging environment | Manual-only; live run not yet evidenced |
 
 ## Naming and selection rules
 

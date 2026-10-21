@@ -54,3 +54,9 @@
 - Integration tests absent from a run are reported as not run; generated
   registers are run-specific evidence and do not by themselves constitute a
   complete sprint test register.
+- TEST-028 staging checks are manual-only and require repository administrators
+  to configure/protect the `staging` GitHub Environment, its host-suffix and URL
+  variables, and required reviewers. No live staging run has been performed or
+  claimed by this change. Authenticated identity probes, deployment, write
+  workflows, production verification, and full release certification remain out
+  of scope.

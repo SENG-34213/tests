@@ -50,6 +50,19 @@ approved course/enrollment fixtures, safe payment/AI providers, and all required
 through the CI secret store; never put values in YAML, `.env.example`, logs, or command output. Set
 `TEST_E2E_ENABLED=true` only for that controlled job and include the exact required service list.
 
+## Staging release smoke
+
+`.github/workflows/staging-smoke.yml` is a separate `workflow_dispatch`-only
+workflow bound to the protected GitHub Environment named `staging`. It runs
+only `StagingSmokeIT`, requires the operator to type the exact confirmation,
+and does not deploy anything. Configure the environment variables and required
+reviewers described in [staging-release-smoke.md](staging-release-smoke.md).
+The Maven run receives no credentials and performs GET-only probes; it validates
+the HTTPS host against the configured staging DNS suffix and never follows
+redirects. JUnit and `target/staging-evidence/summary.md` are uploaded even when
+the smoke checks fail. A successful workflow is only bounded staging smoke
+evidence, not a release certification.
+
 ## Failure diagnosis
 
 1. Check the readiness message and required-service list.

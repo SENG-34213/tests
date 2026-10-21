@@ -49,6 +49,9 @@ The backend repository is a Java 17 Spring Boot microservice monorepo. This repo
 5. End-to-end user journeys.
 6. Security, performance, and staging verification.
 
+Staging verification is an explicit, manual-only, read-only workflow. It must
+not be used against production; see [staging release smoke](docs/staging-release-smoke.md).
+
 Authentication client usage and safe local credential configuration are documented in [docs/authentication-testing.md](docs/authentication-testing.md).
 
 ## Quality and traceability
@@ -66,6 +69,8 @@ Authentication client usage and safe local credential configuration are document
 - [API contract testing](docs/api-contract-testing.md)
 - [Contract baseline](docs/contract-baseline.md)
 - [Contract change process](docs/contract-change-process.md)
+- [Staging release smoke](docs/staging-release-smoke.md)
+- [Staging smoke test cases](docs/staging-test-cases.md)
 
 ## Standards
 

@@ -28,6 +28,7 @@ Environment` means the test is intentionally gated.
 | CI build, reports, and safe defaults | Maven and GitHub Actions | TEST-022, TEST-023 | `.github/workflows/test.yml` | Covered | Static CI needs no live services or secrets. |
 | Final traceability and quality review | Test repository | TEST-023 | This document and related final documents | Covered | Reviewed during TEST-023. |
 | Backend code-coverage and executed-register evidence | Backend CI and tests repository | TEST-027 | Backend JaCoCo artifacts, `tools/test-evidence.py`, `docs/test-case-mappings.csv` | Partially Covered | Backend publishes per-service JaCoCo artifacts and applies configured module/scope checks; tests CI generates run-specific JUnit evidence. The mapping CSV still needs case-level rows, and combined coverage evidence requires matching backend artifacts. |
+| Staging release-candidate smoke verification | API Gateway, Keycloak, test repository CI | TEST-028 | `staging/StagingSmokeIT`, `.github/workflows/staging-smoke.yml`, `docs/staging-test-cases.md` | Partially Covered | Read-only probes and local policy tests exist; the protected GitHub Environment must be configured and an authorized live staging run must provide evidence. |
 
 ## Service inventory
 

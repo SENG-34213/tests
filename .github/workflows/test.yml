@@ -111,6 +111,9 @@ jobs:
           test -f docs/api-contract-testing.md
           test -f docs/contract-baseline.md
           test -f docs/contract-change-process.md
+          test -f docs/staging-release-smoke.md
+          test -f docs/staging-test-cases.md
+          test -f .github/workflows/staging-smoke.yml
           test ! -f .env
 
       - name: Upload Surefire reports
