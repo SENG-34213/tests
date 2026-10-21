@@ -36,5 +36,11 @@ class CourseClientTest {
         assertThrows(IllegalArgumentException.class, () -> client.lookup(" ", null));
         assertThrows(IllegalArgumentException.class, () -> client.update("", Map.of(), null));
         assertThrows(IllegalArgumentException.class, () -> client.delete(" ", null));
+        assertThrows(IllegalArgumentException.class, () -> client.teacherSearch(" ", null));
+        assertThrows(IllegalArgumentException.class, () -> client.teacherStudents(" ", null));
+        assertThrows(IllegalArgumentException.class, () -> client.teacherGradebook(" ", null));
+        assertThrows(IllegalArgumentException.class, () -> client.teacherAnalytics(" ", null));
+        assertThrows(IllegalArgumentException.class,
+                () -> client.teacherStudentSummary(" ", "course-id", null));
     }
 }

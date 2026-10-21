@@ -1,1 +1,6 @@
 test_case_id,requirement,service,scenario,priority,class_name,method_name,level,required_environment,expected_result
+TC-COURSE-022,Teacher portal dashboard is available to teachers,course,Read dashboard,high,TeacherPortalAuthorizationIT,shouldAllowTeacherToReadDashboardAndSearch,integration,Course Service and teacher credentials,200 success response with data
+TC-COURSE-023,Teacher portal search is available to teachers,course,Search portal records,high,TeacherPortalAuthorizationIT,shouldAllowTeacherToReadDashboardAndSearch,integration,Course Service and teacher credentials,200 success response with data
+TC-COURSE-024,Teacher portal protected reads require authentication,course,Unauthenticated dashboard and search,high,TeacherPortalAuthorizationIT,shouldRejectUnauthenticatedDashboardAndSearch,security,Course Service,401 Unauthorized
+TC-COURSE-025,Teacher portal reads reject student role,course,Student denied on teacher routes,high,TeacherPortalAuthorizationIT,shouldRejectStudentFromTeacherPortalReads,security,Course Service and student credentials,403 Forbidden
+TC-COURSE-026,Teacher portal client rejects missing required inputs,course,Validate portal identifiers and query,medium,CourseClientTest,shouldRejectBlankCourseIdForLookupUpdateAndDelete,unit,None,IllegalArgumentException for blank values

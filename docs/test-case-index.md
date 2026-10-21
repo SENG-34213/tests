@@ -7,7 +7,7 @@ This index records the executable coverage and its environment status.
 |---|---|---|---|---|---|---|---|---|
 | TC-AUTH-* | Keycloak/Gateway | Login, refresh, logout, protected access | student, teacher, admin | `auth`, `user/AuthenticationIT` | integration/security | Valid credentials work; invalid access is rejected | Keycloak, gateway, users | Environment-gated |
 | TC-USER-* | User | Profile, validation, authorization, administration | student, teacher, admin | `user` | integration/security | Role and validation rules are enforced | User Service, Keycloak | Environment-gated |
-| TC-COURSE-* | Course | Lookup, CRUD, authorization | student, teacher, admin | `course` | integration | Allowed operations succeed; forbidden operations fail | Course, fixtures | Environment-gated |
+| TC-COURSE-* | Course and teacher portal | Course lookup/CRUD plus dashboard/search and portal authorization | student, teacher, admin | `course` | integration/security | Allowed operations succeed; forbidden operations fail | Course, Keycloak; course fixtures for CRUD | Environment-gated |
 | TC-ENROLLMENT-* | Enrollment | Reads and cross-service access | student, teacher, admin | `enrollment`, `e2e/CourseEnrollmentJourneyIT` | integration/e2e | Enrollment and role rules are correct | Enrollment, course fixture | Environment-gated |
 | TC-ASSIGNMENT-* | Assignment | Assignment, submission, attachment workflows | student, teacher, admin | `assignment` | integration | Lifecycle and authorization contracts hold | Assignment/Material, fixtures | Environment-gated |
 | TC-MATERIAL-* | Material | Upload, list, download, archive, cleanup | teacher, admin | `material` | integration/validation | Contract and safe cleanup behavior hold | Material, files/fixtures | Environment-gated |

@@ -23,6 +23,11 @@
 | TC-COURSE-019 | Admin deletes a course | `DELETE /api/v1/course/{courseId}` | `200 OK`, followed by `404` on read | CRUD integration |
 | TC-COURSE-020 | Admin submits invalid course data | `POST /api/v1/course` | `400 Bad Request` | Validation integration |
 | TC-COURSE-021 | Admin reads an unknown course | `GET /api/v1/course/{courseId}` | `404 Not Found` | Error integration |
+| TC-COURSE-022 | Teacher reads dashboard | `GET /api/v1/teacher/dashboard` | `200` with successful response and data | Integration |
+| TC-COURSE-023 | Teacher searches portal records | `GET /api/v1/teacher/search?q=...` | `200` with successful response and data | Integration |
+| TC-COURSE-024 | Unauthenticated teacher dashboard/search | `GET /api/v1/teacher/dashboard`, `/search` | `401 Unauthorized` | Security |
+| TC-COURSE-025 | Student cannot access teacher portal reads | Dashboard, search, student directory/summary, gradebook, analytics | `403 Forbidden` | Authorization |
+| TC-COURSE-026 | Teacher portal client validates required identifiers | Course/student IDs and search query | Blank required values are rejected locally | Unit |
 
 ## Preconditions
 
@@ -38,3 +43,4 @@
 - Unknown course identifiers may be used for lookup and deletion checks.
 - Tests do not access the Course Service database.
 - Tests do not use production course identifiers.
+- Teacher portal authorization tests use an unknown UUID only after verifying that the request is rejected by role; success-path directory, gradebook, analytics, and summary fixtures are still required.
