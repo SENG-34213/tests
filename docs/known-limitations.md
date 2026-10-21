@@ -39,3 +39,18 @@
 - JUnit tags are reserved vocabulary, but class-pattern selection is the
   currently verified Maven mechanism. Tag filtering must not be claimed until
   it is configured and tested.
+- The static tests-repository workflow does not instrument backend services;
+  its generated evidence therefore reports backend code coverage as unavailable.
+- Per-service backend JaCoCo artifacts are produced by the separate backend
+  workflow. A combined report requires downloading the artifacts from the same
+  backend run and passing them to the evidence generator. Coverage gates may
+  differ by module and source scope; the report does not infer gate outcomes.
+- Automated backend-artifact download is available only on manual tests-CI runs
+  and requires the selected backend run ID, commit SHA, and the
+  `BACKEND_ARTIFACTS_TOKEN` repository secret. Routine static CI does not use it.
+- The test-case mapping CSV currently has no data rows. Documented cases appear
+  as `Not Mapped` and executed methods appear as unmapped until their case,
+  requirement, and JUnit method mappings are added.
+- Integration tests absent from a run are reported as not run; generated
+  registers are run-specific evidence and do not by themselves constitute a
+  complete sprint test register.

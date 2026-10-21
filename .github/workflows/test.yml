@@ -6,6 +6,20 @@ on:
     branches:
       - development
   workflow_dispatch:
+    inputs:
+      include_backend_coverage:
+        description: Download JaCoCo artifacts from a selected backend CI run
+        required: true
+        default: false
+        type: boolean
+      backend_workflow_run_id:
+        description: Backend GitHub Actions run ID that produced the JaCoCo artifacts
+        required: false
+        type: string
+      backend_commit_sha:
+        description: Backend commit SHA represented by those artifacts
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -26,11 +40,61 @@ jobs:
           java-version: '17'
           cache: maven
 
+      - name: Set up Python for evidence generation
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Run verification
         env:
           TEST_ENV_ENABLED: 'false'
           TEST_E2E_ENABLED: 'false'
         run: mvn --batch-mode --no-transfer-progress clean verify
+
+      - name: Validate backend coverage inputs
+        if: ${{ inputs.include_backend_coverage == true }}
+        env:
+          BACKEND_RUN_ID: ${{ inputs.backend_workflow_run_id }}
+          BACKEND_COMMIT_SHA: ${{ inputs.backend_commit_sha }}
+          BACKEND_ARTIFACTS_TOKEN: ${{ secrets.BACKEND_ARTIFACTS_TOKEN }}
+        shell: bash
+        run: |
+          test -n "$BACKEND_RUN_ID" || { echo "backend_workflow_run_id is required"; exit 1; }
+          test -n "$BACKEND_COMMIT_SHA" || { echo "backend_commit_sha is required"; exit 1; }
+          test -n "$BACKEND_ARTIFACTS_TOKEN" || { echo "Configure BACKEND_ARTIFACTS_TOKEN with read access to backend workflow artifacts"; exit 1; }
+
+      - name: Download backend unit coverage reports
+        if: ${{ inputs.include_backend_coverage == true }}
+        uses: actions/download-artifact@v4
+        with:
+          repository: SENG-34213/Mentify-backend
+          run-id: ${{ inputs.backend_workflow_run_id }}
+          github-token: ${{ secrets.BACKEND_ARTIFACTS_TOKEN }}
+          pattern: jacoco-unit-*
+          path: artifacts/backend-jacoco/unit
+
+      - name: Download backend integration coverage reports
+        if: ${{ inputs.include_backend_coverage == true }}
+        uses: actions/download-artifact@v4
+        with:
+          repository: SENG-34213/Mentify-backend
+          run-id: ${{ inputs.backend_workflow_run_id }}
+          github-token: ${{ secrets.BACKEND_ARTIFACTS_TOKEN }}
+          pattern: jacoco-integration-*
+          path: artifacts/backend-jacoco/integration
+
+      - name: Generate executed test register and coverage availability summary
+        if: always()
+        env:
+          BACKEND_COMMIT_SHA: ${{ inputs.backend_commit_sha || 'unknown' }}
+          BACKEND_RUN_ID: ${{ inputs.backend_workflow_run_id || 'not-supplied' }}
+        run: >-
+          python tools/test-evidence.py
+          --junit-dir target/surefire-reports
+          --junit-dir target/failsafe-reports
+          --jacoco-dir artifacts/backend-jacoco
+          --metadata docs/test-case-mappings.csv
+          --output-dir target/test-evidence
 
       - name: Check documentation and repository hygiene
         shell: bash
@@ -63,4 +127,20 @@ jobs:
         with:
           name: failsafe-reports-${{ github.run_number }}
           path: target/failsafe-reports/
+          if-no-files-found: warn
+
+      - name: Upload test evidence register
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-evidence-${{ github.run_number }}
+          path: target/test-evidence/
+          if-no-files-found: warn
+
+      - name: Preserve downloaded backend coverage reports
+        if: ${{ always() && inputs.include_backend_coverage == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-inputs-${{ github.run_number }}
+          path: artifacts/backend-jacoco/
           if-no-files-found: warn
