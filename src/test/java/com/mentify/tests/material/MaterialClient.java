@@ -28,6 +28,13 @@ public class MaterialClient {
         return apiClient.get(API_PATH, token, queryParameters, Map.of());
     }
 
+    public Response aiSources(String courseId, String token) {
+        if (courseId == null || courseId.isBlank()) {
+            throw new IllegalArgumentException("courseId must not be blank");
+        }
+        return apiClient.get(API_PATH + "/ai-sources", token, Map.of("courseId", courseId), Map.of());
+    }
+
     public Response get(String materialId, String token) {
         return apiClient.get(materialPath(materialId), token, Map.of(), Map.of());
     }

@@ -2,7 +2,6 @@ package com.mentify.tests.security;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
@@ -37,7 +36,7 @@ class SecurityRegressionIT extends SecurityRegressionTestSupport {
     void protectedErrorResponsesDoNotExposeSensitiveValues() {
         Response response = users.currentUser("not-a-jwt");
         String body = response.asString().toLowerCase();
-        assertTrue(response.statusCode() >= 400 && response.statusCode() < 500);
+        assertEquals(401, response.statusCode());
         assertFalse(body.contains("password"));
         assertFalse(body.contains("access_token"));
         assertFalse(body.contains("refresh_token"));

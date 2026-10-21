@@ -2,6 +2,7 @@ package com.mentify.tests.calendar;
 
 import com.mentify.tests.api.ApiClient;
 import io.restassured.response.Response;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
 
@@ -9,6 +10,7 @@ public class CalendarClient {
 
     private static final String UPCOMING_PATH = "/api/v1/calendar/upcoming";
     private static final String EVENTS_PATH = "/api/v1/calendar/events";
+    private static final String VENUES_PATH = "/api/v1/calendar/venues";
 
     private final ApiClient apiClient;
 
@@ -24,6 +26,15 @@ public class CalendarClient {
         return apiClient.get(EVENTS_PATH, bearerToken, Map.of(), Map.of());
     }
 
+    public Response events(String bearerToken, LocalDateTime start, LocalDateTime end) {
+        return apiClient.get(EVENTS_PATH, bearerToken,
+                Map.of("start", start.toString(), "end", end.toString()), Map.of());
+    }
+
+    public Response getEvent(String eventId, String bearerToken) {
+        return apiClient.get(eventPath(eventId), bearerToken, Map.of(), Map.of());
+    }
+
     public Response create(Object request, String bearerToken) {
         return apiClient.post(EVENTS_PATH, request, bearerToken);
     }
@@ -34,6 +45,14 @@ public class CalendarClient {
 
     public Response cancel(String eventId, String bearerToken) {
         return apiClient.post(eventPath(eventId) + "/cancel", null, bearerToken);
+    }
+
+    public Response venues(String bearerToken) {
+        return apiClient.get(VENUES_PATH, bearerToken, Map.of(), Map.of());
+    }
+
+    public Response createVenue(Object request, String bearerToken) {
+        return apiClient.post(VENUES_PATH, request, bearerToken);
     }
 
     private static String eventPath(String eventId) {

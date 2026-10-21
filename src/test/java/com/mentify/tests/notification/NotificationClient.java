@@ -19,6 +19,10 @@ public class NotificationClient {
         return apiClient.get(PATH, token, Map.of("page", page, "size", size, "unreadOnly", unreadOnly), Map.of());
     }
 
+    public Response list(String token) {
+        return apiClient.get(PATH, token, Map.of(), Map.of());
+    }
+
     public Response unreadCount(String token) {
         return apiClient.get(PATH + "/unread-count", token, Map.of(), Map.of());
     }

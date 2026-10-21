@@ -27,6 +27,13 @@ class CalendarAuthenticationIT extends CalendarIntegrationTestSupport {
     }
 
     @Test
+    void shouldRejectEventDetailsWithoutAuthentication() {
+        Response response = calendarClient.getEvent("00000000-0000-0000-0000-000000000000", null);
+
+        assertEquals(401, response.statusCode());
+    }
+
+    @Test
     void shouldAllowAnAuthenticatedStudentToQueryUpcomingEvents() {
         AuthenticationSession session = login(TestRole.STUDENT);
 

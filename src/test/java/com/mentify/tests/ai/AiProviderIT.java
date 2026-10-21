@@ -1,6 +1,7 @@
 package com.mentify.tests.ai;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.mentify.tests.auth.AuthenticationSession;
@@ -18,11 +19,15 @@ class AiProviderIT extends AiIntegrationTestSupport {
         AuthenticationSession teacher = login(TestRole.TEACHER);
         AuthenticationSession admin = login(TestRole.ADMIN);
         try {
-            assertTrue(ai.chat(Map.of("conversationId", data.conversationId().toString(),
+            var chat = ai.chat(Map.of("conversationId", data.conversationId().toString(),
                     "clientMessageId", "test-020-" + System.nanoTime(),
-                    "message", "Explain inheritance in one sentence."), teacher.accessToken()).statusCode() < 500);
-            assertTrue(ai.generate(Map.of("prompt", "Give one synthetic Java inheritance example."),
-                    admin.accessToken()).statusCode() < 500);
+                    "message", "Explain inheritance in one sentence."), teacher.accessToken());
+            assertEquals(200, chat.statusCode(), chat.asString());
+            assertNotNull(chat.jsonPath().get("data"), chat.asString());
+            var generation = ai.generate(Map.of("prompt", "Give one synthetic Java inheritance example."),
+                    admin.accessToken());
+            assertEquals(200, generation.statusCode(), generation.asString());
+            assertNotNull(generation.jsonPath().get("data"), generation.asString());
         } finally {
             logout(teacher);
             logout(admin);

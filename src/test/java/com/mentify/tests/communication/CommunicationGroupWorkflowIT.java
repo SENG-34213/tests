@@ -1,6 +1,7 @@
 package com.mentify.tests.communication;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
@@ -20,16 +21,16 @@ class CommunicationGroupWorkflowIT extends CommunicationIntegrationTestSupport {
         try {
             Response created = communicationClient.createGroup(CommunicationTestDataFactory.group(data.courseId()),
                     teacher.accessToken());
-            assertTrue(created.statusCode() == 201 || created.statusCode() == 200);
+            assertEquals(201, created.statusCode(), created.asString());
             String groupId = created.jsonPath().getString("data.id");
             assertTrue(groupId != null && !groupId.isBlank());
-            assertTrue(communicationClient.listGroups(teacher.accessToken()).statusCode() == 200);
-            assertTrue(communicationClient.getGroup(groupId, teacher.accessToken()).statusCode() == 200);
-            assertTrue(communicationClient.listMembers(groupId, teacher.accessToken()).statusCode() == 200);
-            assertTrue(communicationClient.addStudent(groupId, CommunicationTestDataFactory.student(data.studentId()),
-                    teacher.accessToken()).statusCode() < 500);
-            assertTrue(communicationClient.archive(groupId, teacher.accessToken()).statusCode() == 200);
-            assertTrue(communicationClient.unarchive(groupId, teacher.accessToken()).statusCode() == 200);
+            assertEquals(200, communicationClient.listGroups(teacher.accessToken()).statusCode());
+            assertEquals(200, communicationClient.getGroup(groupId, teacher.accessToken()).statusCode());
+            assertEquals(200, communicationClient.listMembers(groupId, teacher.accessToken()).statusCode());
+            assertEquals(200, communicationClient.addStudent(groupId,
+                    CommunicationTestDataFactory.student(data.studentId()), teacher.accessToken()).statusCode());
+            assertEquals(200, communicationClient.archive(groupId, teacher.accessToken()).statusCode());
+            assertEquals(200, communicationClient.unarchive(groupId, teacher.accessToken()).statusCode());
         } finally {
             logout(teacher);
         }
@@ -42,8 +43,8 @@ class CommunicationGroupWorkflowIT extends CommunicationIntegrationTestSupport {
                 "Communication write fixtures are not enabled");
         AuthenticationSession teacher = login(TestRole.TEACHER);
         try {
-            assertTrue(communicationClient.addStudentToCourse(data.courseId().toString(),
-                    CommunicationTestDataFactory.student(data.studentId()), teacher.accessToken()).statusCode() < 500);
+            assertEquals(200, communicationClient.addStudentToCourse(data.courseId().toString(),
+                    CommunicationTestDataFactory.student(data.studentId()), teacher.accessToken()).statusCode());
         } finally {
             logout(teacher);
         }

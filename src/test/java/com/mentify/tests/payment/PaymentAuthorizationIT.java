@@ -17,6 +17,7 @@ class PaymentAuthorizationIT extends PaymentIntegrationTestSupport {
         assertEquals(401, payments.myPayments(null).statusCode());
         assertEquals(401, payments.myPayment(UNKNOWN_ID, null).statusCode());
         assertEquals(401, payments.adminPayments(null, null, null, null, null, null, 0, 20, null).statusCode());
+        assertEquals(401, payments.verifySuccessfulPayment(UNKNOWN_ID, UNKNOWN_ID, null).statusCode());
     }
 
     @Test
@@ -28,8 +29,21 @@ class PaymentAuthorizationIT extends PaymentIntegrationTestSupport {
             assertEquals(403, payments.adminPayments(null, null, null, null, null, null, 0, 20, token).statusCode());
             assertEquals(403, payments.adminPayment(UNKNOWN_ID, token).statusCode());
             assertEquals(403, payments.refund(UNKNOWN_ID, null, token).statusCode());
+            assertEquals(403, payments.verifySuccessfulPayment(UNKNOWN_ID, UNKNOWN_ID, token).statusCode());
         } finally {
             logout(student);
+        }
+    }
+
+    @Test
+    void administratorCanVerifySuccessfulPaymentForUnknownStudentCoursePair() {
+        AuthenticationSession admin = login(TestRole.ADMIN);
+        try {
+            var response = payments.verifySuccessfulPayment(UNKNOWN_ID, UNKNOWN_ID, admin.accessToken());
+            assertEquals(200, response.statusCode(), response.asString());
+            assertEquals(false, response.jsonPath().getBoolean("data.successfulPaymentExists"));
+        } finally {
+            logout(admin);
         }
     }
 
