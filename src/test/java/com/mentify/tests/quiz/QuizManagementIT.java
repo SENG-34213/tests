@@ -45,6 +45,11 @@ class QuizManagementIT extends QuizIntegrationTestSupport {
             assertEquals(200, listed.statusCode());
             assertTrue(listed.jsonPath().getList("data.id", String.class).contains(quizId));
 
+            Response gradebookQuizzes = quizClient.teacherGradebookQuizzes(
+                    config.courseId().toString(), teacher.accessToken());
+            assertEquals(200, gradebookQuizzes.statusCode(), gradebookQuizzes.asString());
+            assertNotNull(gradebookQuizzes.jsonPath().get("data"), gradebookQuizzes.asString());
+
             Response updated = quizClient.update(quizId, QuizTestDataFactory.update("MANAGEMENT"),
                     teacher.accessToken());
             assertEquals(200, updated.statusCode());
@@ -56,7 +61,7 @@ class QuizManagementIT extends QuizIntegrationTestSupport {
             assertEquals(201, question.statusCode());
             String questionId = question.jsonPath().getString("data.id");
             assertNotNull(questionId);
-            assertEquals("SINGLE_CHOICE", question.jsonPath().getString("data.questionType"));
+            assertEquals("MULTIPLE_CHOICE_SINGLE_ANSWER", question.jsonPath().getString("data.questionType"));
             assertEquals(4, question.jsonPath().getList("data.options").size());
 
             Response changedQuestion = questionClient.update(quizId, questionId,
@@ -68,7 +73,7 @@ class QuizManagementIT extends QuizIntegrationTestSupport {
                     teacher.accessToken());
             String removableId = removable.jsonPath().getString("data.id");
             assertEquals(201, removable.statusCode());
-            assertTrue(questionClient.delete(quizId, removableId, teacher.accessToken()).statusCode() < 300);
+            assertEquals(200, questionClient.delete(quizId, removableId, teacher.accessToken()).statusCode());
 
             Response published = quizClient.publish(quizId, teacher.accessToken());
             assertEquals(200, published.statusCode());
@@ -82,16 +87,41 @@ class QuizManagementIT extends QuizIntegrationTestSupport {
     }
 
     @Test
-    void rejectsUnknownQuizAndQuestionIdsWithoutServerError() {
+    void unknownQuizAndQuestionResourcesReturnNotFound() {
         AuthenticationSession teacher = login(TestRole.TEACHER);
         try {
-            assertTrue(quizClient.getTeacher(UNKNOWN_ID, teacher.accessToken()).statusCode() < 500);
-            assertTrue(quizClient.update(UNKNOWN_ID, QuizTestDataFactory.update("UNKNOWN"),
-                    teacher.accessToken()).statusCode() < 500);
-            assertTrue(questionClient.create(UNKNOWN_ID, QuizTestDataFactory.question("UNKNOWN"),
-                    teacher.accessToken()).statusCode() < 500);
-            assertTrue(questionClient.update(UNKNOWN_ID, UNKNOWN_ID, Map.of(),
-                    teacher.accessToken()).statusCode() < 500);
+            assertEquals(404, quizClient.getTeacher(UNKNOWN_ID, teacher.accessToken()).statusCode());
+            assertEquals(404, quizClient.update(UNKNOWN_ID, QuizTestDataFactory.update("UNKNOWN"),
+                    teacher.accessToken()).statusCode());
+            assertEquals(404, quizClient.delete(UNKNOWN_ID, teacher.accessToken()).statusCode());
+            assertEquals(404, quizClient.publish(UNKNOWN_ID, teacher.accessToken()).statusCode());
+            assertEquals(404, quizClient.results(UNKNOWN_ID, teacher.accessToken()).statusCode());
+            assertEquals(404, questionClient.create(UNKNOWN_ID, QuizTestDataFactory.question("UNKNOWN"),
+                    teacher.accessToken()).statusCode());
+            assertEquals(404, questionClient.update(UNKNOWN_ID, UNKNOWN_ID, Map.of(),
+                    teacher.accessToken()).statusCode());
+            assertEquals(404, questionClient.delete(UNKNOWN_ID, UNKNOWN_ID, teacher.accessToken()).statusCode());
+        } finally {
+            logout(teacher);
+        }
+    }
+
+    @Test
+    void teacherCanReadClosedQuizResultsInGradebook() {
+        QuizTestDataConfiguration config = QuizTestDataConfiguration.fromEnvironment();
+        Assumptions.assumeTrue(config.gradebookFixturesConfigured(),
+                "Set TEST_QUIZ_GRADEBOOK_COURSE_ID and TEST_QUIZ_CLOSED_ID for the closed-quiz gradebook test");
+        AuthenticationSession teacher = login(TestRole.TEACHER);
+        try {
+            Response response = quizClient.teacherGradebookQuizzes(
+                    config.gradebookCourseId().toString(), teacher.accessToken());
+            assertEquals(200, response.statusCode(), response.asString());
+            assertTrue(response.jsonPath().getList("data.quizId", String.class)
+                    .contains(config.closedQuizId().toString()), response.asString());
+            int quizIndex = response.jsonPath().getList("data.quizId", String.class)
+                    .indexOf(config.closedQuizId().toString());
+            assertNotNull(response.jsonPath().getString("data[" + quizIndex + "].title"), response.asString());
+            assertNotNull(response.jsonPath().get("data[" + quizIndex + "].results"), response.asString());
         } finally {
             logout(teacher);
         }

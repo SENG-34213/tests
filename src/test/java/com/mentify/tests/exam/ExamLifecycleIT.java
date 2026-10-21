@@ -13,13 +13,19 @@ import com.mentify.tests.auth.TestRole;
 import com.mentify.tests.environment.BackendReadinessClient;
 import com.mentify.tests.environment.RequiredService;
 import com.mentify.tests.environment.TestEnvironmentConfiguration;
+import com.mentify.tests.material.MaterialClient;
 import io.restassured.response.Response;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class ExamLifecycleIT {
 
     private static ExamClient exams;
+    private static MaterialClient materials;
     private static AuthenticationClient authentication;
 
     @BeforeAll
@@ -30,13 +36,15 @@ class ExamLifecycleIT {
         readiness.awaitService(RequiredService.EXAM_SERVICE);
         readiness.awaitService(RequiredService.COURSE_SERVICE);
         readiness.awaitService(RequiredService.ENROLLMENT_SERVICE);
+        readiness.awaitService(RequiredService.MATERIAL_SERVICE);
         ApiClient api = new ApiClient(ApiClientConfiguration.fromEnvironment(environment, false));
         authentication = new AuthenticationClient(api, AuthenticationConfiguration.fromEnvironment());
         exams = new ExamClient(api);
+        materials = new MaterialClient(api);
     }
 
     @Test
-    void teacherCanRunTheExamLifecycleAndReadResults() {
+    void teacherCanRunTheExamLifecycleAndReadResults() throws Exception {
         ExamTestData data = ExamTestData.fromEnvironment();
         assumeTrue(data.writeEnabled() && data.fixturesConfigured(),
                 "Set TEST_EXAM_WRITE_ENABLED=true and approved exam fixtures to run write tests");
@@ -47,10 +55,21 @@ class ExamLifecycleIT {
             assertEquals(201, created.statusCode());
             String examId = created.jsonPath().getString("data.id");
             assertTrue(examId != null && !examId.isBlank());
+            verifyAttachmentLifecycle(examId, token);
             assertEquals(200, exams.get(examId, token).statusCode());
             assertEquals(200, exams.listByCourse(data.courseId().toString(), token).statusCode());
             assertEquals(200, exams.update(examId, data.updateRequest(), token).statusCode());
             assertEquals(200, exams.schedule(examId, token).statusCode());
+            AuthenticationSession student = authentication.login(TestRole.STUDENT);
+            try {
+                Response studentExam = exams.studentExam(examId, student.accessToken());
+                assertEquals(200, studentExam.statusCode(), studentExam.asString());
+                assertEquals(examId, studentExam.jsonPath().getString("data.id"));
+                assertEquals("SCHEDULED", studentExam.jsonPath().getString("data.status"));
+                verifyStudentAttachmentVisibility(examId, token, student.accessToken());
+            } finally {
+                logout(student);
+            }
             assertEquals(200, exams.startMarking(examId, token).statusCode());
             assertEquals(200, exams.enterMarks(examId, data.marksRequest(), token).statusCode());
             assertEquals(200, exams.complete(examId, token).statusCode());
@@ -58,6 +77,98 @@ class ExamLifecycleIT {
             assertEquals(200, exams.summary(examId, token).statusCode());
         } finally {
             logout(teacher);
+        }
+    }
+
+    private static void verifyAttachmentLifecycle(String examId, String token) throws Exception {
+        Path unsupported = Files.createTempFile("mentify-test-exam-invalid-", ".txt");
+        Path attachment = Files.createTempFile("mentify-test-exam-", ".pdf");
+        String content = "%PDF-1.4\n% Synthetic exam attachment " + UUID.randomUUID() + "\n%%EOF\n";
+        String attachmentId = null;
+        String materialId = null;
+        try {
+            Files.writeString(unsupported, "Not a PDF", StandardCharsets.UTF_8);
+            Response rejected = exams.uploadAttachment(examId, unsupported.toFile(), true, token);
+            assertEquals(400, rejected.statusCode(), rejected.asString());
+
+            Files.writeString(attachment, content, StandardCharsets.UTF_8);
+            Response uploaded = exams.uploadAttachment(examId, attachment.toFile(), true, token);
+            assertEquals(201, uploaded.statusCode());
+            attachmentId = uploaded.jsonPath().getString("data.id");
+            materialId = uploaded.jsonPath().getString("data.materialId");
+            assertTrue(attachmentId != null && !attachmentId.isBlank());
+            assertTrue(materialId != null && !materialId.isBlank());
+            assertEquals(true, uploaded.jsonPath().getBoolean("data.studentVisible"));
+            assertEquals(content.length(), uploaded.jsonPath().getLong("data.fileSize"));
+
+            Response listed = exams.attachments(examId, token);
+            assertEquals(200, listed.statusCode());
+            assertTrue(listed.jsonPath().getList("data*.id", String.class).contains(attachmentId));
+
+            Response downloaded = exams.downloadAttachment(examId, attachmentId, token);
+            assertEquals(200, downloaded.statusCode());
+            assertEquals(attachmentId, downloaded.jsonPath().getString("data.id"));
+            assertEquals(content.length(), downloaded.jsonPath().getLong("data.fileSize"));
+        } finally {
+            try {
+                if (attachmentId != null) {
+                    assertEquals(200, exams.deleteAttachment(examId, attachmentId, token).statusCode());
+                }
+            } finally {
+                try {
+                    if (materialId != null) {
+                        assertEquals(200, materials.delete(materialId, token).statusCode());
+                    }
+                } finally {
+                    Files.deleteIfExists(unsupported);
+                    Files.deleteIfExists(attachment);
+                }
+            }
+        }
+    }
+
+    private static void verifyStudentAttachmentVisibility(String examId, String teacherToken,
+                                                          String studentToken) throws Exception {
+        verifyStudentAttachmentAccess(examId, true, teacherToken, studentToken);
+        verifyStudentAttachmentAccess(examId, false, teacherToken, studentToken);
+    }
+
+    private static void verifyStudentAttachmentAccess(String examId, boolean studentVisible,
+                                                       String teacherToken, String studentToken) throws Exception {
+        Path attachment = Files.createTempFile("mentify-test-exam-visibility-", ".pdf");
+        String content = "%PDF-1.4\n% Visibility probe " + UUID.randomUUID() + "\n%%EOF\n";
+        String attachmentId = null;
+        String materialId = null;
+        try {
+            Files.writeString(attachment, content, StandardCharsets.UTF_8);
+            Response uploaded = exams.uploadAttachment(examId, attachment.toFile(), studentVisible, teacherToken);
+            assertEquals(201, uploaded.statusCode(), uploaded.asString());
+            attachmentId = uploaded.jsonPath().getString("data.id");
+            materialId = uploaded.jsonPath().getString("data.materialId");
+            assertTrue(attachmentId != null && !attachmentId.isBlank(), uploaded.asString());
+            assertTrue(materialId != null && !materialId.isBlank(), uploaded.asString());
+
+            Response studentList = exams.attachments(examId, studentToken);
+            assertEquals(200, studentList.statusCode(), studentList.asString());
+            boolean listed = studentList.jsonPath().getList("data*.id", String.class).contains(attachmentId);
+            assertEquals(studentVisible, listed, studentList.asString());
+
+            Response studentDownload = exams.downloadAttachment(examId, attachmentId, studentToken);
+            assertEquals(studentVisible ? 200 : 403, studentDownload.statusCode(), studentDownload.asString());
+        } finally {
+            try {
+                if (attachmentId != null) {
+                    assertEquals(200, exams.deleteAttachment(examId, attachmentId, teacherToken).statusCode());
+                }
+            } finally {
+                try {
+                    if (materialId != null) {
+                        assertEquals(200, materials.delete(materialId, teacherToken).statusCode());
+                    }
+                } finally {
+                    Files.deleteIfExists(attachment);
+                }
+            }
         }
     }
 

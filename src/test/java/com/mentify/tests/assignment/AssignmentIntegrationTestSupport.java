@@ -9,6 +9,7 @@ import com.mentify.tests.auth.TestRole;
 import com.mentify.tests.environment.BackendReadinessClient;
 import com.mentify.tests.environment.RequiredService;
 import com.mentify.tests.environment.TestEnvironmentConfiguration;
+import com.mentify.tests.material.MaterialClient;
 import org.junit.jupiter.api.BeforeAll;
 
 abstract class AssignmentIntegrationTestSupport {
@@ -19,6 +20,7 @@ abstract class AssignmentIntegrationTestSupport {
     protected static SubmissionClient submissionClient;
     protected static AssignmentAttachmentClient assignmentAttachmentClient;
     protected static SubmissionFileClient submissionFileClient;
+    protected static MaterialClient materialClient;
 
     @BeforeAll
     static void requireAssignmentEnvironment() {
@@ -37,6 +39,7 @@ abstract class AssignmentIntegrationTestSupport {
         submissionClient = new SubmissionClient(apiClient);
         assignmentAttachmentClient = new AssignmentAttachmentClient(apiClient);
         submissionFileClient = new SubmissionFileClient(apiClient);
+        materialClient = new MaterialClient(apiClient);
     }
 
     protected static AuthenticationSession login(TestRole role) {

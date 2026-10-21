@@ -23,12 +23,20 @@ public class AssignmentClient {
         return apiClient.put(assignmentPath(assignmentId), request, token);
     }
 
+    public Response patch(String assignmentId, Object request, String token) {
+        return apiClient.patch(assignmentPath(assignmentId), request, token);
+    }
+
     public Response get(String assignmentId, String token) {
         return apiClient.get(assignmentPath(assignmentId), token, Map.of(), Map.of());
     }
 
     public Response listForCourse(String courseId, String token) {
         return apiClient.get(coursePath(courseId), token, Map.of(), Map.of());
+    }
+
+    public Response myAssignments(String token, Map<String, ?> queryParameters) {
+        return apiClient.get("/api/v1/assignments/me", token, queryParameters, Map.of());
     }
 
     public Response delete(String assignmentId, String token) {

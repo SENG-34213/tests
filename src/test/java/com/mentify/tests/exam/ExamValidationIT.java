@@ -1,6 +1,6 @@
 package com.mentify.tests.exam;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.mentify.tests.api.ApiClient;
 import com.mentify.tests.api.ApiClientConfiguration;
@@ -40,17 +40,17 @@ class ExamValidationIT {
         AuthenticationSession teacher = authentication.login(TestRole.TEACHER);
         try {
             String token = teacher.accessToken();
-            assertTrue(exams.create(Map.of(), token).statusCode() < 500);
-            assertTrue(exams.create(Map.of("courseId", "not-a-uuid", "title", " ", "type", "INVALID"), token)
-                    .statusCode() < 500);
-            assertTrue(exams.enterMarks(UNKNOWN_ID, Map.of("results", java.util.List.of()), token).statusCode() < 500);
-            assertTrue(exams.enterMarks(UNKNOWN_ID,
+            assertEquals(400, exams.create(Map.of(), token).statusCode());
+            assertEquals(400, exams.create(Map.of("courseId", "not-a-uuid", "title", " ", "type", "INVALID"), token)
+                    .statusCode());
+            assertEquals(400, exams.enterMarks(UNKNOWN_ID, Map.of("results", java.util.List.of()), token).statusCode());
+            assertEquals(400, exams.enterMarks(UNKNOWN_ID,
                     Map.of("results", java.util.List.of(Map.of("studentId", "not-a-uuid",
                             "attendanceStatus", "INVALID", "marksObtained", new BigDecimal("1.234")))), token)
-                    .statusCode() < 500);
-            assertTrue(exams.update(UNKNOWN_ID, Map.of("title", "bad", "examDate", LocalDate.now().toString(),
+                    .statusCode());
+            assertEquals(400, exams.update(UNKNOWN_ID, Map.of("title", "bad", "examDate", LocalDate.now().toString(),
                     "startTime", LocalTime.NOON.toString(), "endTime", LocalTime.of(11, 0).toString()), token)
-                    .statusCode() < 500);
+                    .statusCode());
         } finally {
             logout(teacher);
         }
@@ -61,10 +61,10 @@ class ExamValidationIT {
         AuthenticationSession teacher = authentication.login(TestRole.TEACHER);
         try {
             String token = teacher.accessToken();
-            assertTrue(exams.get(UNKNOWN_ID, token).statusCode() < 500);
-            assertTrue(exams.listByCourse(UNKNOWN_ID, token).statusCode() < 500);
-            assertTrue(exams.cancel(UNKNOWN_ID, token).statusCode() < 500);
-            assertTrue(exams.complete(UNKNOWN_ID, token).statusCode() < 500);
+            assertEquals(404, exams.get(UNKNOWN_ID, token).statusCode());
+            assertEquals(404, exams.listByCourse(UNKNOWN_ID, token).statusCode());
+            assertEquals(404, exams.cancel(UNKNOWN_ID, token).statusCode());
+            assertEquals(404, exams.complete(UNKNOWN_ID, token).statusCode());
         } finally {
             logout(teacher);
         }

@@ -36,6 +36,11 @@ class ExamAuthorizationIT {
         assertEquals(401, exams.get(UNKNOWN_ID, null).statusCode());
         assertEquals(401, exams.listByCourse(UNKNOWN_ID, null).statusCode());
         assertEquals(401, exams.myResults(null).statusCode());
+        assertEquals(401, exams.myUpcoming(null).statusCode());
+        assertEquals(401, exams.studentExam(UNKNOWN_ID, null).statusCode());
+        assertEquals(401, exams.attachments(UNKNOWN_ID, null).statusCode());
+        assertEquals(401, exams.downloadAttachment(UNKNOWN_ID, UNKNOWN_ID, null).statusCode());
+        assertEquals(401, exams.deleteAttachment(UNKNOWN_ID, UNKNOWN_ID, null).statusCode());
     }
 
     @Test
@@ -46,11 +51,28 @@ class ExamAuthorizationIT {
             assertEquals(403, exams.get(UNKNOWN_ID, student.accessToken()).statusCode());
             assertEquals(403, exams.schedule(UNKNOWN_ID, student.accessToken()).statusCode());
             assertEquals(200, exams.myResults(student.accessToken()).statusCode());
+            assertEquals(200, exams.myUpcoming(student.accessToken()).statusCode());
+            assertEquals(404, exams.studentExam(UNKNOWN_ID, student.accessToken()).statusCode());
+            assertEquals(403, exams.deleteAttachment(UNKNOWN_ID, UNKNOWN_ID, student.accessToken()).statusCode());
         } finally {
             if (student.refreshable()) {
                 authentication.logout(student);
             } else {
                 student.clear();
+            }
+        }
+    }
+
+    @Test
+    void nonStudentsCannotUseStudentExamDetailRoute() {
+        AuthenticationSession teacher = authentication.login(TestRole.TEACHER);
+        try {
+            assertEquals(403, exams.studentExam(UNKNOWN_ID, teacher.accessToken()).statusCode());
+        } finally {
+            if (teacher.refreshable()) {
+                authentication.logout(teacher);
+            } else {
+                teacher.clear();
             }
         }
     }

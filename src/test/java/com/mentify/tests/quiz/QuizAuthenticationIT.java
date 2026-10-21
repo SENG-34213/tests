@@ -16,12 +16,14 @@ class QuizAuthenticationIT extends QuizIntegrationTestSupport {
         Map<String, Object> quiz = Map.of("title", "unauthenticated");
         assertEquals(401, quizClient.create(quiz, null).statusCode());
         assertEquals(401, quizClient.getTeacher(UNKNOWN_ID, null).statusCode());
+        assertEquals(401, quizClient.results(UNKNOWN_ID, null).statusCode());
         assertEquals(401, quizClient.listTeacher(null).statusCode());
         assertEquals(401, quizClient.update(UNKNOWN_ID, quiz, null).statusCode());
         assertEquals(401, quizClient.delete(UNKNOWN_ID, null).statusCode());
         assertEquals(401, quizClient.publish(UNKNOWN_ID, null).statusCode());
         assertEquals(401, quizClient.listForCourse(UNKNOWN_ID, null).statusCode());
         assertEquals(401, quizClient.getStudent(UNKNOWN_ID, null).statusCode());
+        assertEquals(401, quizClient.teacherGradebookQuizzes(UNKNOWN_ID, null).statusCode());
         assertEquals(401, questionClient.create(UNKNOWN_ID, quiz, null).statusCode());
         assertEquals(401, questionClient.update(UNKNOWN_ID, UNKNOWN_ID, quiz, null).statusCode());
         assertEquals(401, questionClient.delete(UNKNOWN_ID, UNKNOWN_ID, null).statusCode());
@@ -37,6 +39,8 @@ class QuizAuthenticationIT extends QuizIntegrationTestSupport {
             assertEquals(403, quizClient.create(Map.of("title", "blocked"), student.accessToken()).statusCode());
             assertEquals(403, quizClient.getTeacher(UNKNOWN_ID, student.accessToken()).statusCode());
             assertEquals(403, quizClient.listTeacher(student.accessToken()).statusCode());
+            assertEquals(403, quizClient.results(UNKNOWN_ID, student.accessToken()).statusCode());
+            assertEquals(403, quizClient.teacherGradebookQuizzes(UNKNOWN_ID, student.accessToken()).statusCode());
             assertEquals(403, quizClient.publish(UNKNOWN_ID, student.accessToken()).statusCode());
             assertEquals(403, questionClient.create(UNKNOWN_ID, Map.of(), student.accessToken()).statusCode());
         } finally {
@@ -51,6 +55,19 @@ class QuizAuthenticationIT extends QuizIntegrationTestSupport {
             assertEquals(403, attemptClient.start(UNKNOWN_ID, teacher.accessToken()).statusCode());
             assertEquals(403, attemptClient.saveAnswer(UNKNOWN_ID, Map.of(), teacher.accessToken()).statusCode());
             assertEquals(403, attemptClient.submit(UNKNOWN_ID, teacher.accessToken()).statusCode());
+        } finally {
+            logout(teacher);
+        }
+    }
+
+    @Test
+    void teacherGradebookQuizRouteValidatesRequiredCourseId() {
+        AuthenticationSession teacher = login(TestRole.TEACHER);
+        try {
+            assertEquals(400, apiClient.get("/api/v1/teacher/gradebook/quizzes", teacher.accessToken(),
+                    Map.of(), Map.of()).statusCode());
+            assertEquals(400, apiClient.get("/api/v1/teacher/gradebook/quizzes", teacher.accessToken(),
+                    Map.of("courseId", "not-a-uuid"), Map.of()).statusCode());
         } finally {
             logout(teacher);
         }

@@ -32,6 +32,7 @@ class AssignmentClientTest {
         AssignmentClient assignmentClient = new AssignmentClient(client);
 
         assertThrows(IllegalArgumentException.class, () -> assignmentClient.get(" ", null));
+        assertThrows(IllegalArgumentException.class, () -> assignmentClient.patch(" ", java.util.Map.of(), null));
         assertThrows(IllegalArgumentException.class, () -> assignmentClient.listForCourse("", null));
     }
 }
