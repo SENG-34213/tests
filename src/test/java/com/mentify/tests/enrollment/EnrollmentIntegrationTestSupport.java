@@ -46,4 +46,9 @@ abstract class EnrollmentIntegrationTestSupport {
     protected static EnrollmentTestDataConfiguration testData() {
         return EnrollmentTestDataConfiguration.fromEnvironment();
     }
+
+    protected static void requireCommunicationService() {
+        TestEnvironmentConfiguration environment = TestEnvironmentConfiguration.fromEnvironment();
+        new BackendReadinessClient(environment).awaitService(RequiredService.COMMUNICATION_SERVICE);
+    }
 }

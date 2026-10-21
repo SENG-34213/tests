@@ -57,6 +57,24 @@ public class AuthenticationClient {
         session.clear();
     }
 
+    public Response requestPasswordReset(String email) {
+        return apiClient.post("/api/v1/auth/forgot-password", Map.of("email", email), null);
+    }
+
+    public Response verifyPasswordReset(String email, String otp) {
+        return apiClient.post("/api/v1/auth/forgot-password/verify",
+                Map.of("email", email, "otp", otp), null);
+    }
+
+    public Response resetPassword(String resetToken, String newPassword) {
+        return apiClient.post("/api/v1/auth/forgot-password/reset",
+                Map.of("resetToken", resetToken, "newPassword", newPassword), null);
+    }
+
+    public Response jwks() {
+        return apiClient.get("/api/v1/auth/.well-known/jwks.json");
+    }
+
     public ApiClient authenticatedApiClient(AuthenticationSession session) {
         if (session == null || !session.authenticated()) {
             throw new IllegalArgumentException("An authenticated session is required");

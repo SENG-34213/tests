@@ -8,6 +8,9 @@ record EnrollmentTestDataConfiguration(
         UUID otherStudentId,
         UUID courseId,
         UUID alternateCourseId,
+        UUID secondAlternateCourseId,
+        UUID freeCourseId,
+        UUID unownedCourseId,
         UUID enrollmentId,
         boolean writeEnabled) {
 
@@ -18,6 +21,9 @@ record EnrollmentTestDataConfiguration(
                 uuidValue(environment, "TEST_ENROLLMENT_OTHER_STUDENT_ID"),
                 uuidValue(environment, "TEST_ENROLLMENT_COURSE_ID"),
                 uuidValue(environment, "TEST_ENROLLMENT_ALTERNATE_COURSE_ID"),
+                uuidValue(environment, "TEST_ENROLLMENT_SECOND_ALTERNATE_COURSE_ID"),
+                uuidValue(environment, "TEST_ENROLLMENT_FREE_COURSE_ID"),
+                uuidValue(environment, "TEST_ENROLLMENT_UNOWNED_COURSE_ID"),
                 uuidValue(environment, "TEST_ENROLLMENT_ID"),
                 booleanValue(environment, "TEST_ENROLLMENT_WRITE_ENABLED"));
     }
@@ -27,7 +33,12 @@ record EnrollmentTestDataConfiguration(
     }
 
     boolean writeFixturesConfigured() {
-        return readFixturesConfigured() && alternateCourseId != null && writeEnabled;
+        return readFixturesConfigured() && alternateCourseId != null
+                && secondAlternateCourseId != null && writeEnabled;
+    }
+
+    boolean selfEnrollmentFixturesConfigured() {
+        return studentId != null && freeCourseId != null && writeEnabled;
     }
 
     private static UUID uuidValue(Map<String, String> environment, String name) {

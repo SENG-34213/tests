@@ -2,7 +2,6 @@ package com.mentify.tests.course;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
@@ -52,10 +51,7 @@ class CourseAuthenticationIT extends CourseIntegrationTestSupport {
         try {
             Response response = courseClient.lookup(UNKNOWN_COURSE_ID, session.accessToken());
 
-            assertTrue(response.statusCode() == 200 || response.statusCode() == 404,
-                    "Expected authorized lookup result but received " + response.statusCode());
-            assertTrue(response.statusCode() != 403,
-                    "Student must be authorized for the course lookup endpoint");
+            assertEquals(404, response.statusCode(), response.asString());
         } finally {
             logout(session);
         }
@@ -116,13 +112,18 @@ class CourseAuthenticationIT extends CourseIntegrationTestSupport {
     }
 
     @Test
-    void shouldRejectTeacherFromCreatingACourse() {
+    void shouldAllowTeacherRoleToReachCourseCreation() {
         AuthenticationSession session = login(TestRole.TEACHER);
 
         try {
-            Response response = courseClient.create(validCourseRequest(), session.accessToken());
+            Response profile = apiClient.get("/api/v1/users/me", session.accessToken(), Map.of(), Map.of());
+            assertEquals(200, profile.statusCode(), profile.asString());
+            String teacherId = profile.jsonPath().getString("data.id");
+            assertNotNull(teacherId, profile.asString());
 
-            assertEquals(403, response.statusCode(), response.asString());
+            Response response = courseClient.create(validCourseRequest(teacherId), session.accessToken());
+
+            assertEquals(404, response.statusCode(), response.asString());
         } finally {
             logout(session);
         }
@@ -163,5 +164,11 @@ class CourseAuthenticationIT extends CourseIntegrationTestSupport {
                 "gradeId", UNKNOWN_COURSE_ID,
                 "assignedTeacherId", UNKNOWN_COURSE_ID,
                 "subject", "Integration Testing");
+    }
+
+    private static Map<String, Object> validCourseRequest(String assignedTeacherId) {
+        Map<String, Object> request = new java.util.LinkedHashMap<>(validCourseRequest());
+        request.put("assignedTeacherId", assignedTeacherId);
+        return request;
     }
 }

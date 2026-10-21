@@ -30,6 +30,10 @@ public class EnrollmentClient {
         return apiClient.put(resourcePath(enrollmentId), request, bearerToken);
     }
 
+    public Response delete(String enrollmentId, String bearerToken) {
+        return apiClient.delete(resourcePath(enrollmentId), bearerToken);
+    }
+
     public Response membership(String studentId, String courseId, String bearerToken) {
         return apiClient.get(resourcePath("students", studentId, "courses", courseId, "exists"),
                 bearerToken, Map.of(), Map.of());
@@ -43,6 +47,10 @@ public class EnrollmentClient {
     public Response courseStudents(String courseId, String bearerToken) {
         return apiClient.get(resourcePath("courses", courseId, "students"),
                 bearerToken, Map.of(), Map.of());
+    }
+
+    public Response courseEnrollments(String courseId, String bearerToken) {
+        return apiClient.get(resourcePath("courses", courseId), bearerToken, Map.of(), Map.of());
     }
 
     public Response unenrolledStudents(String bearerToken) {
