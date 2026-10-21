@@ -7,9 +7,9 @@ TEST-008 adds the first Course Service integration-test foundation. The tests us
 The backend Course Service is located in the `course-service` module and uses these public paths:
 
 - `GET /api/v1/course/my-courses` requires `TEACHER`.
-- `POST /api/v1/course` requires `ADMIN` or `SUPER_ADMIN`.
-- `PUT /api/v1/course/{courseId}` requires `ADMIN` or `SUPER_ADMIN`.
-- `GET /api/v1/course/{courseId}` requires `ADMIN` or `SUPER_ADMIN`.
+- `POST /api/v1/course` allows `TEACHER`, `ADMIN`, or `SUPER_ADMIN` (service-level validation still applies).
+- `PUT /api/v1/course/{courseId}` allows `TEACHER`, `ADMIN`, or `SUPER_ADMIN` (teachers are further restricted to their own courses).
+- `GET /api/v1/course/{courseId}` allows `TEACHER`, `ADMIN`, or `SUPER_ADMIN`.
 - `GET /api/v1/course` requires `ADMIN` or `SUPER_ADMIN`.
 - `GET /api/v1/course/{courseId}/lookup` allows `STUDENT`, `TEACHER`, `ADMIN`, or `SUPER_ADMIN`.
 - `POST /api/v1/course/bulk` requires `ADMIN` or `SUPER_ADMIN`.
@@ -27,6 +27,17 @@ Use the existing role-based variables:
 - `TEACHER_TEST_USERNAME` and `TEACHER_TEST_PASSWORD`
 - `ADMIN_TEST_USERNAME` and `ADMIN_TEST_PASSWORD`
 - `TEST_COURSE_GRADE_ID` and `TEST_COURSE_TEACHER_ID` for existing non-production fixtures used by CRUD tests
+- `TEST_TEACHER_PORTAL_COURSE_ID` and `TEST_TEACHER_PORTAL_STUDENT_ID` for an owned course and enrolled student used by teacher portal data tests
+- `TEST_TEACHER_PORTAL_UNOWNED_COURSE_ID` for cross-teacher ownership-denial checks
+- `TEST_COURSE_CONTENT_OWNERSHIP_WRITE_ENABLED=true` plus
+  `TEST_TEACHER_PORTAL_UNOWNED_COURSE_ID`, `TEST_TEACHER_PORTAL_UNOWNED_MODULE_ID`,
+  `TEST_TEACHER_PORTAL_UNOWNED_LESSON_ID`, and
+  `TEST_TEACHER_PORTAL_UNOWNED_LEARNING_MATERIAL_ID` for explicit cross-owner
+  course-content write-denial checks; use only valid fixture IDs on a disposable
+  non-production backend
+- `TEST_STUDENT_PROGRESS_LESSON_ID` and `TEST_STUDENT_PROGRESS_WRITE_ENABLED=true` for a progress update test that restores its prior completion state
+- `TEST_COURSE_ANNOUNCEMENT_WRITE_ENABLED=true` to create a synthetic announcement on an approved test course; announcements persist because no delete route exists
+- `TEST_COURSE_CONTENT_UPLOAD_WRITE_ENABLED=true` to run cross-service module/lesson file upload checks; requires Course and Material services and cleans up references and uploaded synthetic materials
 
 Never commit credentials, tokens, production data, or production URLs containing secrets.
 

@@ -43,8 +43,12 @@ course ID and explicit `TEST_MATERIAL_WRITE_ENABLED=true`.
 
 Tests create small unique `.txt` files in the operating system temporary
 directory. The `AutoCloseable` test-file wrapper deletes each file after use.
-The suite checks download metadata only; it does not follow provider URLs or
-print storage keys, credentials, tokens, or response bodies in logs.
+By default the suite checks download metadata only. An optional byte-for-byte
+check follows the presigned HTTPS URL only when
+`TEST_MATERIAL_DOWNLOAD_BYTES_ENABLED=true` and
+`TEST_MATERIAL_DOWNLOAD_ALLOWED_HOST` is set to the exact approved storage host.
+The test refuses a different host or non-HTTPS URL, does not follow redirects,
+and never prints the signed URL or storage credentials.
 
 ## Cleanup behavior
 

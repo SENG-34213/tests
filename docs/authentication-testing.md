@@ -29,7 +29,7 @@ $env:TEST_REQUIRED_SERVICES = "API_GATEWAY,KEYCLOAK"
 mvn verify -Pintegration
 ```
 
-Role-specific variables are `STUDENT_TEST_USERNAME`, `STUDENT_TEST_PASSWORD`, `TEACHER_TEST_USERNAME`, `TEACHER_TEST_PASSWORD`, `ADMIN_TEST_USERNAME`, and `ADMIN_TEST_PASSWORD`. Do not commit values, use production accounts, or use a Keycloak administrator account as an application test user.
+Role-specific variables are `STUDENT_TEST_USERNAME`, `STUDENT_TEST_PASSWORD`, optional distinct `SECONDARY_STUDENT_TEST_USERNAME` and `SECONDARY_STUDENT_TEST_PASSWORD`, `TEACHER_TEST_USERNAME`, `TEACHER_TEST_PASSWORD`, `ADMIN_TEST_USERNAME`, `ADMIN_TEST_PASSWORD`, `SUPER_ADMIN_TEST_USERNAME`, and `SUPER_ADMIN_TEST_PASSWORD`. The secondary student credentials enable cross-user ownership tests; pair them with that account's approved fixture ID. Do not commit values, use production accounts, or use a Keycloak administrator account as an application test user.
 
 When the backend or Keycloak is not running, the integration profile is expected to fail during readiness checks. Unit tests and `mvn clean verify` do not require the backend environment.
 

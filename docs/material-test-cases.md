@@ -28,13 +28,20 @@ temporary files and approved non-production fixture IDs only.
 | TEST-013-21 | Missing title | Uploads without a title are rejected. |
 | TEST-013-22 | Missing course | Uploads without a course ID are rejected. |
 | TEST-013-23 | Invalid update | Empty update payloads are rejected. |
-| TEST-013-24 | Unknown retrieval | Unknown IDs return 400/404, never an unexpected server error. |
-| TEST-013-25 | Unknown download | Unknown download IDs return 400/404. |
-| TEST-013-26 | Unknown update | Unknown update IDs return 400/404. |
-| TEST-013-27 | Unknown archive/delete | Unknown lifecycle IDs return 400/404. |
+| TEST-013-24 | Unknown retrieval | Unknown IDs return `404 Not Found`. |
+| TEST-013-25 | Unknown download | Unknown download IDs return `404 Not Found`. |
+| TEST-013-26 | Unknown update | Unknown update IDs return `404 Not Found`. |
+| TEST-013-27 | Unknown archive/delete | Unknown lifecycle IDs return `404 Not Found`. |
 | TEST-013-28 | Unauthenticated access | Protected endpoints return 401 without a token. |
 | TEST-013-29 | Role restrictions | Student management and teacher maintenance requests return 403. |
 | TEST-013-30 | Temporary-file cleanup | Generated test files are deleted after each test. |
+| TEST-013-31 | Verified AI sources | Teachers/admins can list AI source materials for a course; students and unauthenticated callers are denied. |
+| TEST-013-32 | Purpose and status filters | List filters return the test upload under `LEARNING_MATERIAL`/`UPLOADED` and after transition under `LEARNING_MATERIAL`/`ARCHIVED`. |
+| TEST-013-33 | Signed download returns uploaded bytes | With explicit byte-check opt-in and approved storage host, presigned HTTPS GET returns exactly the uploaded synthetic file bytes. |
+| TEST-013-34 | Signed URL target safety | URL policy accepts only HTTPS with the exact configured host, no credentials/fragments, and no nonstandard port. |
+| TEST-013-35 | Signed URL alternate target rejection | Alternate hosts and non-HTTPS schemes are rejected before any network request. |
+| TEST-013-36 | Signed URL unsafe component rejection | User-info, fragments, and explicit ports other than 443 are rejected. |
+| TEST-013-37 | Byte probe requires explicit configuration | Missing download URL or approved host is rejected before network access. |
 
 The executable integration classes are `MaterialLifecycleIT` and
 `MaterialAuthenticationIT`. Tests requiring writes are skipped unless

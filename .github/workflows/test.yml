@@ -83,6 +83,10 @@ jobs:
           pattern: jacoco-integration-*
           path: artifacts/backend-jacoco/integration
 
+      - name: Test test-evidence class-name resolution
+        if: always()
+        run: python -m unittest tools.test_test_evidence
+
       - name: Generate executed test register and coverage availability summary
         if: always()
         env:

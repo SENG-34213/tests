@@ -23,3 +23,10 @@
 | TC-TEST-017-19 | Unknown IDs | Unknown exam/course IDs do not produce 5xx responses. |
 | TC-TEST-017-20 | Isolation | Unique titles and approved fixtures prevent uncontrolled shared-environment data. |
 | TC-TEST-017-21 | Documentation | Configuration, lifecycle, cleanup, and commands are documented. |
+| TC-TEST-017-22 | Student upcoming exams | Student can retrieve upcoming exams; unauthenticated access is rejected. |
+| TC-TEST-017-23 | Exam attachment listing/download | Unauthenticated attachment reads are rejected. |
+| TC-TEST-017-24 | Exam attachment deletion | Student cannot delete attachments; unauthenticated access is rejected. |
+| TC-TEST-017-25 | Exam attachment lifecycle | With opt-in fixtures, a teacher uploads a synthetic file, verifies visibility and metadata through list/download, then deletes it. |
+| TC-TEST-017-26 | Student exam detail | A student enrolled in the configured fixture course can retrieve a scheduled exam; anonymous and non-student callers are denied, and an unknown exam returns `404`. |
+| TC-TEST-017-27 | Student attachment visibility | On a scheduled exam, the enrolled student sees/downloads a `studentVisible=true` attachment, while a hidden attachment is omitted from the list and returns `403` on direct download. |
+| TC-TEST-017-28 | Exam attachment file type | A `.txt` upload is rejected with `400`; a synthetic `.pdf` upload succeeds and is cleaned up. |

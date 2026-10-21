@@ -248,8 +248,9 @@ def build_register(
         )
     for item in metadata:
         key = f"{item['class_name']}#{item['method_name']}"
-        mapped_keys.add(key)
-        result = outcomes.get(key)
+        result_key = resolve_outcome_key(item["class_name"], item["method_name"], outcomes)
+        mapped_keys.add(result_key if result_key in outcomes else key)
+        result = outcomes.get(result_key)
         rows.append(
             {
                 "test_case_id": item["test_case_id"],
@@ -300,6 +301,21 @@ def build_register(
             }
         )
     return rows
+
+
+def resolve_outcome_key(
+    class_name: str,
+    method_name: str,
+    outcomes: dict[str, dict[str, str]],
+) -> str:
+    """Resolve simple mapping class names to the fully-qualified JUnit names."""
+    exact_key = f"{class_name}#{method_name}"
+    if exact_key in outcomes or "." in class_name:
+        return exact_key
+
+    suffix = f".{class_name}#{method_name}"
+    matches = [key for key in outcomes if key.endswith(suffix)]
+    return matches[0] if len(matches) == 1 else exact_key
 
 
 def jacoco_reports(paths: list[Path]) -> tuple[list[dict[str, object]], list[str]]:

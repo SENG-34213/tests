@@ -11,9 +11,16 @@ source code and does not use direct database access.
 - Student access: `GET /api/courses/{courseId}/quizzes` and `GET /api/quizzes/{quizId}/student`.
 - Student attempts: `POST /api/quizzes/{quizId}/attempts`, `PUT /api/quiz-attempts/{attemptId}/answers`,
   and `POST /api/quiz-attempts/{attemptId}/submit`.
+- Teacher results and gradebook: `GET /api/quizzes/{quizId}/results` and
+  `GET /api/v1/teacher/gradebook/quizzes?courseId=…`.
+- AI draft validation: `POST /api/assignments/quizzes/ai/generate` rejects
+  invalid settings before the upstream AI provider is called; successful generation remains provider-gated.
+- Attempt workflow checks verify the student-safe question projection, answer persistence, score/percentage/pass
+  calculation, empty-attempt scoring, active-attempt exclusion, submitted-attempt immutability, and configured
+  maximum attempts.
 
 Quiz requests require `courseId`, `title`, `durationMinutes`, `passMark`, and `maxAttempts`. Question requests
-require `questionText`, `questionType`, `marks`, `questionOrder`, and four or five options. Each option uses
+require `questionText`, `questionType` (`MULTIPLE_CHOICE_SINGLE_ANSWER`), `marks`, `questionOrder`, and four or five options. Each option uses
 `optionText`, `correct`, and `optionOrder`. Answers use `questionId` and `selectedOptionId`.
 
 ## Environment
@@ -22,20 +29,24 @@ Default local values are in `.env.example`:
 
 ```text
 TEST_ENV_ENABLED=false
-TEST_REQUIRED_SERVICES=API_GATEWAY,KEYCLOAK,COURSE_SERVICE,ENROLLMENT_SERVICE,ASSIGNMENT_SERVICE
+TEST_REQUIRED_SERVICES=API_GATEWAY,KEYCLOAK,COURSE_SERVICE,ENROLLMENT_SERVICE,ASSIGNMENT_SERVICE,USER_SERVICE
 ASSIGNMENT_SERVICE_BASE_URL=http://localhost:8084
 COURSE_SERVICE_BASE_URL=http://localhost:8082
 ENROLLMENT_SERVICE_BASE_URL=http://localhost:8083
 TEST_QUIZ_COURSE_ID=<approved-synthetic-course-uuid>
 TEST_QUIZ_WRITE_ENABLED=false
+TEST_QUIZ_GRADEBOOK_COURSE_ID=<course-with-closed-quiz-uuid>
+TEST_QUIZ_CLOSED_ID=<closed-quiz-uuid>
 ```
 
 Credentials are read through the existing `STUDENT_TEST_*`, `TEACHER_TEST_*`, and `ADMIN_TEST_*` environment
 variables. Never commit credentials, access tokens, real quiz records, correct-answer data, or student data.
 
 The integration support verifies API Gateway, Keycloak, Assignment Service, Course Service, and Enrollment Service
-before making API requests. With `TEST_ENV_ENABLED=false`, readiness fails before a live request is issued, which is
-the expected safety behavior for integration execution.
+before making API requests. The teacher results workflow also requires User Service to resolve submitted student
+names; that extra dependency is readiness-checked only when that provider-backed results workflow runs. With
+`TEST_ENV_ENABLED=false`, readiness fails before a live request is issued, which is the expected safety behavior for
+integration execution.
 
 ## Isolation and cleanup
 

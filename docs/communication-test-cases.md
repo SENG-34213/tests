@@ -33,3 +33,6 @@
 | TC-TEST-016-29 | Role authorization | Student cannot manage groups. |
 | TC-TEST-016-30 | Test isolation | Write data uses unique values and approved fixtures. |
 | TC-TEST-016-31 | Documentation | Endpoints, roles, fixtures, cleanup, scopes, and commands are documented. |
+| TC-TEST-016-32 | Message attachment upload/download auth | Both attachment routes reject requests without authentication. |
+| TC-TEST-016-33 | Message attachment workflow | A teacher uploads a synthetic file, attaches it to a message, verifies download metadata, then deletes the message and soft-deletes the Material Service file. |
+| TC-TEST-016-34 | WebSocket authentication | With explicit opt-in, a teacher connects to `/ws`, sends a STOMP CONNECT frame with its bearer token, and receives CONNECTED; no group or message data is mutated. |
