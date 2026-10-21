@@ -23,8 +23,8 @@ paths remain.
 ## Test-to-case traceability status
 
 A source scan of `*IT.java` files found 232 conventional annotated test methods.
-The mapping CSV contains 217 rows, mapping 160 distinct integration methods;
-72 annotated methods do not yet have a CSV case mapping. There are no duplicate
+The mapping CSV contains 224 rows, mapping 167 distinct integration methods;
+65 annotated methods do not yet have a CSV case mapping. There are no duplicate
 case IDs or compound method-name cells. Thus the mappings are useful but are
 not yet a complete register of executable integration coverage. The counts include gateway,
 resilience, staging, and infrastructure tests as well as user-facing services.
@@ -51,8 +51,8 @@ Unmapped methods by test package at this audit:
 | Payment | 4 |
 | Quiz | 5 |
 | Resilience | 2 |
-| Security | 3 |
-| Staging | 4 |
+| Security | 0 |
+| Staging | 0 |
 | User | 6 |
 
 Course, Assignment, Authentication, AI, and User self-service conventional

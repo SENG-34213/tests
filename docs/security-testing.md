@@ -14,6 +14,12 @@ accounts; they must never target production systems.
 - Existing service-specific validation, authorization, ownership, and file
   boundary tests remain the detailed coverage for each service.
 
+| Case ID | Scenario | Expected result | Test method |
+|---|---|---|---|
+| TC-TEST-024-01 | Protected route with missing, empty, invalid, or malformed bearer token | Every request returns 401 | `SecurityRegressionIT.protectedEndpointsRejectMissingInvalidAndMalformedTokens` |
+| TC-TEST-024-02 | Student and Teacher request administrator endpoint | Both roles receive 403 | `SecurityRegressionIT.studentAndTeacherTokensCannotCrossAdministratorBoundary` |
+| TC-TEST-024-03 | Protected error body checked for sensitive values | 401 body does not disclose passwords, tokens, bearer values, or stack traces | `SecurityRegressionIT.protectedErrorResponsesDoNotExposeSensitiveValues` |
+
 ## Run
 
 ```powershell

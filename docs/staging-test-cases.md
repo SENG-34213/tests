@@ -18,6 +18,10 @@ live staging execution.
 | TC-TEST-028-10 | Required smoke check does not complete | JUnit fails and evidence records remaining checks as not run/blocked | Failsafe report and staging summary |
 | TC-TEST-028-11 | Evidence summary is produced | Summary contains run/revision/check status only; no target URL, payload, or credential | `target/staging-evidence/summary.md` |
 | TC-TEST-028-12 | Default static CI runs without staging settings | Static suite passes and makes no live-environment claim | Surefire and CI artifacts |
+| TC-TEST-028-06 | Gateway health readiness | HTTP 2xx within the bounded readiness deadline | `StagingSmokeIT.gatewayHealthIsReadyWithinBoundedDeadline` |
+| TC-TEST-028-07 | Identity-provider discovery contract | HTTP 200 JSON has the expected issuer and approved HTTPS endpoints | `StagingSmokeIT.identityProviderDiscoveryIsReachable` |
+| TC-TEST-028-08 | Public gateway authentication probe | HTTP 200 within the bounded deadline | `StagingSmokeIT.publicGatewayProbeReturnsSuccessfulStatus` |
+| TC-TEST-028-09 | Anonymous protected-route probe | HTTP 401 or 403 without sending a token | `StagingSmokeIT.protectedProbeRejectsAnonymousRequest` |
 
 The live rows remain unverified until an authorized reviewer approves and runs
 the workflow against the configured non-production staging deployment. The
