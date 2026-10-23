@@ -27,6 +27,13 @@ class CommunicationGroupWorkflowIT extends CommunicationIntegrationTestSupport {
             assertEquals(200, communicationClient.listGroups(teacher.accessToken()).statusCode());
             assertEquals(200, communicationClient.getGroup(groupId, teacher.accessToken()).statusCode());
             assertEquals(200, communicationClient.listMembers(groupId, teacher.accessToken()).statusCode());
+            String updatedName = "Updated integration group " + UUID.randomUUID();
+            Response updated = communicationClient.updateGroup(groupId,
+                    java.util.Map.of("name", updatedName, "description", "Updated TEST-016 group",
+                            "studentMessagingEnabled", true), teacher.accessToken());
+            assertEquals(200, updated.statusCode(), updated.asString());
+            assertEquals(updatedName, updated.jsonPath().getString("data.name"));
+            assertEquals("Updated TEST-016 group", updated.jsonPath().getString("data.description"));
             assertEquals(200, communicationClient.addStudent(groupId,
                     CommunicationTestDataFactory.student(data.studentId()), teacher.accessToken()).statusCode());
             assertEquals(200, communicationClient.archive(groupId, teacher.accessToken()).statusCode());

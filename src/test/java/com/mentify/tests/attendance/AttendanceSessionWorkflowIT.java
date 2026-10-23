@@ -84,4 +84,25 @@ class AttendanceSessionWorkflowIT extends AttendanceIntegrationTestSupport {
             logout(teacher);
         }
     }
+
+    @Test
+    void teacherCanDeleteAnOpenAttendanceSession() {
+        AttendanceTestDataConfiguration data = AttendanceTestDataConfiguration.fromEnvironment();
+        assumeTrue(data.writeEnabled() && data.fixturesConfigured(),
+                "Set TEST_ATTENDANCE_WRITE_ENABLED=true and approved attendance IDs to run write tests");
+        AuthenticationSession teacher = login(TestRole.TEACHER);
+        try {
+            Response created = attendanceClient.createSession(AttendanceTestDataFactory.session(data.courseId()),
+                    teacher.accessToken());
+            assertEquals(201, created.statusCode(), created.asString());
+            String sessionId = created.jsonPath().getString("data.id");
+            assertTrue(sessionId != null && !sessionId.isBlank(), created.asString());
+
+            Response deleted = attendanceClient.deleteSession(sessionId, teacher.accessToken());
+            assertEquals(200, deleted.statusCode(), deleted.asString());
+            assertEquals(404, attendanceClient.getSession(sessionId, teacher.accessToken()).statusCode());
+        } finally {
+            logout(teacher);
+        }
+    }
 }

@@ -19,6 +19,10 @@ public class ExamClient {
         return apiClient.post(PATH, request, token);
     }
 
+    public Response createWithInstructions(Object request, boolean studentVisible, String token) {
+        return apiClient.postMultipart(PATH, Map.of("studentVisible", studentVisible), null, token, "exam", request);
+    }
+
     public Response get(String examId, String token) {
         return apiClient.get(PATH + "/" + id(examId, "examId"), token, Map.of(), Map.of());
     }
@@ -29,6 +33,11 @@ public class ExamClient {
 
     public Response update(String examId, Object request, String token) {
         return apiClient.put(PATH + "/" + id(examId, "examId"), request, token);
+    }
+
+    public Response updateWithInstructions(String examId, Object request, boolean studentVisible, String token) {
+        return apiClient.putMultipart(PATH + "/" + id(examId, "examId"),
+                Map.of("studentVisible", studentVisible), null, token, "exam", request);
     }
 
     public Response cancel(String examId, String token) {

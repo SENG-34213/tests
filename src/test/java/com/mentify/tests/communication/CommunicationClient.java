@@ -32,6 +32,10 @@ public class CommunicationClient {
         return apiClient.get(PATH + "/groups/" + id(groupId, "groupId"), token, Map.of(), Map.of());
     }
 
+    public Response updateGroup(String groupId, Object request, String token) {
+        return apiClient.patch(PATH + "/groups/" + id(groupId, "groupId"), request, token);
+    }
+
     public Response listMembers(String groupId, String token) {
         return apiClient.get(PATH + "/groups/" + id(groupId, "groupId") + "/members",
                 token, Map.of(), Map.of());

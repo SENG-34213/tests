@@ -80,6 +80,29 @@ class ExamLifecycleIT {
         }
     }
 
+    @Test
+    void teacherCanCreateAndUpdateExamUsingMultipartInstructionRoutes() {
+        ExamTestData data = ExamTestData.fromEnvironment();
+        org.junit.jupiter.api.Assumptions.assumeTrue(data.writeEnabled() && data.fixturesConfigured(),
+                "Set TEST_EXAM_WRITE_ENABLED=true and approved exam fixtures to run write tests");
+        AuthenticationSession teacher = authentication.login(TestRole.TEACHER);
+        String examId = null;
+        try {
+            Response created = exams.createWithInstructions(data.createRequest(), false, teacher.accessToken());
+            assertEquals(201, created.statusCode(), created.asString());
+            examId = created.jsonPath().getString("data.id");
+            assertTrue(examId != null && !examId.isBlank(), created.asString());
+
+            Response updated = exams.updateWithInstructions(examId, data.updateRequest(), false,
+                    teacher.accessToken());
+            assertEquals(200, updated.statusCode(), updated.asString());
+            assertEquals("Updated TEST-017 exam", updated.jsonPath().getString("data.title"));
+        } finally {
+            if (examId != null) exams.cancel(examId, teacher.accessToken());
+            logout(teacher);
+        }
+    }
+
     private static void verifyAttachmentLifecycle(String examId, String token) throws Exception {
         Path unsupported = Files.createTempFile("mentify-test-exam-invalid-", ".txt");
         Path attachment = Files.createTempFile("mentify-test-exam-", ".pdf");
