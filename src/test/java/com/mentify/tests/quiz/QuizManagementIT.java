@@ -28,7 +28,7 @@ class QuizManagementIT extends QuizIntegrationTestSupport {
             Response created = quizClient.create(QuizTestDataFactory.quiz(config.courseId(), "MANAGEMENT"),
                     teacher.accessToken());
             assertEquals(201, created.statusCode());
-            assertTrue(created.jsonPath().getBoolean("success"));
+            assertEquals(201, created.jsonPath().getInt("statusCode"), created.asString());
             quizId = created.jsonPath().getString("data.id");
             assertNotNull(quizId);
             assertFalse(quizId.isBlank());
@@ -56,7 +56,8 @@ class QuizManagementIT extends QuizIntegrationTestSupport {
             assertEquals(45, updated.jsonPath().getInt("data.durationMinutes"));
             assertEquals(60.00F, updated.jsonPath().getFloat("data.passMark"), 0.01F);
 
-            Response question = questionClient.create(quizId, QuizTestDataFactory.question("primary"),
+            Response question = questionClient.create(quizId,
+                    QuizTestDataFactory.question("primary", java.math.BigDecimal.valueOf(100)),
                     teacher.accessToken());
             assertEquals(201, question.statusCode());
             String questionId = question.jsonPath().getString("data.id");
@@ -65,7 +66,7 @@ class QuizManagementIT extends QuizIntegrationTestSupport {
             assertEquals(4, question.jsonPath().getList("data.options").size());
 
             Response changedQuestion = questionClient.update(quizId, questionId,
-                    QuizTestDataFactory.question("updated"), teacher.accessToken());
+                    QuizTestDataFactory.question("updated", java.math.BigDecimal.valueOf(100)), teacher.accessToken());
             assertEquals(200, changedQuestion.statusCode());
             assertTrue(changedQuestion.jsonPath().getString("data.questionText").contains("updated"));
 
@@ -76,7 +77,7 @@ class QuizManagementIT extends QuizIntegrationTestSupport {
             assertEquals(200, questionClient.delete(quizId, removableId, teacher.accessToken()).statusCode());
 
             Response published = quizClient.publish(quizId, teacher.accessToken());
-            assertEquals(200, published.statusCode());
+            assertEquals(200, published.statusCode(), published.asString());
             assertTrue(published.jsonPath().getString("data.status").equalsIgnoreCase("PUBLISHED"));
         } finally {
             if (quizId != null) {
@@ -98,7 +99,7 @@ class QuizManagementIT extends QuizIntegrationTestSupport {
             assertEquals(404, quizClient.results(UNKNOWN_ID, teacher.accessToken()).statusCode());
             assertEquals(404, questionClient.create(UNKNOWN_ID, QuizTestDataFactory.question("UNKNOWN"),
                     teacher.accessToken()).statusCode());
-            assertEquals(404, questionClient.update(UNKNOWN_ID, UNKNOWN_ID, Map.of(),
+            assertEquals(404, questionClient.update(UNKNOWN_ID, UNKNOWN_ID, QuizTestDataFactory.question("UNKNOWN"),
                     teacher.accessToken()).statusCode());
             assertEquals(404, questionClient.delete(UNKNOWN_ID, UNKNOWN_ID, teacher.accessToken()).statusCode());
         } finally {
@@ -125,5 +126,49 @@ class QuizManagementIT extends QuizIntegrationTestSupport {
         } finally {
             logout(teacher);
         }
+    }
+
+    @Test
+    void anotherTeacherCannotReadOrManageQuizOwnedByTeacher() {
+        QuizTestDataConfiguration config = QuizTestDataConfiguration.fromEnvironment();
+        Assumptions.assumeTrue(config.writeEnabled() && config.courseId() != null,
+                "Set TEST_QUIZ_WRITE_ENABLED=true and TEST_QUIZ_COURSE_ID for ownership tests");
+        Assumptions.assumeTrue(hasSecondaryTeacherCredentials(),
+                "Set distinct SECONDARY_TEACHER_TEST_USERNAME/PASSWORD credentials");
+
+        AuthenticationSession owner = login(TestRole.TEACHER);
+        AuthenticationSession otherTeacher = null;
+        String quizId = null;
+        try {
+            Response created = quizClient.create(
+                    QuizTestDataFactory.quiz(config.courseId(), "OWNERSHIP"), owner.accessToken());
+            assertEquals(201, created.statusCode(), created.asString());
+            quizId = created.jsonPath().getString("data.id");
+            assertNotNull(quizId);
+
+            otherTeacher = login(TestRole.SECONDARY_TEACHER);
+            assertEquals(403, quizClient.getTeacher(quizId, otherTeacher.accessToken()).statusCode());
+            assertEquals(403, quizClient.update(quizId, QuizTestDataFactory.update("OWNERSHIP"),
+                    otherTeacher.accessToken()).statusCode());
+            assertEquals(403, quizClient.delete(quizId, otherTeacher.accessToken()).statusCode());
+        } finally {
+            try {
+                logout(otherTeacher);
+            } finally {
+                try {
+                    if (quizId != null) {
+                        quizClient.delete(quizId, owner.accessToken());
+                    }
+                } finally {
+                    logout(owner);
+                }
+            }
+        }
+    }
+
+    private static boolean hasSecondaryTeacherCredentials() {
+        String username = System.getenv("SECONDARY_TEACHER_TEST_USERNAME");
+        String password = System.getenv("SECONDARY_TEACHER_TEST_PASSWORD");
+        return username != null && !username.isBlank() && password != null && !password.isBlank();
     }
 }

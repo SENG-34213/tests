@@ -34,7 +34,7 @@ $env:TEST_REQUIRED_SERVICES = "API_GATEWAY,AUTH_SERVICE"
 mvn verify -Pintegration
 ```
 
-Role-specific variables are `STUDENT_TEST_USERNAME`, `STUDENT_TEST_PASSWORD`, optional distinct `SECONDARY_STUDENT_TEST_USERNAME` and `SECONDARY_STUDENT_TEST_PASSWORD`, `TEACHER_TEST_USERNAME`, `TEACHER_TEST_PASSWORD`, `ADMIN_TEST_USERNAME`, `ADMIN_TEST_PASSWORD`, `SUPER_ADMIN_TEST_USERNAME`, and `SUPER_ADMIN_TEST_PASSWORD`. The secondary student credentials enable cross-user ownership tests; pair them with that account's approved fixture ID. Do not commit values or use production accounts.
+Role-specific variables are `STUDENT_TEST_USERNAME`, `STUDENT_TEST_PASSWORD`, optional distinct `SECONDARY_STUDENT_TEST_USERNAME` and `SECONDARY_STUDENT_TEST_PASSWORD`, `TEACHER_TEST_USERNAME`, `TEACHER_TEST_PASSWORD`, optional distinct `SECONDARY_TEACHER_TEST_USERNAME` and `SECONDARY_TEACHER_TEST_PASSWORD`, `ADMIN_TEST_USERNAME`, `ADMIN_TEST_PASSWORD`, `SUPER_ADMIN_TEST_USERNAME`, and `SUPER_ADMIN_TEST_PASSWORD`. Secondary student and teacher credentials enable cross-user ownership checks; use approved fixtures assigned to only one account. Do not commit values or use production accounts.
 
 Authentication integration tests also check User Service readiness because the Auth Service retrieves the user's active profile while issuing a session. When the API Gateway, Auth Service, or User Service is not running, the integration profile is expected to fail during readiness checks. Unit tests and `mvn clean verify` do not require the backend environment.
 

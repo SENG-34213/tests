@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
+import com.mentify.tests.environment.RequiredService;
 import io.restassured.response.Response;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -15,18 +16,23 @@ class CalendarEventWorkflowIT extends CalendarIntegrationTestSupport {
 
     @Test
     void shouldAllowTeacherToCreateUpdateAndReadAnEvent() {
+        UUID courseId = configuredCourseId();
+        org.junit.jupiter.api.Assumptions.assumeTrue(courseId != null,
+                "Set TEST_CALENDAR_COURSE_ID to a course assigned to the primary teacher");
+        requireAdditionalService(RequiredService.COURSE_SERVICE);
         AuthenticationSession session = login(TestRole.TEACHER);
         String eventId = null;
 
         try {
-            Response createResponse = calendarClient.create(validEventRequest("teacher-create"), session.accessToken());
+            Response createResponse = calendarClient.create(
+                    courseEventRequest("teacher-create", courseId), session.accessToken());
             assertSuccessful(createResponse, 201);
             eventId = eventId(createResponse);
 
-            Map<String, Object> updateRequest = validEventRequest("teacher-update");
+            Map<String, Object> updateRequest = courseEventRequest("teacher-update", courseId);
             Response updateResponse = calendarClient.update(eventId, updateRequest, session.accessToken());
             assertSuccessful(updateResponse, 200);
-            assertEquals("success", updateResponse.jsonPath().getString("status"));
+            assertEquals(200, updateResponse.jsonPath().getInt("statusCode"), updateResponse.asString());
             Response getResponse = calendarClient.getEvent(eventId, session.accessToken());
             assertSuccessful(getResponse, 200);
             assertEquals(eventId, getResponse.jsonPath().getString("data.id"));
@@ -62,7 +68,7 @@ class CalendarEventWorkflowIT extends CalendarIntegrationTestSupport {
             Response response = calendarClient.events(session.accessToken(), start, end);
 
             assertEquals(200, response.statusCode(), response.asString());
-            assertEquals("success", response.jsonPath().getString("status"));
+            assertEquals(200, response.jsonPath().getInt("statusCode"), response.asString());
             assertNotNull(response.jsonPath().get("data"));
         } finally {
             logout(session);
@@ -71,21 +77,62 @@ class CalendarEventWorkflowIT extends CalendarIntegrationTestSupport {
 
     @Test
     void shouldAllowTeacherToCancelAnEvent() {
+        UUID courseId = configuredCourseId();
+        org.junit.jupiter.api.Assumptions.assumeTrue(courseId != null,
+                "Set TEST_CALENDAR_COURSE_ID to a course assigned to the primary teacher");
+        requireAdditionalService(RequiredService.COURSE_SERVICE);
         AuthenticationSession session = login(TestRole.TEACHER);
         String eventId = null;
 
         try {
-            Response createResponse = calendarClient.create(validEventRequest("teacher-cancel"), session.accessToken());
+            Response createResponse = calendarClient.create(
+                    courseEventRequest("teacher-cancel", courseId), session.accessToken());
             assertSuccessful(createResponse, 201);
             eventId = eventId(createResponse);
 
             Response cancelResponse = calendarClient.cancel(eventId, session.accessToken());
             assertSuccessful(cancelResponse, 200);
-            assertEquals("success", cancelResponse.jsonPath().getString("status"));
+            assertEquals(200, cancelResponse.jsonPath().getInt("statusCode"), cancelResponse.asString());
             eventId = null;
         } finally {
             cancelIfCreated(eventId, session);
             logout(session);
+        }
+    }
+
+    @Test
+    void anotherTeacherCannotUpdateOrCancelAnUnassignedCourseEvent() {
+        UUID courseId = configuredCourseId();
+        org.junit.jupiter.api.Assumptions.assumeTrue(courseId != null,
+                "Set TEST_CALENDAR_COURSE_ID to a course assigned only to the primary teacher");
+        org.junit.jupiter.api.Assumptions.assumeTrue(hasSecondaryTeacherCredentials(),
+                "Set distinct SECONDARY_TEACHER_TEST_USERNAME/PASSWORD credentials");
+        requireAdditionalService(RequiredService.COURSE_SERVICE);
+
+        AuthenticationSession owner = login(TestRole.TEACHER);
+        AuthenticationSession otherTeacher = null;
+        String eventId = null;
+        try {
+            Response created = calendarClient.create(courseEventRequest("ownership", courseId), owner.accessToken());
+            assertSuccessful(created, 201);
+            eventId = eventId(created);
+
+            otherTeacher = login(TestRole.SECONDARY_TEACHER);
+            assertEquals(404, calendarClient.getEvent(eventId, otherTeacher.accessToken()).statusCode(),
+                    "An unassigned teacher must not discover the course event");
+            assertEquals(403, calendarClient.update(eventId, courseEventRequest("other-teacher", courseId),
+                    otherTeacher.accessToken()).statusCode());
+            assertEquals(403, calendarClient.cancel(eventId, otherTeacher.accessToken()).statusCode());
+        } finally {
+            try {
+                logout(otherTeacher);
+            } finally {
+                try {
+                    cancelIfCreated(eventId, owner);
+                } finally {
+                    logout(owner);
+                }
+            }
         }
     }
 
@@ -192,7 +239,7 @@ class CalendarEventWorkflowIT extends CalendarIntegrationTestSupport {
     }
 
     private static Map<String, Object> validEventRequest(String scenario) {
-        LocalDateTime start = LocalDateTime.now().plusDays(1).withNano(0);
+        LocalDateTime start = uniqueStartDateTime();
         return Map.of(
                 "title", uniqueTitle(scenario),
                 "description", "TEST-007 Calendar Service workflow event",
@@ -204,13 +251,51 @@ class CalendarEventWorkflowIT extends CalendarIntegrationTestSupport {
                 "location", "Integration test environment");
     }
 
+    private static Map<String, Object> courseEventRequest(String scenario, UUID courseId) {
+        LocalDateTime start = uniqueStartDateTime();
+        return Map.of(
+                "title", uniqueTitle(scenario),
+                "description", "TEST-007 Calendar Service workflow event",
+                "eventType", "CUSTOM",
+                "startDateTime", start.toString(),
+                "endDateTime", start.plusHours(1).toString(),
+                "allDay", false,
+                "visibility", "COURSE",
+                "courseId", courseId.toString(),
+                "location", "Integration test environment");
+    }
+
+    private static UUID configuredCourseId() {
+        String value = System.getenv("TEST_CALENDAR_COURSE_ID");
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return UUID.fromString(value.trim());
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException("Invalid UUID for TEST_CALENDAR_COURSE_ID", exception);
+        }
+    }
+
+    private static boolean hasSecondaryTeacherCredentials() {
+        String username = System.getenv("SECONDARY_TEACHER_TEST_USERNAME");
+        String password = System.getenv("SECONDARY_TEACHER_TEST_PASSWORD");
+        return username != null && !username.isBlank() && password != null && !password.isBlank();
+    }
+
     private static String uniqueTitle(String scenario) {
         return "TEST-007 " + scenario + " " + UUID.randomUUID();
     }
 
+    private static LocalDateTime uniqueStartDateTime() {
+        int minuteOffset = Math.floorMod(UUID.randomUUID().hashCode(), 840);
+        return LocalDateTime.now().plusDays(2).withHour(7).withMinute(0).withSecond(0).withNano(0)
+                .plusMinutes(minuteOffset);
+    }
+
     private static void assertSuccessful(Response response, int expectedStatus) {
         assertEquals(expectedStatus, response.statusCode(), response.asString());
-        assertEquals("success", response.jsonPath().getString("status"));
+        assertEquals(expectedStatus, response.jsonPath().getInt("statusCode"), response.asString());
     }
 
     private static String eventId(Response response) {

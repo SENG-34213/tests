@@ -41,6 +41,10 @@ TEST_QUIZ_CLOSED_ID=<closed-quiz-uuid>
 
 Credentials are read through the existing `STUDENT_TEST_*`, `TEACHER_TEST_*`, and `ADMIN_TEST_*` environment
 variables. Never commit credentials, access tokens, real quiz records, correct-answer data, or student data.
+The optional quiz ownership regression requires distinct
+`SECONDARY_TEACHER_TEST_USERNAME` and `SECONDARY_TEACHER_TEST_PASSWORD` credentials. It creates a synthetic quiz
+under the primary teacher and asserts the second teacher receives `403` for reading, updating, and deleting it.
+The account must not own the test course; the test deletes only the quiz it created.
 
 The integration support verifies API Gateway, Auth Service, Assignment Service, Course Service, and Enrollment Service
 before making API requests. The teacher results workflow also requires User Service to resolve submitted student

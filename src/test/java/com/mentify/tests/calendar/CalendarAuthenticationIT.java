@@ -41,7 +41,7 @@ class CalendarAuthenticationIT extends CalendarIntegrationTestSupport {
             Response response = calendarClient.upcoming(session.accessToken(), 5);
 
             assertEquals(200, response.statusCode());
-            assertEquals("success", response.jsonPath().getString("status"));
+            assertEquals(200, response.jsonPath().getInt("statusCode"), response.asString());
             assertNotNull(response.jsonPath().get("data"));
         } finally {
             logout(session);

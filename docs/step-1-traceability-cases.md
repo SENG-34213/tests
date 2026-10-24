@@ -69,4 +69,7 @@ These cases map existing JUnit integration methods that were present in the test
 | TC-TRACE-063 | UserAuthorizationIT | studentsAndTeachersCannotPerformAdministratorOperations | security | user |
 | TC-TRACE-064 | UserAuthorizationIT | protectedUserEndpointsRejectMissingAuthentication | security | user |
 | TC-TRACE-065 | UserProfileIT | authenticatedUserCanRetrieveOwnProfileWithoutSensitiveFields | integration | user |
+| TC-TRACE-066 | QuizManagementIT | anotherTeacherCannotReadOrManageQuizOwnedByTeacher | security | quiz |
+| TC-TRACE-067 | AttendanceAuthenticationIT | teacherCannotListSessionsForAnotherTeachersCourse | security | attendance |
+| TC-TRACE-068 | CalendarEventWorkflowIT | anotherTeacherCannotUpdateOrCancelAnUnassignedCourseEvent | security | calendar |
 

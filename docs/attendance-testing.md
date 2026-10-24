@@ -23,6 +23,9 @@ Set `TEST_ENV_ENABLED=true` and include `ATTENDANCE_SERVICE`,
 Provide non-production credentials for the existing student, teacher, and admin variables.
 Write tests additionally require `TEST_ATTENDANCE_COURSE_ID`,
 `TEST_ATTENDANCE_STUDENT_ID`, and `TEST_ATTENDANCE_WRITE_ENABLED=true`.
+The cross-teacher ownership check requires a distinct
+`SECONDARY_TEACHER_TEST_USERNAME`/`SECONDARY_TEACHER_TEST_PASSWORD` account and a course assigned to the primary
+teacher but not the secondary teacher. It asserts that the secondary teacher receives `403` when listing sessions.
 
 Run unit tests with `mvn test`. Run live integration tests with
 `mvn -Pintegration verify` only against an approved non-production environment.

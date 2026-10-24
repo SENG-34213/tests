@@ -13,7 +13,8 @@ final class AttendanceTestDataFactory {
 
     static Map<String, Object> session(UUID courseId) {
         return Map.of("courseId", courseId.toString(), "title", "Integration attendance " + UUID.randomUUID(),
-                "attendanceDate", LocalDate.now().toString(), "startTime", LocalTime.of(9, 0).toString(),
+                "attendanceDate", LocalDate.now().plusDays(1 + Math.floorMod(UUID.randomUUID().hashCode(), 365)).toString(),
+                "startTime", LocalTime.of(9, 0).toString(),
                 "endTime", LocalTime.of(10, 0).toString());
     }
 
