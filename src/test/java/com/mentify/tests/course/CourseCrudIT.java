@@ -62,6 +62,75 @@ class CourseCrudIT extends CourseIntegrationTestSupport {
     }
 
     @Test
+    void shouldAllowTeacherToCreateReadAndUpdateOwnedCourse() {
+        AuthenticationSession teacher = login(TestRole.TEACHER);
+        String courseId = null;
+        try {
+            String teacherId = authenticatedTeacherId(teacher);
+            Response create = courseClient.create(
+                    validCourseRequest("TEST-032 Teacher-owned", teacherId), teacher.accessToken());
+            assertEquals(201, create.statusCode(), create.asString());
+            courseId = courseId(create);
+            assertEquals(teacherId, create.jsonPath().getString("data.assignedTeacherId"));
+
+            Response read = courseClient.getById(courseId, teacher.accessToken());
+            assertEquals(200, read.statusCode(), read.asString());
+            assertEquals(courseId, read.jsonPath().getString("data.id"));
+
+            Response update = courseClient.update(courseId,
+                    validCourseRequest("TEST-032 Teacher-updated", teacherId), teacher.accessToken());
+            assertEquals(200, update.statusCode(), update.asString());
+            assertEquals("TEST-032 Teacher-updated", update.jsonPath().getString("data.courseName"));
+            assertEquals(teacherId, update.jsonPath().getString("data.assignedTeacherId"));
+        } finally {
+            try {
+                if (courseId != null) {
+                    AuthenticationSession admin = login(TestRole.ADMIN);
+                    try {
+                        deleteIfNeeded(courseId, admin.accessToken());
+                    } finally {
+                        logout(admin);
+                    }
+                }
+            } finally {
+                logout(teacher);
+            }
+        }
+    }
+
+    @Test
+    void shouldDenyTeacherFromReadingOrUpdatingAnotherTeachersCourse() {
+        TeacherPortalTestData data = TeacherPortalTestData.fromEnvironment();
+        Assumptions.assumeTrue(data.unownedCourseId() != null,
+                "Set TEST_TEACHER_PORTAL_UNOWNED_COURSE_ID to a course owned by another teacher");
+        AuthenticationSession admin = login(TestRole.ADMIN);
+        AuthenticationSession teacher = null;
+        try {
+            Response before = courseClient.getById(data.unownedCourseId().toString(), admin.accessToken());
+            assertEquals(200, before.statusCode(), before.asString());
+            String originalName = before.jsonPath().getString("data.courseName");
+            assertNotNull(originalName, before.asString());
+
+            teacher = login(TestRole.TEACHER);
+            String teacherId = authenticatedTeacherId(teacher);
+            Response read = courseClient.getById(data.unownedCourseId().toString(), teacher.accessToken());
+            assertEquals(403, read.statusCode(), read.asString());
+
+            Response update = courseClient.update(data.unownedCourseId().toString(),
+                    validCourseRequest("TEST-032 Unauthorized", teacherId), teacher.accessToken());
+            assertEquals(403, update.statusCode(), update.asString());
+
+            Response after = courseClient.getById(data.unownedCourseId().toString(), admin.accessToken());
+            assertEquals(200, after.statusCode(), after.asString());
+            assertEquals(originalName, after.jsonPath().getString("data.courseName"),
+                    "A rejected cross-owner update must leave the foreign course unchanged");
+        } finally {
+            logout(teacher);
+            logout(admin);
+        }
+    }
+
+    @Test
     void shouldAllowStudentAndTeacherToLookupCreatedCourse() {
         AuthenticationSession admin = login(TestRole.ADMIN);
         String courseId = null;
@@ -144,6 +213,14 @@ class CourseCrudIT extends CourseIntegrationTestSupport {
         return courseId(response);
     }
 
+    private static String authenticatedTeacherId(AuthenticationSession teacher) {
+        Response profile = apiClient.get("/api/v1/users/me", teacher.accessToken(), Map.of(), Map.of());
+        assertEquals(200, profile.statusCode(), profile.asString());
+        String teacherId = profile.jsonPath().getString("data.id");
+        assertNotNull(teacherId, profile.asString());
+        return teacherId;
+    }
+
     private static void assertLookupAllowed(String courseId, TestRole role) {
         AuthenticationSession session = login(role);
         try {
@@ -176,12 +253,17 @@ class CourseCrudIT extends CourseIntegrationTestSupport {
 
     private static Map<String, Object> validCourseRequest(String namePrefix) {
         CourseTestDataConfiguration data = CourseTestDataConfiguration.fromEnvironment();
+        return validCourseRequest(namePrefix, data.teacherId().toString());
+    }
+
+    private static Map<String, Object> validCourseRequest(String namePrefix, String assignedTeacherId) {
+        CourseTestDataConfiguration data = CourseTestDataConfiguration.fromEnvironment();
         Map<String, Object> request = new LinkedHashMap<>();
         request.put("courseName", namePrefix + " " + UUID.randomUUID());
         request.put("courseDescription", "Created by TEST-009 and removed during test cleanup.");
         request.put("courseFeeMonthly", 25.00);
         request.put("gradeId", data.gradeId().toString());
-        request.put("assignedTeacherId", data.teacherId().toString());
+        request.put("assignedTeacherId", assignedTeacherId);
         request.put("subject", "Integration Testing");
         request.put("isOnline", true);
         request.put("discountOfferPercent", 0.0);

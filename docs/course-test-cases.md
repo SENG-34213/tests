@@ -46,6 +46,8 @@
 | TC-COURSE-042 | Teacher cannot mutate another teacher's course content | Module, lesson, and learning-material create/update/delete routes | All nine operations return `403 Forbidden`; foreign fixtures remain unchanged | Explicitly enabled ownership regression |
 | TC-COURSE-043 | Announcement and progress role/validation boundaries | Announcement and lesson-progress routes | Wrong roles receive `403`; malformed teacher announcement and student progress payloads receive `400` | Security/validation integration |
 | TC-COURSE-044 | Announcement pagination client bounds | Student announcement client page and size | Negative page and size above 100 are rejected locally before HTTP | Unit/integration |
+| TC-COURSE-050 | Teacher manages an owned course | POST/GET/PUT course endpoints | Teacher creates, reads, and updates an owned course; admin cleanup removes the created course | Fixture-gated CRUD integration |
+| TC-COURSE-051 | Teacher cannot access another teacher's course | GET/PUT course by ID | Read and update return 403; admin verifies the foreign course remains unchanged | Fixture-gated security integration |
 
 ## Preconditions
 

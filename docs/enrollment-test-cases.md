@@ -27,5 +27,6 @@
 | TC-TEST-010-22 | Students cannot query teacher/admin enrollment directories | Course student/enrollment lists and unenrolled students | Student receives `403`; teacher also receives `403` for admin-only unenrolled-student listing | Security integration |
 | TC-TEST-010-23 | Teacher cannot update or delete another teacher's enrollment | Update/delete by enrollment ID | Both requests return `403`; foreign record remains unchanged | Fixture-gated security integration |
 | TC-TEST-010-24 | Teacher manages enrollment in an owned course | Create, approve, delete and verify membership | Created enrollment is deleted and membership is cleared | Fixture-gated integration |
+| TC-TEST-010-25 | Duplicate student enrollment is rejected | POST /api/v1/enrollments/me twice for the same student and free course | First request creates a pending enrollment; the duplicate returns 409 and the original membership remains; test-created enrollment is deleted | Fixture-gated security integration |
 
 Write tests are opt-in and require explicitly approved non-production fixtures. The backend has a soft-delete endpoint; tests clean up only enrollment records they create. Self-enrollment success requires a course verified as free so it does not depend on a payment provider. Teacher ownership tests require one teacher-owned course and one course owned by a different teacher.
