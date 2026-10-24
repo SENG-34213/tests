@@ -20,6 +20,19 @@ class SecurityRegressionIT extends SecurityRegressionTestSupport {
     }
 
     @Test
+    void expiredSignedAccessTokenIsRejected() {
+        AuthenticationSession student = login(TestRole.STUDENT);
+        try {
+            String expiredToken = ExpiredJwtFactory.expiredCopy(
+                    student.accessToken(), System.getenv("AUTH_JWT_PRIVATE_KEY_BASE64"));
+
+            assertEquals(401, users.currentUser(expiredToken).statusCode());
+        } finally {
+            logout(student);
+        }
+    }
+
+    @Test
     void studentAndTeacherTokensCannotCrossAdministratorBoundary() {
         AuthenticationSession student = login(TestRole.STUDENT);
         AuthenticationSession teacher = login(TestRole.TEACHER);

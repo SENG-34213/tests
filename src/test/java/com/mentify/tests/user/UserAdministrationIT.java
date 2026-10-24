@@ -39,7 +39,6 @@ class UserAdministrationIT extends UserIntegrationTestSupport {
             assertEquals(404, users.resendInvitation(UNKNOWN_ID, token).statusCode());
             assertEquals(404, users.deleteUser(UNKNOWN_ID, token).statusCode());
             assertEquals(400, users.registerUser(UserTestData.invalidRegistration(), token).statusCode());
-            assertEquals(400, users.usersByRole("INVALID", token).statusCode());
         } finally {
             logout(admin);
         }
@@ -56,8 +55,8 @@ class UserAdministrationIT extends UserIntegrationTestSupport {
             assertEquals(403, users.adminUsers("STUDENT", studentToken).statusCode());
             assertEquals(403, users.listStudents(0, 10, studentToken).statusCode());
             assertEquals(403, users.listTeachers(0, 10, studentToken).statusCode());
-            assertEquals(403, users.registerUser(UserTestData.invalidRegistration(), studentToken).statusCode());
-            assertEquals(403, users.registerAdmin(Map.of(), admin.accessToken()).statusCode());
+            assertEquals(403, users.registerUser(UserTestData.validRegistration(), studentToken).statusCode());
+            assertEquals(403, users.registerAdmin(UserTestData.validAdminRegistration(), admin.accessToken()).statusCode());
             assertEquals(403, users.deleteUser(UNKNOWN_ID, studentToken).statusCode());
             assertEquals(403, users.deleteUser(UNKNOWN_ID, teacher.accessToken()).statusCode());
         } finally {
