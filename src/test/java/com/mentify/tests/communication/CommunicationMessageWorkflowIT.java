@@ -10,6 +10,7 @@ import com.mentify.tests.environment.BackendReadinessClient;
 import com.mentify.tests.environment.RequiredService;
 import com.mentify.tests.environment.TestEnvironmentConfiguration;
 import com.mentify.tests.material.MaterialClient;
+import com.mentify.tests.material.MaterialDownloadVerifier;
 import io.restassured.response.Response;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -64,6 +65,8 @@ class CommunicationMessageWorkflowIT extends CommunicationIntegrationTestSupport
             assertEquals(file.getFileName().toString(), downloaded.jsonPath().getString("data.originalFilename"));
             assertTrue(downloaded.jsonPath().getLong("data.fileSize") > 0, downloaded.asString());
             assertNotNull(downloaded.jsonPath().getString("data.downloadUrl"), downloaded.asString());
+            MaterialDownloadVerifier.verifyIfEnabled(
+                    downloaded.jsonPath().getString("data.downloadUrl"), file);
 
             assertEquals(200, communicationClient.deleteMessage(groupId, messageId,
                     "EVERYONE", teacher.accessToken()).statusCode());
@@ -96,6 +99,8 @@ class CommunicationMessageWorkflowIT extends CommunicationIntegrationTestSupport
             Response history = communicationClient.messageHistory(data.groupId().toString(), 0, 101, token);
             assertEquals(200, history.statusCode(), history.asString());
             assertEquals(100, history.jsonPath().getInt("data.size"), history.asString());
+            assertTrue(history.jsonPath().getList("data.content.id", String.class).contains(messageId),
+                    history.asString());
             try {
                 Response updated = communicationClient.updateMessage(data.groupId().toString(), messageId,
                         CommunicationTestDataFactory.message("updated TEST-016"), token);

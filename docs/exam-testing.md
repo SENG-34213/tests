@@ -6,8 +6,9 @@ TEST-017 verifies the Exam Service through the API Gateway with application-issu
 
 The tests cover exam creation, retrieval, course listing, update, scheduling, cancellation, marking, batch marks,
 completion, result sheets, summaries, student result retrieval, role authorization, validation, not-found handling,
-and lifecycle transitions. Direct database checks, backend unit tests, frontend tests, load testing, payment,
-notification, material, attendance, and communication workflows are outside this ticket.
+and lifecycle transitions. Attachment tests cover upload, visibility, listing, download metadata and cleanup; optional
+signed-download verification checks exact file bytes against the synthetic upload. Direct database checks, backend unit
+tests, frontend tests, load testing, payment, notification and unrelated service workflows are outside this scope.
 
 ## Required environment
 
@@ -23,6 +24,10 @@ TEST_EXAM_COURSE_ID=<approved-course-uuid>
 TEST_EXAM_STUDENT_ID=<approved-enrolled-student-uuid>
 TEST_EXAM_WRITE_ENABLED=false
 ```
+
+For exact stored attachment-byte checks, set `TEST_MATERIAL_DOWNLOAD_BYTES_ENABLED=true` and
+`TEST_MATERIAL_DOWNLOAD_ALLOWED_HOST` to the exact approved object-storage host. Local HTTP requires the separate
+`TEST_MATERIAL_DOWNLOAD_LOCAL_HTTP_ENABLED=true` opt-in.
 
 The student account used by the lifecycle test must correspond to
 `TEST_EXAM_STUDENT_ID` and be enrolled in `TEST_EXAM_COURSE_ID`; scheduled-exam
