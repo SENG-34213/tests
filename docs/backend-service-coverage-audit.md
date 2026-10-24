@@ -313,6 +313,9 @@ The Exam suite now verifies that update requests cannot change the owning course
 students cannot enter marks, and attachment downloads can be compared byte-for-byte with the synthetic upload. Exact
 download verification uses the existing approved-host policy and remains explicitly disabled unless enabled.
 
+The evidence warning for 88 executed unit methods was also closed with stable `TC-UNIT-*` mappings. These rows label
+repository harness checks as not applicable to SRS requirements instead of attaching them to product requirements.
+
 Static CI verification is available, but Step 8 live verification is pending: this environment has no test
 credentials or approved fixtures, and Communication Service and Exam Service are not reachable. The backend exam
 contract exposes teacher mark entry and student result reads; it has no student answer-submission route, so that
