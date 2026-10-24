@@ -29,7 +29,7 @@
 ## Preconditions
 
 - Java 17 and Maven are installed.
-- The backend API Gateway and Keycloak are running.
+- The backend API Gateway and Auth Service are running.
 - The Calendar Service is running for integration tests.
 - Dedicated Student credentials are configured for TC-CAL-003.
 - `TEST_ENV_ENABLED=true` is set for integration tests.

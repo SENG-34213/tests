@@ -20,13 +20,13 @@ test a production object-storage account.
 
 ## Environment
 
-The integration profile requires the gateway, Keycloak, Course Service,
+The integration profile requires the gateway, Auth Service, Course Service,
 Enrollment Service, and Material Service. Configure these values outside source
 control:
 
 ```text
 TEST_ENV_ENABLED=true
-TEST_REQUIRED_SERVICES=API_GATEWAY,KEYCLOAK,COURSE_SERVICE,ENROLLMENT_SERVICE,MATERIAL_SERVICE
+TEST_REQUIRED_SERVICES=API_GATEWAY,AUTH_SERVICE,COURSE_SERVICE,ENROLLMENT_SERVICE,MATERIAL_SERVICE
 MATERIAL_SERVICE_BASE_URL=http://localhost:8091
 COURSE_SERVICE_BASE_URL=http://localhost:8082
 ENROLLMENT_SERVICE_BASE_URL=http://localhost:8083
@@ -69,5 +69,5 @@ mvn verify -Pintegration -Dtest="Assignment*IT,Submission*IT,Material*IT"
 
 With `TEST_ENV_ENABLED=false`, the integration tests must make no API request;
 the readiness guard stops them before endpoint execution. Live integration runs
-also require the backend services, Keycloak users, approved fixtures, and the
+also require the backend services, test users, approved fixtures, and the
 configured non-production storage provider to be available.

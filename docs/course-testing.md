@@ -44,7 +44,7 @@ Never commit credentials, tokens, production data, or production URLs containing
 ## Commands
 
     $env:TEST_ENV_ENABLED="true"
-    $env:TEST_REQUIRED_SERVICES="API_GATEWAY,KEYCLOAK,COURSE_SERVICE"
+    $env:TEST_REQUIRED_SERVICES="API_GATEWAY,AUTH_SERVICE,COURSE_SERVICE"
     mvn verify -Pintegration -Dtest="Course*IT"
 
 The default command `mvn clean verify` runs unit tests and does not require the backend environment.

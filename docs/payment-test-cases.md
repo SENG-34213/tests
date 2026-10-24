@@ -2,7 +2,7 @@
 
 | ID | Scenario | Expected result |
 | --- | --- | --- |
-| TC-TEST-018-01 | Required-service readiness | Gateway, Keycloak, Course, Enrollment, and Payment services are checked. |
+| TC-TEST-018-01 | Required-service readiness | Gateway, Auth Service, Course, Enrollment, and Payment services are checked. |
 | TC-TEST-018-02 | Start course payment | `201`, pending payment, amount/currency and non-empty client secret are returned. |
 | TC-TEST-018-03 | Student payment list | `200`; newly initiated owned payment is present. |
 | TC-TEST-018-04 | Student payment detail | `200`; payment ID, course, provider and status match the initiated payment. |

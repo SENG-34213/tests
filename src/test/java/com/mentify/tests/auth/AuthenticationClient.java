@@ -2,6 +2,8 @@ package com.mentify.tests.auth;
 
 import com.mentify.tests.api.ApiClient;
 import com.mentify.tests.api.ApiClientConfiguration;
+import com.mentify.tests.environment.RequiredService;
+import com.mentify.tests.environment.TestEnvironmentConfiguration;
 import io.restassured.response.Response;
 import java.util.Map;
 
@@ -12,15 +14,25 @@ public class AuthenticationClient {
     private static final String LOGOUT_PATH = "/api/v1/auth/logout";
 
     private final ApiClient apiClient;
+    private final ApiClient authServiceClient;
     private final AuthenticationConfiguration configuration;
 
     public AuthenticationClient() {
-        this(new ApiClient(ApiClientConfiguration.fromEnvironment()),
-                AuthenticationConfiguration.fromEnvironment());
+        TestEnvironmentConfiguration environment = TestEnvironmentConfiguration.fromEnvironment();
+        this.apiClient = new ApiClient(ApiClientConfiguration.fromEnvironment(environment, false));
+        this.authServiceClient = new ApiClient(ApiClientConfiguration.forService(
+                environment, RequiredService.AUTH_SERVICE, false));
+        this.configuration = AuthenticationConfiguration.fromEnvironment();
     }
 
     public AuthenticationClient(ApiClient apiClient, AuthenticationConfiguration configuration) {
+        this(apiClient, apiClient, configuration);
+    }
+
+    public AuthenticationClient(ApiClient apiClient, ApiClient authServiceClient,
+                                AuthenticationConfiguration configuration) {
         this.apiClient = apiClient;
+        this.authServiceClient = authServiceClient;
         this.configuration = configuration;
     }
 
@@ -72,7 +84,7 @@ public class AuthenticationClient {
     }
 
     public Response jwks() {
-        return apiClient.get("/api/v1/auth/.well-known/jwks.json");
+        return authServiceClient.get("/api/v1/auth/.well-known/jwks.json");
     }
 
     public ApiClient authenticatedApiClient(AuthenticationSession session) {

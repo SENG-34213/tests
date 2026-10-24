@@ -1,6 +1,7 @@
 package com.mentify.tests.api;
 
 import com.mentify.tests.environment.TestEnvironmentConfiguration;
+import com.mentify.tests.environment.RequiredService;
 import java.net.URI;
 import java.time.Duration;
 
@@ -21,8 +22,13 @@ public record ApiClientConfiguration(
 
     public static ApiClientConfiguration fromEnvironment(TestEnvironmentConfiguration environment,
                                                          boolean loggingEnabled) {
+        return forService(environment, RequiredService.API_GATEWAY, loggingEnabled);
+    }
+
+    public static ApiClientConfiguration forService(TestEnvironmentConfiguration environment,
+                                                    RequiredService service, boolean loggingEnabled) {
         return new ApiClientConfiguration(
-                environment.serviceUrls().get(com.mentify.tests.environment.RequiredService.API_GATEWAY),
+                environment.serviceUrls().get(service),
                 environment.connectTimeout(),
                 environment.readTimeout(),
                 loggingEnabled);

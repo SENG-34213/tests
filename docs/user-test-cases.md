@@ -2,7 +2,7 @@
 
 | ID | Scenario | Expected result |
 | --- | --- | --- |
-| TC-TEST-021-01 | User-service readiness | API Gateway, Keycloak, and User Service are checked. |
+| TC-TEST-021-01 | User-service readiness | API Gateway, Auth Service, and User Service are checked. |
 | TC-TEST-021-02 | Public probe | Public authentication probe returns success without a token. |
 | TC-TEST-021-03 | Protected probe | Missing authentication is rejected. |
 | TC-TEST-021-04 | Role probes | Student/admin role access follows the backend contract. |
@@ -25,7 +25,7 @@
 | TC-TEST-021-21 | Status lifecycle | Deactivation/reactivation is enabled only with safe account fixtures. |
 | TC-TEST-021-22 | Existence checks | Known malformed and unknown student/teacher IDs return `false` without private data leakage. |
 | TC-TEST-021-23 | Security | No passwords, tokens, reset links, invitation links, or personal data are committed. |
-| TC-TEST-021-24 | Documentation | Keycloak, roles, fixtures, cleanup, and skip behavior are documented. |
+| TC-TEST-021-24 | Documentation | JWT authentication, roles, fixtures, cleanup, and skip behavior are documented. |
 | TC-TEST-021-25 | User-management role matrix | Student/teacher cannot list users, register accounts, or delete users; non-super-admin cannot create an admin. |
 | TC-TEST-021-26 | Self-service profile read and no-op update | Authenticated student reads own profile and submits an empty update without changing data. |
 | TC-TEST-021-27 | Teacher profile and guidance-note authorization | Teacher route allows teacher role; student role is denied; invalid note input is rejected. |

@@ -25,7 +25,7 @@ TEST-007 creates unique future-dated events and cancels them during cleanup. If 
 ## Commands
 
     $env:TEST_ENV_ENABLED="true"
-    $env:TEST_REQUIRED_SERVICES="API_GATEWAY,KEYCLOAK,CALENDAR_SERVICE"
+    $env:TEST_REQUIRED_SERVICES="API_GATEWAY,AUTH_SERVICE,CALENDAR_SERVICE"
     mvn verify -Pintegration
 
 The default command `mvn clean verify` runs unit tests and does not require the backend environment.

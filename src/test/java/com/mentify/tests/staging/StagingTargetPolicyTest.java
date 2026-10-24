@@ -14,8 +14,9 @@ class StagingTargetPolicyTest {
         StagingTargetPolicy policy = StagingTargetPolicy.fromEnvironment(validEnvironment());
 
         assertEquals("https://api.staging.example.test/", policy.gatewayBase().toString());
-        assertEquals("https://login.staging.example.test/realms/mentify/.well-known/openid-configuration",
-                policy.keycloakDiscovery().toString());
+        assertEquals("https://auth.staging.example.test/", policy.authServiceBase().toString());
+        assertEquals("https://auth.staging.example.test/api/v1/auth/.well-known/jwks.json",
+                policy.jwtKeySet().toString());
         assertEquals("abcdef0123456", policy.deploymentRevision());
     }
 
@@ -48,17 +49,18 @@ class StagingTargetPolicyTest {
             assertThrows(IllegalArgumentException.class, () -> StagingTargetPolicy.fromEnvironment(environment),
                     "Expected unsafe target to be rejected: " + target.replaceAll("password|secret", "[redacted]"));
         }
+
+        Map<String, String> invalidAuthTarget = validEnvironment();
+        invalidAuthTarget.put("STAGING_AUTH_SERVICE_BASE_URL", "https://auth.production.example.test");
+        assertThrows(IllegalArgumentException.class,
+                () -> StagingTargetPolicy.fromEnvironment(invalidAuthTarget));
     }
 
     @Test
-    void rejectsInvalidDeploymentRevisionAndRealmPathInjection() {
+    void rejectsInvalidDeploymentRevision() {
         Map<String, String> environment = validEnvironment();
         environment.put("STAGING_DEPLOYMENT_REVISION", "latest");
         assertThrows(IllegalArgumentException.class, () -> StagingTargetPolicy.fromEnvironment(environment));
-
-        Map<String, String> invalidRealm = validEnvironment();
-        invalidRealm.put("KEYCLOAK_REALM", "../admin");
-        assertThrows(IllegalArgumentException.class, () -> StagingTargetPolicy.fromEnvironment(invalidRealm));
     }
 
     @Test
@@ -75,8 +77,7 @@ class StagingTargetPolicyTest {
         environment.put("STAGING_CONFIRMATION", StagingTargetPolicy.REQUIRED_CONFIRMATION);
         environment.put("STAGING_ALLOWED_HOST_SUFFIX", "staging.example.test");
         environment.put("STAGING_BASE_URL", "https://api.staging.example.test");
-        environment.put("STAGING_KEYCLOAK_BASE_URL", "https://login.staging.example.test");
-        environment.put("KEYCLOAK_REALM", "mentify");
+        environment.put("STAGING_AUTH_SERVICE_BASE_URL", "https://auth.staging.example.test");
         environment.put("STAGING_DEPLOYMENT_REVISION", "abcdef0123456");
         return environment;
     }

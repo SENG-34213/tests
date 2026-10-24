@@ -26,9 +26,8 @@ jobs:
       STAGING_CONFIRMATION: ${{ inputs.confirmation }}
       STAGING_DEPLOYMENT_REVISION: ${{ inputs.deployment_revision }}
       STAGING_BASE_URL: ${{ vars.STAGING_BASE_URL }}
-      STAGING_KEYCLOAK_BASE_URL: ${{ vars.STAGING_KEYCLOAK_BASE_URL }}
+      STAGING_AUTH_SERVICE_BASE_URL: ${{ vars.STAGING_AUTH_SERVICE_BASE_URL }}
       STAGING_ALLOWED_HOST_SUFFIX: ${{ vars.STAGING_ALLOWED_HOST_SUFFIX }}
-      KEYCLOAK_REALM: ${{ vars.KEYCLOAK_REALM || 'mentify' }}
       STAGING_READINESS_TIMEOUT_SECONDS: ${{ vars.STAGING_READINESS_TIMEOUT_SECONDS || '90' }}
       STAGING_POLL_INTERVAL_SECONDS: ${{ vars.STAGING_POLL_INTERVAL_SECONDS || '3' }}
       STAGING_REQUEST_TIMEOUT_SECONDS: ${{ vars.STAGING_REQUEST_TIMEOUT_SECONDS || '8' }}
@@ -45,7 +44,7 @@ jobs:
             echo "deployment_revision must be a 7-40 character Git SHA. No network probes were run."
             exit 1
           fi
-          for name in STAGING_BASE_URL STAGING_KEYCLOAK_BASE_URL STAGING_ALLOWED_HOST_SUFFIX; do
+          for name in STAGING_BASE_URL STAGING_AUTH_SERVICE_BASE_URL STAGING_ALLOWED_HOST_SUFFIX; do
             if [[ -z "${!name}" ]]; then
               echo "$name must be configured on the protected staging environment."
               exit 1

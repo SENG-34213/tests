@@ -11,17 +11,13 @@ public final class StagingTargetPolicy {
     public static final String REQUIRED_CONFIRMATION = "RUN STAGING READ-ONLY SMOKE";
 
     private final URI gatewayBase;
-    private final URI keycloakBase;
-    private final String allowedHostSuffix;
-    private final String realm;
+    private final URI authServiceBase;
     private final String deploymentRevision;
 
-    private StagingTargetPolicy(URI gatewayBase, URI keycloakBase, String allowedHostSuffix,
-                                String realm, String deploymentRevision) {
+    private StagingTargetPolicy(URI gatewayBase, URI authServiceBase,
+                                String allowedHostSuffix, String deploymentRevision) {
         this.gatewayBase = gatewayBase;
-        this.keycloakBase = keycloakBase;
-        this.allowedHostSuffix = allowedHostSuffix;
-        this.realm = realm;
+        this.authServiceBase = authServiceBase;
         this.deploymentRevision = deploymentRevision;
     }
 
@@ -43,45 +39,29 @@ public final class StagingTargetPolicy {
             throw new IllegalArgumentException("STAGING_ALLOWED_HOST_SUFFIX must be a DNS suffix, not a URL or IP");
         }
         URI gateway = validatedHttpsUrl(required(environment, "STAGING_BASE_URL"), suffix, "STAGING_BASE_URL");
-        String keycloakValue = required(environment, "STAGING_KEYCLOAK_BASE_URL");
-        URI keycloak = validatedHttpsUrl(keycloakValue, suffix, "STAGING_KEYCLOAK_BASE_URL");
-
-        String realm = environment.getOrDefault("KEYCLOAK_REALM", "mentify").trim();
-        if (!realm.matches("[A-Za-z0-9._-]{1,128}")) {
-            throw new IllegalArgumentException("KEYCLOAK_REALM must be a simple realm identifier");
-        }
+        URI authService = validatedHttpsUrl(
+                required(environment, "STAGING_AUTH_SERVICE_BASE_URL"), suffix, "STAGING_AUTH_SERVICE_BASE_URL");
         String revision = required(environment, "STAGING_DEPLOYMENT_REVISION");
         if (!revision.matches("(?i)[0-9a-f]{7,40}")) {
             throw new IllegalArgumentException("STAGING_DEPLOYMENT_REVISION must be a 7-40 character Git SHA");
         }
-        return new StagingTargetPolicy(gateway, keycloak, suffix, realm, revision.toLowerCase(Locale.ROOT));
+        return new StagingTargetPolicy(gateway, authService, suffix, revision.toLowerCase(Locale.ROOT));
     }
 
     URI gatewayBase() {
         return gatewayBase;
     }
 
-    URI keycloakDiscovery() {
-        return keycloakBase.resolve("realms/" + realm + "/.well-known/openid-configuration");
+    URI authServiceBase() {
+        return authServiceBase;
     }
 
-    URI keycloakIssuer() {
-        return keycloakBase.resolve("realms/" + realm);
+    URI jwtKeySet() {
+        return authServiceBase.resolve("api/v1/auth/.well-known/jwks.json");
     }
 
-    boolean isApprovedHttpsEndpoint(String value) {
-        try {
-            URI endpoint = URI.create(value);
-            String host = endpoint.getHost();
-            return "https".equalsIgnoreCase(endpoint.getScheme()) && host != null
-                    && endpoint.getRawUserInfo() == null && endpoint.getRawQuery() == null
-                    && endpoint.getRawFragment() == null && (endpoint.getPort() == -1 || endpoint.getPort() == 443)
-                    && (endpoint.getPath() == null || !endpoint.getPath().contains(".."))
-                    && (host.equalsIgnoreCase(allowedHostSuffix)
-                            || host.toLowerCase(Locale.ROOT).endsWith("." + allowedHostSuffix));
-        } catch (IllegalArgumentException exception) {
-            return false;
-        }
+    URI authServiceHealth() {
+        return authServiceBase.resolve("actuator/health");
     }
 
     String deploymentRevision() {

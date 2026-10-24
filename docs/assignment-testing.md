@@ -23,7 +23,7 @@ The user-facing paths include `/api/v1/assignments/me`, `/api/v1/assignments`,
 
 Assignment creation and management require `TEACHER`, `ADMIN`, or `SUPER_ADMIN`. Students create,
 update, submit, and list their own submissions. Assignment and submission reads are available to
-the roles defined by the backend controller. Live tests require API Gateway, Keycloak, Assignment
+the roles defined by the backend controller. Live tests require API Gateway, Auth Service, Assignment
 Service, Course Service, Enrollment Service, and Material Service for attachment/file workflows.
 
 ## Fixtures and safety
@@ -47,7 +47,7 @@ are read from the existing role-specific environment variables.
 ```powershell
 mvn clean verify
 $env:TEST_ENV_ENABLED = "true"
-$env:TEST_REQUIRED_SERVICES = "API_GATEWAY,KEYCLOAK,COURSE_SERVICE,ENROLLMENT_SERVICE,ASSIGNMENT_SERVICE,MATERIAL_SERVICE"
+$env:TEST_REQUIRED_SERVICES = "API_GATEWAY,AUTH_SERVICE,COURSE_SERVICE,ENROLLMENT_SERVICE,ASSIGNMENT_SERVICE,MATERIAL_SERVICE"
 mvn verify -Pintegration -Dtest="Assignment*IT,Submission*IT"
 mvn verify -Pintegration
 $env:TEST_ENV_ENABLED = "false"

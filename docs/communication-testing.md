@@ -4,7 +4,7 @@ TEST-016 covers the HTTP contract exposed by Communication Service through the A
 
 ## Scope
 
-- Readiness of API Gateway, Keycloak, Course Service, Enrollment Service, and Communication Service.
+- Readiness of API Gateway, Auth Service, Course Service, Enrollment Service, and Communication Service.
 - Authenticated-user lookup at `/api/communication/me`.
 - Group creation, listing, retrieval, members, course membership, student membership, archive, and unarchive.
 - Message creation, paginated history, update, and deletion for `ME` and `EVERYONE` scopes.
@@ -34,7 +34,7 @@ mvn -Pintegration verify
 ```
 
 The normal test phase runs client/unit tests. The integration profile runs classes ending in `IT` and requires the
-backend services and Keycloak to be running. Integration tests never use real production credentials or IDs.
+backend services and Auth Service to be running. Integration tests never use real production credentials or IDs.
 
 ## Cleanup and isolation
 

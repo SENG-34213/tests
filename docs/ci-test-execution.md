@@ -45,7 +45,7 @@ exception bodies to reduce the risk of including sensitive response data.
 
 ## Live execution
 
-Live gateway journeys should run only in a separately controlled environment with test-only Keycloak accounts,
+Live gateway journeys should run only in a separately controlled environment with test-only application accounts,
 approved course/enrollment fixtures, safe payment/AI providers, and all required services reachable. Configure secrets
 through the CI secret store; never put values in YAML, `.env.example`, logs, or command output. Set
 `TEST_E2E_ENABLED=true` only for that controlled job and include the exact required service list.

@@ -2,7 +2,7 @@
 
 ## Environment and fixtures
 
-- Static tests do not start the backend, Keycloak, databases, Kafka, Mailpit,
+- Static tests do not start the backend, Auth Service, databases, Kafka, Mailpit,
   or external providers.
 - Live tests need a running, approved non-production environment. Readiness
   fails clearly for a required service that is unavailable.

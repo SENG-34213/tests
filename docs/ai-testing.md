@@ -25,7 +25,7 @@ fixtures exist. The provider test class requires a configured conversation ID an
 
 ```properties
 TEST_ENV_ENABLED=true
-TEST_REQUIRED_SERVICES=API_GATEWAY,KEYCLOAK,AI_SERVICE
+TEST_REQUIRED_SERVICES=API_GATEWAY,AUTH_SERVICE,AI_SERVICE
 AI_SERVICE_BASE_URL=http://localhost:8088
 AI_TEST_MODE=true
 AI_PROVIDER=mock

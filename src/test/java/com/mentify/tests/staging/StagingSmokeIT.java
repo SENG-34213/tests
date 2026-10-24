@@ -48,31 +48,31 @@ class StagingSmokeIT {
     }
 
     @Test
-    void identityProviderDiscoveryIsReachable() {
-        StagingHttpProbe.JsonResponse response = probe.getJson(policy.keycloakDiscovery());
-        assertTrue(response.status() == 200, "Identity discovery must return HTTP 200");
-        assertTrue(response.contentType().toLowerCase().startsWith("application/json"),
-                "Identity discovery must return JSON");
-        try {
-            JsonNode document = JSON.readTree(response.body());
-            String issuer = requiredField(document, "issuer");
-            String authorizationEndpoint = requiredField(document, "authorization_endpoint");
-            String tokenEndpoint = requiredField(document, "token_endpoint");
-            assertTrue(issuer.equals(policy.keycloakIssuer().toString()),
-                    "Identity issuer must match the configured staging realm");
-            assertTrue(policy.isApprovedHttpsEndpoint(authorizationEndpoint)
-                            && policy.isApprovedHttpsEndpoint(tokenEndpoint),
-                    "Identity endpoints must use HTTPS within the approved staging DNS suffix");
-        } catch (IOException exception) {
-            throw new AssertionError("Identity discovery response was not valid JSON", exception);
-        }
-        RESULTS.put("identity-discovery-schema", "Passed (HTTP 200, expected fields and staging issuer)");
+    void authServiceHealthIsReadyWithinBoundedDeadline() {
+        awaitSuccess("auth-service-readiness", policy.authServiceHealth(),
+                status -> status >= 200 && status < 300);
     }
 
     @Test
-    void publicGatewayProbeReturnsSuccessfulStatus() {
-        URI endpoint = policy.gatewayBase().resolve("api/v1/auth/public-test");
-        awaitSuccess("public-api-probe", endpoint, status -> status == 200);
+    void jwtSigningKeysArePublished() {
+        StagingHttpProbe.JsonResponse response = probe.getJson(policy.jwtKeySet());
+        assertTrue(response.status() == 200, "JWT key-set endpoint must return HTTP 200");
+        assertTrue(response.contentType().toLowerCase().startsWith("application/json"),
+                "JWT key-set endpoint must return JSON");
+        try {
+            JsonNode document = JSON.readTree(response.body());
+            JsonNode keys = document.path("keys");
+            assertTrue(keys.isArray() && !keys.isEmpty(), "JWT key set must contain at least one public key");
+            JsonNode key = keys.get(0);
+            assertTrue("RSA".equals(requiredField(key, "kty")), "JWT signing key must use RSA");
+            assertTrue("RS256".equals(requiredField(key, "alg")), "JWT signing algorithm must be RS256");
+            requiredField(key, "kid");
+            requiredField(key, "n");
+            requiredField(key, "e");
+        } catch (IOException exception) {
+            throw new AssertionError("JWT key-set response was not valid JSON", exception);
+        }
+        RESULTS.put("jwt-signing-key-set", "Passed (HTTP 200, public RS256 key fields present)");
     }
 
     @Test
@@ -98,7 +98,7 @@ class StagingSmokeIT {
                 .append("\n- Backend/deployment revision: ")
                 .append(policy == null ? "unavailable" : policy.deploymentRevision())
                 .append("\n- Environment: staging\n\n| Check | Outcome |\n|---|---|\n");
-        for (String check : new String[] {"gateway-readiness", "identity-discovery-schema", "public-api-probe",
+        for (String check : new String[] {"gateway-readiness", "auth-service-readiness", "jwt-signing-key-set",
                 "anonymous-protected-route"}) {
             report.append('|').append(check).append('|').append(RESULTS.getOrDefault(check, "Not run / blocked"))
                     .append("|\n");
@@ -111,7 +111,7 @@ class StagingSmokeIT {
     private static String requiredField(JsonNode document, String field) {
         JsonNode value = document.path(field);
         assertTrue(value.isTextual() && !value.asText().isBlank(),
-                "Identity discovery must contain a non-empty " + field);
+                "JWT key set must contain a non-empty " + field);
         return value.asText();
     }
 

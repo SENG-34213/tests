@@ -15,7 +15,7 @@ email assertions require a deterministic mail-capture provider.
 
 ```properties
 TEST_ENV_ENABLED=true
-TEST_REQUIRED_SERVICES=API_GATEWAY,KEYCLOAK,NOTIFICATION_SERVICE
+TEST_REQUIRED_SERVICES=API_GATEWAY,AUTH_SERVICE,NOTIFICATION_SERVICE
 NOTIFICATION_SERVICE_BASE_URL=http://localhost:8093
 TEST_NOTIFICATION_WRITE_ENABLED=false
 TEST_NOTIFICATION_ID=<one-time-disposable-notification-owned-by-student>
@@ -49,4 +49,4 @@ mvn -Pintegration verify -Dtest="Notification*IT"
 ```
 
 The normal test phase runs `NotificationClientTest`. Integration classes use the repository `*IT` convention and
-require API Gateway, Keycloak, and Notification Service readiness.
+require API Gateway, Auth Service, and Notification Service readiness.

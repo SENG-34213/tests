@@ -29,7 +29,7 @@ Default local values are in `.env.example`:
 
 ```text
 TEST_ENV_ENABLED=false
-TEST_REQUIRED_SERVICES=API_GATEWAY,KEYCLOAK,COURSE_SERVICE,ENROLLMENT_SERVICE,ASSIGNMENT_SERVICE,USER_SERVICE
+TEST_REQUIRED_SERVICES=API_GATEWAY,AUTH_SERVICE,COURSE_SERVICE,ENROLLMENT_SERVICE,ASSIGNMENT_SERVICE,USER_SERVICE
 ASSIGNMENT_SERVICE_BASE_URL=http://localhost:8084
 COURSE_SERVICE_BASE_URL=http://localhost:8082
 ENROLLMENT_SERVICE_BASE_URL=http://localhost:8083
@@ -42,7 +42,7 @@ TEST_QUIZ_CLOSED_ID=<closed-quiz-uuid>
 Credentials are read through the existing `STUDENT_TEST_*`, `TEACHER_TEST_*`, and `ADMIN_TEST_*` environment
 variables. Never commit credentials, access tokens, real quiz records, correct-answer data, or student data.
 
-The integration support verifies API Gateway, Keycloak, Assignment Service, Course Service, and Enrollment Service
+The integration support verifies API Gateway, Auth Service, Assignment Service, Course Service, and Enrollment Service
 before making API requests. The teacher results workflow also requires User Service to resolve submitted student
 names; that extra dependency is readiness-checked only when that provider-backed results workflow runs. With
 `TEST_ENV_ENABLED=false`, readiness fails before a live request is issued, which is the expected safety behavior for
@@ -67,7 +67,7 @@ Run quiz integration tests in a configured environment:
 
 ```powershell
 $env:TEST_ENV_ENABLED="true"
-$env:TEST_REQUIRED_SERVICES="API_GATEWAY,KEYCLOAK,COURSE_SERVICE,ENROLLMENT_SERVICE,ASSIGNMENT_SERVICE"
+$env:TEST_REQUIRED_SERVICES="API_GATEWAY,AUTH_SERVICE,COURSE_SERVICE,ENROLLMENT_SERVICE,ASSIGNMENT_SERVICE"
 mvn verify -Pintegration -Dtest="Quiz*IT"
 ```
 
@@ -80,4 +80,4 @@ mvn verify -Pintegration -Dtest="Quiz*IT"
 
 The disabled command is expected to stop at readiness and may return non-zero because the environment is intentionally
 disabled. Service accounts, course fixtures, and an enrolled student must be supplied by the test environment; the
-repository does not provision Keycloak users or test data.
+repository does not provision application users or test data.

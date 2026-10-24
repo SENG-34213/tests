@@ -25,7 +25,7 @@ or secret is required.
 
 ```powershell
 $env:TEST_ENV_ENABLED="true"
-$env:TEST_REQUIRED_SERVICES="API_GATEWAY,KEYCLOAK,USER_SERVICE"
+$env:TEST_REQUIRED_SERVICES="API_GATEWAY,AUTH_SERVICE,USER_SERVICE"
 mvn verify -Pintegration
 ```
 

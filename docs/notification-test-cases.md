@@ -2,7 +2,7 @@
 
 | ID | Scenario | Expected result |
 | --- | --- | --- |
-| TC-TEST-019-01 | Service readiness | API Gateway, Keycloak, and Notification Service are checked. |
+| TC-TEST-019-01 | Service readiness | API Gateway, Auth Service, and Notification Service are checked. |
 | TC-TEST-019-02 | Notification listing | Authenticated user receives a bounded page with valid metadata. |
 | TC-TEST-019-03 | Default pagination | Default page `0` and size `20` are verified over HTTP. |
 | TC-TEST-019-04 | Later page | Requested page is returned and stays within the requested size. |

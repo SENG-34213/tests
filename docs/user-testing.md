@@ -1,7 +1,7 @@
 # User Service integration testing
 
 TEST-021 verifies User Service authentication, identity, registration, administration, and security behavior through
-the API Gateway. Tests use the existing Keycloak authentication utilities and never access the User Service database.
+the API Gateway. Tests use the application-issued JWT authentication client and never access the User Service database.
 
 ## Scope
 
@@ -14,7 +14,7 @@ super-administrator scenarios require explicitly approved isolated fixtures and 
 
 ```properties
 TEST_ENV_ENABLED=true
-TEST_REQUIRED_SERVICES=API_GATEWAY,KEYCLOAK,USER_SERVICE
+TEST_REQUIRED_SERVICES=API_GATEWAY,AUTH_SERVICE,USER_SERVICE
 USER_SERVICE_BASE_URL=http://localhost:8081
 TEST_USER_WRITE_ENABLED=false
 TEST_SUPER_ADMIN_SUPPORTED=false
@@ -22,7 +22,7 @@ USER_EMAIL_TEST_MODE=false
 ```
 
 Use external synthetic accounts for Student, Teacher, and Administrator roles. Add a Super Administrator only when
-the environment explicitly supports it. Never commit passwords, access/refresh tokens, Keycloak credentials, reset
+the environment explicitly supports it. Never commit passwords, access/refresh tokens, reset
 links, invitation links, or real personal data. Password-reset and invitation tests are contract-only unless a safe
 mail-capture service is configured.
 
@@ -49,4 +49,4 @@ mvn -Pintegration verify -Dtest="*User*IT,*AuthenticationIT"
 ```
 
 The normal test phase runs `UserClientTest`. Integration classes use the repository `*IT` convention and require API
-Gateway, Keycloak, and User Service readiness.
+Gateway, Auth Service, and User Service readiness.

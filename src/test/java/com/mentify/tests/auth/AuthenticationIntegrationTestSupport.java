@@ -3,6 +3,7 @@ package com.mentify.tests.auth;
 import com.mentify.tests.api.ApiClient;
 import com.mentify.tests.api.ApiClientConfiguration;
 import com.mentify.tests.environment.BackendReadinessClient;
+import com.mentify.tests.environment.RequiredService;
 import com.mentify.tests.environment.TestEnvironmentConfiguration;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.AfterEach;
@@ -17,10 +18,14 @@ abstract class AuthenticationIntegrationTestSupport {
     @BeforeAll
     static void requireBackendEnvironment() {
         TestEnvironmentConfiguration environment = TestEnvironmentConfiguration.fromEnvironment();
-        new BackendReadinessClient(environment).awaitRequiredServices();
+        BackendReadinessClient readiness = new BackendReadinessClient(environment);
+        readiness.awaitRequiredServices();
+        readiness.awaitService(RequiredService.USER_SERVICE);
         apiClient = new ApiClient(ApiClientConfiguration.fromEnvironment(environment, false));
         authenticationConfiguration = AuthenticationConfiguration.fromEnvironment();
-        authenticationClient = new AuthenticationClient(apiClient, authenticationConfiguration);
+        ApiClient authServiceClient = new ApiClient(ApiClientConfiguration.forService(
+                environment, RequiredService.AUTH_SERVICE, false));
+        authenticationClient = new AuthenticationClient(apiClient, authServiceClient, authenticationConfiguration);
     }
 
     @AfterEach

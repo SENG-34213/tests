@@ -27,7 +27,7 @@ mvn -Dtest="*ContractTest" test
 ```
 
 Contract tests skip clearly when disabled. A live run requires the API Gateway,
-Keycloak, and dedicated synthetic credentials. Course and Enrollment checks also
+Auth Service, and dedicated synthetic credentials. Course and Enrollment checks also
 require `CONTRACT_COURSE_ID`.
 
 ## Failure reporting

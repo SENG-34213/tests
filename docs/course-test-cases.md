@@ -50,7 +50,7 @@
 ## Preconditions
 
 - Java 17 and Maven are installed.
-- The API Gateway, Keycloak, and Course Service are running for live integration tests.
+- The API Gateway, Auth Service, and Course Service are running for live integration tests.
 - Dedicated Student, Teacher, and Admin credentials are configured.
 - `TEST_TEACHER_PORTAL_COURSE_ID` is owned by the test teacher and
   `TEST_TEACHER_PORTAL_STUDENT_ID` is enrolled in that course for teacher data

@@ -1,6 +1,6 @@
 # Authentication testing
 
-TEST-004 adds a reusable client for the backend authentication bridge. The client calls the public gateway endpoints implemented by the user service; it does not call Keycloak's admin API and it does not copy backend authentication code.
+The reusable client exercises the backend's application-issued JWT flow through the API Gateway. The Auth Service handles login, refresh, logout, password reset, and the JWKS endpoint; the test repository does not call an identity-provider admin API or copy backend authentication code.
 
 ## Supported flow
 
@@ -25,14 +25,14 @@ Use dedicated local test accounts from the backend guide. Configure either the g
 $env:TEST_USERNAME = "student@mentify.com"
 $env:TEST_PASSWORD = "<local-test-password>"
 $env:TEST_ENV_ENABLED = "true"
-$env:TEST_REQUIRED_SERVICES = "API_GATEWAY,KEYCLOAK"
+$env:TEST_REQUIRED_SERVICES = "API_GATEWAY,AUTH_SERVICE"
 mvn verify -Pintegration
 ```
 
-Role-specific variables are `STUDENT_TEST_USERNAME`, `STUDENT_TEST_PASSWORD`, optional distinct `SECONDARY_STUDENT_TEST_USERNAME` and `SECONDARY_STUDENT_TEST_PASSWORD`, `TEACHER_TEST_USERNAME`, `TEACHER_TEST_PASSWORD`, `ADMIN_TEST_USERNAME`, `ADMIN_TEST_PASSWORD`, `SUPER_ADMIN_TEST_USERNAME`, and `SUPER_ADMIN_TEST_PASSWORD`. The secondary student credentials enable cross-user ownership tests; pair them with that account's approved fixture ID. Do not commit values, use production accounts, or use a Keycloak administrator account as an application test user.
+Role-specific variables are `STUDENT_TEST_USERNAME`, `STUDENT_TEST_PASSWORD`, optional distinct `SECONDARY_STUDENT_TEST_USERNAME` and `SECONDARY_STUDENT_TEST_PASSWORD`, `TEACHER_TEST_USERNAME`, `TEACHER_TEST_PASSWORD`, `ADMIN_TEST_USERNAME`, `ADMIN_TEST_PASSWORD`, `SUPER_ADMIN_TEST_USERNAME`, and `SUPER_ADMIN_TEST_PASSWORD`. The secondary student credentials enable cross-user ownership tests; pair them with that account's approved fixture ID. Do not commit values or use production accounts.
 
-When the backend or Keycloak is not running, the integration profile is expected to fail during readiness checks. Unit tests and `mvn clean verify` do not require the backend environment.
+Authentication integration tests also check User Service readiness because the Auth Service retrieves the user's active profile while issuing a session. When the API Gateway, Auth Service, or User Service is not running, the integration profile is expected to fail during readiness checks. Unit tests and `mvn clean verify` do not require the backend environment.
 
 ## Backend contract references
 
-The endpoint and response assumptions are based on the backend `development` branch documents `docs/AUTHENTICATION_SESSION_FLOW.md` and `docs/KEYCLOAK_SETUP.md`, plus `UserLoginController` and `LoginRequest`.
+The endpoint and response assumptions are based on the backend `development` branch's Auth Service `AuthController`, `AuthenticationService`, JWT configuration, and Gateway resource-server configuration.

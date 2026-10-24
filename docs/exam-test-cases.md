@@ -2,7 +2,7 @@
 
 | ID | Scenario | Expected result |
 | --- | --- | --- |
-| TC-TEST-017-01 | Service readiness | API Gateway, Keycloak, Course, Enrollment, and Exam services are checked. |
+| TC-TEST-017-01 | Service readiness | API Gateway, Auth Service, Course, Enrollment, and Exam services are checked. |
 | TC-TEST-017-02 | Create valid exam | Authorized teacher creates an exam and receives an ID. |
 | TC-TEST-017-03 | Retrieve exam | Authorized management user retrieves the created exam. |
 | TC-TEST-017-04 | List course exams | Exams are returned for the requested course. |

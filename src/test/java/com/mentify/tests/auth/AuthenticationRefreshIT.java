@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 class AuthenticationRefreshIT extends AuthenticationIntegrationTestSupport {
@@ -13,8 +12,6 @@ class AuthenticationRefreshIT extends AuthenticationIntegrationTestSupport {
     @Test
     void shouldRefreshAValidAuthenticationSession() {
         AuthenticationSession session = login(TestRole.STUDENT);
-        Assumptions.assumeTrue(session.refreshable(),
-                "Refresh-token assertions require KEYCLOAK_INCLUDE_REFRESH_TOKEN_IN_LOGIN_RESPONSE=true");
 
         try {
             AuthenticationSession refreshed = authenticationClient.refresh(session);
@@ -35,6 +32,6 @@ class AuthenticationRefreshIT extends AuthenticationIntegrationTestSupport {
         AuthenticationException exception = assertThrows(AuthenticationException.class,
                 () -> authenticationClient.refresh(invalidSession));
 
-        assertEquals(401, exception.statusCode());
+        assertEquals(400, exception.statusCode());
     }
 }

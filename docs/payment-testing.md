@@ -17,7 +17,7 @@ and unrelated service workflows are out of scope.
 
 ```properties
 TEST_ENV_ENABLED=true
-TEST_REQUIRED_SERVICES=API_GATEWAY,KEYCLOAK,COURSE_SERVICE,ENROLLMENT_SERVICE,PAYMENT_SERVICE
+TEST_REQUIRED_SERVICES=API_GATEWAY,AUTH_SERVICE,COURSE_SERVICE,ENROLLMENT_SERVICE,PAYMENT_SERVICE
 PAYMENT_SERVICE_BASE_URL=http://localhost:8090
 TEST_PAYMENT_COURSE_ID=<approved-course-uuid>
 TEST_PAYMENT_STUDENT_ID=<approved-student-uuid>
@@ -67,5 +67,5 @@ mvn -Pintegration verify -Dtest="Payment*IT"
 ```
 
 The normal test phase runs `PaymentClientTest`. Payment integration classes use the existing `*IT` convention and
-run through the integration profile after readiness checks for API Gateway, Keycloak, Course, Enrollment, and Payment
+run through the integration profile after readiness checks for API Gateway, Auth Service, Course, Enrollment, and Payment
 Service.

@@ -25,7 +25,7 @@ The development guide targets 80% line/branch coverage for new unit-tested code,
 
 ## Backend relationship
 
-The backend is a Java 17 Spring Boot microservice system containing the gateway, service discovery, configuration server, shared library, business services, PostgreSQL, Keycloak, Kafka, Mailpit, AI, and payment integrations. Tests in this repository call supported interfaces and verify cross-service behavior without copying backend source code.
+The backend is a Java 17 Spring Boot microservice system containing the gateway, service discovery, configuration server, shared library, business services, PostgreSQL, an application Auth Service that issues JWTs, Kafka, Mailpit, AI, and payment integrations. Tests in this repository call supported interfaces and verify cross-service behavior without copying backend source code.
 
 The executed register is generated from JUnit XML and `docs/test-case-mappings.csv` by `tools/test-evidence.py`. It distinguishes passed, failed, skipped, not-run, and unmapped tests. Backend JaCoCo artifacts remain the authoritative coverage measurement and gate result.
 

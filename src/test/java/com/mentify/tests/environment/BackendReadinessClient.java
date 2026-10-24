@@ -69,9 +69,6 @@ public class BackendReadinessClient {
 
     private URI endpoint(RequiredService service) {
         URI base = configuration.serviceUrls().get(service);
-        if (service == RequiredService.KEYCLOAK) {
-            return URI.create(base + "/realms/" + configuration.keycloakRealm());
-        }
         return URI.create(base + "/actuator/health");
     }
 

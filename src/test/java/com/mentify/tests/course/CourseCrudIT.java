@@ -32,7 +32,7 @@ class CourseCrudIT extends CourseIntegrationTestSupport {
             Response response = courseClient.create(validCourseRequest("TEST-009 Create"), admin.accessToken());
 
             assertEquals(201, response.statusCode(), response.asString());
-            assertEquals("success", response.jsonPath().getString("status"));
+            assertEquals(201, response.jsonPath().getInt("statusCode"));
             assertNotNull(courseId(response));
             deleteIfCreated(response, admin.accessToken());
         } finally {
@@ -103,7 +103,7 @@ class CourseCrudIT extends CourseIntegrationTestSupport {
 
             Response delete = courseClient.delete(courseId, admin.accessToken());
             assertEquals(200, delete.statusCode(), delete.asString());
-            assertEquals("success", delete.jsonPath().getString("status"));
+            assertEquals(200, delete.jsonPath().getInt("statusCode"));
 
             Response readAfterDelete = courseClient.getById(courseId, admin.accessToken());
             assertEquals(404, readAfterDelete.statusCode(), readAfterDelete.asString());

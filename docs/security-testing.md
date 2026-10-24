@@ -25,7 +25,7 @@ accounts; they must never target production systems.
 ```powershell
 $env:TEST_ENV_ENABLED="true"
 $env:TEST_SECURITY_ENABLED="true"
-$env:TEST_REQUIRED_SERVICES="API_GATEWAY,KEYCLOAK"
+$env:TEST_REQUIRED_SERVICES="API_GATEWAY,AUTH_SERVICE"
 mvn -Dtest="*Security*IT" verify -Pintegration
 ```
 

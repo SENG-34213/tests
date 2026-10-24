@@ -10,7 +10,7 @@ Environment` means the test is intentionally gated.
 
 | Requirement | Backend area | Test ticket | Test class or package | Status | Notes |
 |---|---|---|---|---|---|
-| Authentication and token propagation | Keycloak, API Gateway | TEST-009, TEST-021, TEST-022 | `auth/*`, `user/*`, `e2e/GatewaySmokeIT` | Covered | Credentials are environment-only. |
+| Authentication and token propagation | Auth Service, API Gateway | TEST-009, TEST-021, TEST-022 | `auth/*`, `user/*`, `e2e/GatewaySmokeIT` | Covered | JWTs are issued by the application Auth Service; credentials are environment-only. |
 | User profile and administration | User Service | TEST-021 | `user/*` | Covered | Live tests require User Service and test users. |
 | Course authorization and lifecycle | Course Service | TEST-010 | `course/*` | Covered | Writes require approved non-production fixtures. |
 | Enrollment access and workflows | Enrollment Service | TEST-011 | `enrollment/*`, `e2e/CourseEnrollmentJourneyIT` | Partially Covered | Cross-service journey requires `TEST_E2E_COURSE_ID`. |
@@ -28,13 +28,13 @@ Environment` means the test is intentionally gated.
 | CI build, reports, and safe defaults | Maven and GitHub Actions | TEST-022, TEST-023 | `.github/workflows/test.yml` | Covered | Static CI needs no live services or secrets. |
 | Final traceability and quality review | Test repository | TEST-023 | This document and related final documents | Covered | Reviewed during TEST-023. |
 | Backend code-coverage and executed-register evidence | Backend CI and tests repository | TEST-027 | Backend JaCoCo artifacts, `tools/test-evidence.py`, `docs/test-case-mappings.csv` | Partially Covered | Backend publishes per-service JaCoCo artifacts and applies configured module/scope checks; tests CI generates run-specific JUnit evidence. The mapping CSV still needs case-level rows, and combined coverage evidence requires matching backend artifacts. |
-| Staging release-candidate smoke verification | API Gateway, Keycloak, test repository CI | TEST-028 | `staging/StagingSmokeIT`, `.github/workflows/staging-smoke.yml`, `docs/staging-test-cases.md` | Partially Covered | Read-only probes and local policy tests exist; the protected GitHub Environment must be configured and an authorized live staging run must provide evidence. |
+| Staging release-candidate smoke verification | API Gateway JWT endpoint, test repository CI | TEST-028 | `staging/StagingSmokeIT`, `.github/workflows/staging-smoke.yml`, `docs/staging-test-cases.md` | Partially Covered | Read-only probes and local policy tests exist; the protected GitHub Environment must be configured and an authorized live staging run must provide evidence. |
 
 ## Service inventory
 
 | Service | Base URL variable | Main package | Roles | Live-test selector | Limitation |
 |---|---|---|---|---|---|
-| User | `USER_SERVICE_BASE_URL` | `user` | student, teacher, admin | `*User*IT` | Requires Keycloak/test users. |
+| User | `USER_SERVICE_BASE_URL` | `user` | student, teacher, admin | `*User*IT` | Requires Auth Service/test users. |
 | Course | `COURSE_SERVICE_BASE_URL` | `course` | student, teacher, admin | `*Course*IT` | Writes require fixtures. |
 | Enrollment | `ENROLLMENT_SERVICE_BASE_URL` | `enrollment` | student, teacher, admin | `*Enrollment*IT` | Requires enrollment fixtures. |
 | Assignment | `ASSIGNMENT_SERVICE_BASE_URL` | `assignment` | student, teacher, admin | `*Assignment*IT,*Submission*IT` | Writes/attachments default off. |
@@ -48,7 +48,7 @@ Environment` means the test is intentionally gated.
 | Notification | `NOTIFICATION_SERVICE_BASE_URL` | `notification` | student, admin | `*Notification*IT` | Email mode is opt-in. |
 | AI | `AI_SERVICE_BASE_URL` | `ai` | authenticated users | `*Ai*IT` | Provider mode is opt-in. |
 | API Gateway | `API_GATEWAY_BASE_URL` | `api`, `auth`, `e2e` | public/authenticated | `*Gateway*IT,*AuthorizationIT` | Public boundary. |
-| Keycloak | `KEYCLOAK_BASE_URL` | `auth`, `environment` | configured users | `*Authentication*IT` | No credentials in source. |
+| Auth Service | `AUTH_SERVICE_BASE_URL` | `auth`, `environment` | configured users | `*Authentication*IT` | No credentials in source. |
 
 ## Verification
 
