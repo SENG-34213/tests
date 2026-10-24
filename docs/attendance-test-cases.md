@@ -33,3 +33,4 @@
 | TC-TEST-015-29 | Session course isolation | A course cannot read another course's sessions |
 | TC-TEST-015-30 | Fixture cleanup review | Writes use unique data and document retention/cleanup limits |
 | TC-TEST-015-31 | Regression verification | Unit tests and Checkstyle pass |
+| TC-TEST-015-32 | Delete a newly created open attendance session | `200`; subsequent read returns `404` |
