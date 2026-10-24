@@ -22,12 +22,16 @@ assertions. Add Course and Enrollment to `TEST_REQUIRED_SERVICES` when the cours
 
 - Gateway authentication to User Service current-user data.
 - Student/teacher/admin role preservation across gateway calls.
-- Course lookup and enrollment identifier consistency with an approved course fixture.
+- Course lookup and enrollment consistency for the authenticated student: the test reads the student's ID from
+  User Service, confirms the configured course ID returned by Course Service, checks that the student's own active
+  course list contains that ID, and confirms the same student/course pair through Enrollment Service.
 - Payment-notification and learning-provider journeys only when deterministic fixtures are explicitly enabled.
 - Missing-token and downstream authorization/error behavior.
 
 Provider journeys are skipped by default. They must use payment test mode, synthetic notification events, and a safe AI
-provider; production credentials, cards, personal data, and direct database assertions are prohibited.
+provider; production credentials, cards, personal data, and direct database assertions are prohibited. The student
+course journey uses only student-authorized endpoints; administrator-wide enrollment listings and teacher-only
+course roster endpoints are not valid substitutes for the student's own enrollment view.
 
 ## Readiness and skip behavior
 
