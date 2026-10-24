@@ -23,7 +23,7 @@ class UserSelfServiceIT extends UserIntegrationTestSupport {
 
             Response update = users.updateCurrentUser(Map.of(), student.accessToken());
             assertEquals(200, update.statusCode(), update.asString());
-            assertEquals("success", update.jsonPath().getString("status"));
+            assertEquals(200, update.jsonPath().getInt("statusCode"));
         } finally {
             logout(student);
         }
@@ -85,7 +85,7 @@ class UserSelfServiceIT extends UserIntegrationTestSupport {
     }
 
     @Test
-    void shouldValidatePasswordChangeAndPublicRegistrationInputs() {
+    void shouldValidatePasswordChangeAndRequireAuthenticationForRegistration() {
         AuthenticationSession student = login(TestRole.STUDENT);
         try {
             assertEquals(400, users.changePassword(Map.of(), student.accessToken()).statusCode());
@@ -93,6 +93,6 @@ class UserSelfServiceIT extends UserIntegrationTestSupport {
             logout(student);
         }
 
-        assertEquals(400, users.registerStudent(Map.of(), null).statusCode());
+        assertEquals(401, users.registerStudent(Map.of(), null).statusCode());
     }
 }

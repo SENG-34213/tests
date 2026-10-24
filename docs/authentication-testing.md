@@ -9,13 +9,18 @@ The reusable client exercises the backend's application-issued JWT flow through 
 - `POST /api/v1/auth/logout` with the current refresh token.
 - Authenticated API calls through `AuthenticationClient.authenticatedApiClient(session)`.
 
-Authorization coverage uses the backend read-only endpoints `/api/v1/auth/public-test`,
-`/api/v1/auth/protected-test`, `/api/v1/auth/admin-test`, `/api/v1/auth/student-test`,
-and the authenticated profile endpoint `/api/v1/users/me`.
+Authorization coverage uses the public Auth Service login route, the authenticated
+`/api/v1/users/me` profile endpoint, and the administrator-only
+`/api/v1/admin/users?role=STUDENT` endpoint through the API Gateway.
 
 Detailed traceability is available in [authentication-test-cases.md](authentication-test-cases.md).
 
 The session object keeps access and refresh tokens in memory only. Its `toString()` and all API logging omit token and password values. Logout clears the session after a successful backend response.
+
+The expired-token security case signs a synthetic token with the local Auth
+Service private key after moving its expiration into the past. Set
+`AUTH_JWT_PRIVATE_KEY_BASE64` from the local backend `.env` only when running
+that case; never use a production signing key or commit the value.
 
 ## Local configuration
 

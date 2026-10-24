@@ -28,7 +28,7 @@ class UserValidationIT extends UserIntegrationTestSupport {
             assertEquals(200, unknownTeacherId.statusCode());
             assertFalse(unknownTeacherId.as(Boolean.class));
             assertThrows(IllegalArgumentException.class, () -> users.teacherExists("", token));
-            assertEquals(400, users.updateStatus(UNKNOWN_ID, Map.of("active", "invalid"), token).statusCode());
+            assertEquals(400, users.updateStatus(UNKNOWN_ID, Map.of(), token).statusCode());
         } finally {
             logout(admin);
         }

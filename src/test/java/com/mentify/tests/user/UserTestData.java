@@ -12,7 +12,32 @@ record UserTestData(String userId, boolean writeEnabled, boolean superAdminSuppo
     }
 
     static Map<String, Object> invalidRegistration() {
-        return Map.of("email", "not-an-email", "firstName", "", "lastName", "", "role", "INVALID");
+        return Map.of("email", "invalid-email", "firstName", "", "lastName", "", "role", "STUDENT");
+    }
+
+    static Map<String, Object> validRegistration() {
+        return Map.of(
+                "email", "step4-denied-user@mentify.test",
+                "firstName", "Step Four",
+                "lastName", "Denied User",
+                "role", "STUDENT",
+                "studentProfile", Map.of(
+                        "dateOfBirth", "2000-01-01",
+                        "guardianName", "Test Guardian",
+                        "guardianPhone", "0771234567",
+                        "attendanceMode", "ONLINE",
+                        "grade", "08",
+                        "schoolName", "Mentify Test School"),
+                "address", Map.of("addressLine1", "1 Test Street", "city", "Colombo", "district", "Colombo"));
+    }
+
+    static Map<String, Object> validAdminRegistration() {
+        return Map.of(
+                "email", "step4-denied-admin@mentify.test",
+                "firstName", "Step Four",
+                "lastName", "Denied Admin",
+                "adminProfile", Map.of(),
+                "address", Map.of("addressLine1", "1 Test Street", "city", "Colombo", "district", "Colombo"));
     }
 
 }

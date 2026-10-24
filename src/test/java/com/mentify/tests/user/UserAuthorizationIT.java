@@ -20,7 +20,7 @@ class UserAuthorizationIT extends UserIntegrationTestSupport {
             assertEquals(403, users.analytics(student.accessToken()).statusCode());
             assertEquals(403, users.updateStatus(UNKNOWN_ID, Map.of("active", false), student.accessToken()).statusCode());
             assertEquals(403, users.usersByRole("STUDENT", teacher.accessToken()).statusCode());
-            assertEquals(403, users.registerUser(Map.of(), teacher.accessToken()).statusCode());
+            assertEquals(403, users.registerUser(UserTestData.validRegistration(), teacher.accessToken()).statusCode());
         } finally {
             logout(student);
             logout(teacher);
