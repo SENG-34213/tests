@@ -40,10 +40,14 @@ final class QuizTestDataFactory {
     }
 
     static Map<String, Object> question(String suffix) {
+        return question(suffix, BigDecimal.TEN);
+    }
+
+    static Map<String, Object> question(String suffix, BigDecimal marks) {
         return Map.of(
                 "questionText", "Which answer is correct " + suffix + "?",
                 "questionType", "MULTIPLE_CHOICE_SINGLE_ANSWER",
-                "marks", BigDecimal.TEN,
+                "marks", marks,
                 "questionOrder", 1,
                 "options", List.of(
                         option("Option A", true, 1), option("Option B", false, 2),

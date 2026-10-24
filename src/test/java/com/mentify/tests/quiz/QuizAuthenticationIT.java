@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
 import java.util.Map;
+import java.util.UUID;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 class QuizAuthenticationIT extends QuizIntegrationTestSupport {
@@ -34,29 +36,76 @@ class QuizAuthenticationIT extends QuizIntegrationTestSupport {
 
     @Test
     void studentCannotUseTeacherQuizManagementEndpoints() {
-        AuthenticationSession student = login(TestRole.STUDENT);
+        QuizTestDataConfiguration config = QuizTestDataConfiguration.fromEnvironment();
+        Assumptions.assumeTrue(config.writeEnabled() && config.courseId() != null,
+                "Set TEST_QUIZ_WRITE_ENABLED=true and TEST_QUIZ_COURSE_ID for role checks");
+        AuthenticationSession teacher = login(TestRole.TEACHER);
+        String quizId = null;
+        AuthenticationSession student = null;
         try {
-            assertEquals(403, quizClient.create(Map.of("title", "blocked"), student.accessToken()).statusCode());
-            assertEquals(403, quizClient.getTeacher(UNKNOWN_ID, student.accessToken()).statusCode());
+            var created = quizClient.create(QuizTestDataFactory.quiz(config.courseId(), "ROLE-STUDENT"),
+                    teacher.accessToken());
+            assertEquals(201, created.statusCode(), created.asString());
+            quizId = created.jsonPath().getString("data.id");
+            Assumptions.assumeTrue(quizId != null && !quizId.isBlank(),
+                    "A valid quiz fixture is required for role authorization checks");
+
+            student = login(TestRole.STUDENT);
+            assertEquals(403, quizClient.create(QuizTestDataFactory.quiz(config.courseId(), "BLOCKED"),
+                    student.accessToken()).statusCode());
+            assertEquals(403, quizClient.getTeacher(quizId, student.accessToken()).statusCode());
             assertEquals(403, quizClient.listTeacher(student.accessToken()).statusCode());
-            assertEquals(403, quizClient.results(UNKNOWN_ID, student.accessToken()).statusCode());
-            assertEquals(403, quizClient.teacherGradebookQuizzes(UNKNOWN_ID, student.accessToken()).statusCode());
-            assertEquals(403, quizClient.publish(UNKNOWN_ID, student.accessToken()).statusCode());
-            assertEquals(403, questionClient.create(UNKNOWN_ID, Map.of(), student.accessToken()).statusCode());
+            assertEquals(403, quizClient.results(quizId, student.accessToken()).statusCode());
+            assertEquals(403, quizClient.teacherGradebookQuizzes(config.courseId().toString(),
+                    student.accessToken()).statusCode());
+            assertEquals(403, quizClient.publish(quizId, student.accessToken()).statusCode());
+            assertEquals(403, questionClient.create(quizId, QuizTestDataFactory.question("BLOCKED"),
+                    student.accessToken()).statusCode());
         } finally {
-            logout(student);
+            try {
+                logout(student);
+            } finally {
+                try {
+                    if (quizId != null) {
+                        quizClient.delete(quizId, teacher.accessToken());
+                    }
+                } finally {
+                    logout(teacher);
+                }
+            }
         }
     }
 
     @Test
     void teacherCannotStartOrSubmitStudentAttempt() {
+        QuizTestDataConfiguration config = QuizTestDataConfiguration.fromEnvironment();
+        Assumptions.assumeTrue(config.writeEnabled() && config.courseId() != null,
+                "Set TEST_QUIZ_WRITE_ENABLED=true and TEST_QUIZ_COURSE_ID for role checks");
         AuthenticationSession teacher = login(TestRole.TEACHER);
+        String quizId = null;
         try {
-            assertEquals(403, attemptClient.start(UNKNOWN_ID, teacher.accessToken()).statusCode());
-            assertEquals(403, attemptClient.saveAnswer(UNKNOWN_ID, Map.of(), teacher.accessToken()).statusCode());
-            assertEquals(403, attemptClient.submit(UNKNOWN_ID, teacher.accessToken()).statusCode());
+            var created = quizClient.create(QuizTestDataFactory.quiz(config.courseId(), "ROLE-TEACHER"),
+                    teacher.accessToken());
+            assertEquals(201, created.statusCode(), created.asString());
+            quizId = created.jsonPath().getString("data.id");
+            Assumptions.assumeTrue(quizId != null && !quizId.isBlank(),
+                    "A valid quiz fixture is required for role authorization checks");
+            UUID unknownAttemptId = UUID.randomUUID();
+            UUID unknownQuestionId = UUID.randomUUID();
+            UUID unknownOptionId = UUID.randomUUID();
+            assertEquals(403, attemptClient.start(quizId, teacher.accessToken()).statusCode());
+            assertEquals(403, attemptClient.saveAnswer(unknownAttemptId.toString(),
+                    QuizTestDataFactory.answer(unknownQuestionId.toString(), unknownOptionId.toString()),
+                    teacher.accessToken()).statusCode());
+            assertEquals(403, attemptClient.submit(unknownAttemptId.toString(), teacher.accessToken()).statusCode());
         } finally {
-            logout(teacher);
+            try {
+                if (quizId != null) {
+                    quizClient.delete(quizId, teacher.accessToken());
+                }
+            } finally {
+                logout(teacher);
+            }
         }
     }
 

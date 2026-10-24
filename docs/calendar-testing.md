@@ -20,12 +20,17 @@ Set `TEST_ENV_ENABLED=true` before integration testing. Include `CALENDAR_SERVIC
 
 Use dedicated test users from `.env.example`, including `STUDENT_TEST_USERNAME`, `TEACHER_TEST_USERNAME`, and `ADMIN_TEST_USERNAME` with matching password variables. Never commit credentials, tokens, production data, or production URLs containing secrets.
 
-TEST-007 creates unique future-dated events and cancels them during cleanup. If cleanup fails, the failure must be investigated before treating the integration run as successful.
+TEST-007 creates unique future-dated events and cancels them during cleanup. Teacher lifecycle tests use
+`TEST_CALENDAR_COURSE_ID`, which must be assigned to the primary teacher and not the optional distinct
+`SECONDARY_TEACHER_TEST_USERNAME`/`SECONDARY_TEACHER_TEST_PASSWORD` account. They use course visibility and verify
+that the other teacher receives `404` when reading and `403` when updating or cancelling the event. Admin lifecycle tests use private visibility. Course
+Service must be reachable for teacher course-event tests. If cleanup fails, investigate before treating the run as
+successful.
 
 ## Commands
 
     $env:TEST_ENV_ENABLED="true"
-    $env:TEST_REQUIRED_SERVICES="API_GATEWAY,AUTH_SERVICE,CALENDAR_SERVICE"
+    $env:TEST_REQUIRED_SERVICES="API_GATEWAY,AUTH_SERVICE,CALENDAR_SERVICE,COURSE_SERVICE"
     mvn verify -Pintegration
 
 The default command `mvn clean verify` runs unit tests and does not require the backend environment.

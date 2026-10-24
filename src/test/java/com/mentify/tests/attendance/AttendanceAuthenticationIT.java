@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
 import java.util.Map;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 class AttendanceAuthenticationIT extends AttendanceIntegrationTestSupport {
@@ -26,9 +27,13 @@ class AttendanceAuthenticationIT extends AttendanceIntegrationTestSupport {
 
     @Test
     void studentCannotManageSessionsOrReadAnotherStudentSummary() {
+        AttendanceTestDataConfiguration config = AttendanceTestDataConfiguration.fromEnvironment();
+        Assumptions.assumeTrue(config.courseId() != null,
+                "Set TEST_ATTENDANCE_COURSE_ID to a valid fixture course");
         AuthenticationSession student = login(TestRole.STUDENT);
         try {
-            assertEquals(403, attendanceClient.createSession(Map.of("title", "blocked"), student.accessToken()).statusCode());
+            assertEquals(403, attendanceClient.createSession(
+                    AttendanceTestDataFactory.session(config.courseId()), student.accessToken()).statusCode());
             assertEquals(403, attendanceClient.listSessions(UNKNOWN_ID, student.accessToken()).statusCode());
             assertEquals(403, attendanceClient.getSession(UNKNOWN_ID, student.accessToken()).statusCode());
             assertEquals(403, attendanceClient.complete(UNKNOWN_ID, student.accessToken()).statusCode());
@@ -36,5 +41,28 @@ class AttendanceAuthenticationIT extends AttendanceIntegrationTestSupport {
         } finally {
             logout(student);
         }
+    }
+
+    @Test
+    void teacherCannotListSessionsForAnotherTeachersCourse() {
+        AttendanceTestDataConfiguration config = AttendanceTestDataConfiguration.fromEnvironment();
+        Assumptions.assumeTrue(config.courseId() != null,
+                "Set TEST_ATTENDANCE_COURSE_ID to a course owned by the primary teacher");
+        Assumptions.assumeTrue(hasSecondaryTeacherCredentials(),
+                "Set distinct SECONDARY_TEACHER_TEST_USERNAME/PASSWORD credentials");
+
+        AuthenticationSession otherTeacher = login(TestRole.SECONDARY_TEACHER);
+        try {
+            assertEquals(403, attendanceClient.listSessions(config.courseId().toString(),
+                    otherTeacher.accessToken()).statusCode());
+        } finally {
+            logout(otherTeacher);
+        }
+    }
+
+    private static boolean hasSecondaryTeacherCredentials() {
+        String username = System.getenv("SECONDARY_TEACHER_TEST_USERNAME");
+        String password = System.getenv("SECONDARY_TEACHER_TEST_PASSWORD");
+        return username != null && !username.isBlank() && password != null && !password.isBlank();
     }
 }

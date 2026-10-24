@@ -41,4 +41,9 @@ abstract class CalendarIntegrationTestSupport {
             session.clear();
         }
     }
+
+    protected static void requireAdditionalService(RequiredService service) {
+        TestEnvironmentConfiguration environment = TestEnvironmentConfiguration.fromEnvironment();
+        new BackendReadinessClient(environment).awaitService(service);
+    }
 }

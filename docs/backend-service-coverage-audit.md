@@ -272,3 +272,32 @@ assignment settings and rubric validation, ownership denials, attachment and
 submission-file lifecycle operations, and exact signed-download byte equality
 against an ephemeral local MinIO bucket. This verifies the local development
 stack; it does not certify a separate staging or production deployment.
+
+## Step 7 quiz, attendance, and calendar follow-up
+
+TEST-035 aligns teacher Calendar event workflows with the inspected backend contract: teacher-created events use
+course visibility and require a course assigned to that teacher, while private event creation remains an admin
+workflow. It adds fixture-gated cross-teacher ownership checks for quiz read/update/delete, Attendance course-session
+listing, and Calendar event read/update/cancel. These tests require a distinct secondary teacher account and approved
+non-production course/quiz fixtures; the tests create only their own quiz/event and clean those resources up.
+
+The Quiz suite covers management, student-safe question projection, attempt lifecycle and limits, scoring, results,
+gradebook behavior, validation, and authentication. Attendance covers session lifecycle, record/state rules,
+summaries, validation, authentication, and configured ownership denial. Calendar covers upcoming/event searches,
+event lifecycle and validation, venue role/validation checks, authentication, and configured course ownership
+denial. Internal event projection/reconciliation routes remain infrastructure contracts outside these public-user
+workflows. Live verification requires the relevant services, credentials, and fixtures; static compilation and unit
+tests do not establish that the live integrations passed.
+
+The Step 7 live verification was run against the local development stack with synthetic non-production accounts and
+fixtures. The final `mvn verify -Pintegration -Dit.test=Quiz*IT,Attendance*IT,Calendar*IT` run passed all 97 unit
+tests; of 44 selected integration cases, 43 passed and one was skipped. There were zero failures; Checkstyle reported
+zero violations. One optional
+closed-quiz gradebook-results case was skipped because this environment did not provide `TEST_QUIZ_GRADEBOOK_COURSE_ID`
+and `TEST_QUIZ_CLOSED_ID`. The gradebook endpoint itself was exercised successfully by the live quiz-management
+workflow. This does not verify a closed quiz's persisted result rows.
+
+Live testing exposed and validated companion backend fixes on `fix/TEST-035-step7-live-api`: the Gateway now routes
+the teacher quiz-gradebook endpoint to Assignment Service, downstream course-access 403 responses remain access
+denials in Attendance and Calendar, and a missing gradebook `courseId` returns 400. These fixes were built and loaded
+only in the isolated local backend worktree for this run; they have not been merged or deployed.

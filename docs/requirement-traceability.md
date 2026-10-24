@@ -16,8 +16,8 @@ Environment` means the test is intentionally gated.
 | Enrollment access and workflows | Enrollment Service | TEST-011 | `enrollment/*`, `e2e/CourseEnrollmentJourneyIT` | Partially Covered | Cross-service journey requires `TEST_E2E_COURSE_ID`. |
 | Assignment and submission behavior | Assignment Service | TEST-012 | `assignment/*` | Covered | Attachment and writes are fixture/flag gated. |
 | Learning materials and attachments | Material Service | TEST-013 | `material/*`, `assignment/*Attachment*` | Covered | File operations require approved fixtures. |
-| Quiz management and attempts | Quiz Service | TEST-014 | `quiz/*` | Covered | Writes are disabled unless explicitly enabled. |
-| Attendance sessions and summaries | Attendance Service | TEST-015 | `attendance/*` | Covered | Live execution requires fixtures. |
+| Quiz management and attempts | Quiz Service | TEST-014 | `quiz/*` | Covered | Includes fixture-gated cross-teacher read/update/delete denial for teacher-owned quizzes. |
+| Attendance sessions and summaries | Attendance Service | TEST-015 | `attendance/*` | Covered | Includes fixture-gated denial when a teacher lists sessions for another teacher's course. |
 | Communication groups and messages | Communication Service | TEST-016 | `communication/*` | Covered | Synthetic writes are opt-in. |
 | Exam lifecycle and results | Exam Service | TEST-017 | `exam/*` | Covered | Requires approved course/student fixtures. |
 | Payment authorization and safe flows | Payment Service | TEST-018 | `payment/*` | Partially Covered | Provider writes/refunds are disabled by default. |
