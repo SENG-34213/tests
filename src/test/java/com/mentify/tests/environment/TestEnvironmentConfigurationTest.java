@@ -18,8 +18,8 @@ class TestEnvironmentConfigurationTest {
         assertFalse(configuration.enabled());
         assertEquals(URI.create("http://localhost:8080"),
                 configuration.serviceUrls().get(RequiredService.API_GATEWAY));
-        assertEquals(URI.create("http://localhost:8180"),
-                configuration.serviceUrls().get(RequiredService.KEYCLOAK));
+        assertEquals(URI.create("http://localhost:8085"),
+                configuration.serviceUrls().get(RequiredService.AUTH_SERVICE));
     }
 
     @Test
@@ -29,7 +29,19 @@ class TestEnvironmentConfigurationTest {
 
         // Assert
         assertEquals(
-                java.util.List.of(RequiredService.API_GATEWAY, RequiredService.KEYCLOAK),
+                java.util.List.of(RequiredService.API_GATEWAY, RequiredService.AUTH_SERVICE),
+                configuration.requiredServices());
+    }
+
+    @Test
+    void shouldConfigureJwtAuthServiceGivenCustomBaseUrl() {
+        TestEnvironmentConfiguration configuration = TestEnvironmentConfiguration.fromEnvironment(Map.of(
+                "TEST_REQUIRED_SERVICES", "API_GATEWAY,AUTH_SERVICE",
+                "AUTH_SERVICE_BASE_URL", "http://auth.test:8185"));
+
+        assertEquals(URI.create("http://auth.test:8185"),
+                configuration.serviceUrls().get(RequiredService.AUTH_SERVICE));
+        assertEquals(java.util.List.of(RequiredService.API_GATEWAY, RequiredService.AUTH_SERVICE),
                 configuration.requiredServices());
     }
 
@@ -51,7 +63,7 @@ class TestEnvironmentConfigurationTest {
     @Test
     void shouldParseCalendarServiceConfigurationWhenCalendarTestingIsEnabled() {
         Map<String, String> environment = Map.of(
-                "TEST_REQUIRED_SERVICES", "API_GATEWAY,KEYCLOAK,CALENDAR_SERVICE",
+                "TEST_REQUIRED_SERVICES", "API_GATEWAY,AUTH_SERVICE,CALENDAR_SERVICE",
                 "CALENDAR_SERVICE_BASE_URL", "http://calendar.test:8092");
 
         TestEnvironmentConfiguration configuration =
@@ -59,7 +71,7 @@ class TestEnvironmentConfigurationTest {
 
         assertEquals(java.util.List.of(
                         RequiredService.API_GATEWAY,
-                        RequiredService.KEYCLOAK,
+                        RequiredService.AUTH_SERVICE,
                         RequiredService.CALENDAR_SERVICE),
                 configuration.requiredServices());
         assertEquals(URI.create("http://calendar.test:8092"),
@@ -69,7 +81,7 @@ class TestEnvironmentConfigurationTest {
     @Test
     void shouldParseCourseServiceConfigurationWhenCourseTestingIsEnabled() {
         Map<String, String> environment = Map.of(
-                "TEST_REQUIRED_SERVICES", "API_GATEWAY,KEYCLOAK,COURSE_SERVICE",
+                "TEST_REQUIRED_SERVICES", "API_GATEWAY,AUTH_SERVICE,COURSE_SERVICE",
                 "COURSE_SERVICE_BASE_URL", "http://course.test:8082");
 
         TestEnvironmentConfiguration configuration =
@@ -77,7 +89,7 @@ class TestEnvironmentConfigurationTest {
 
         assertEquals(java.util.List.of(
                         RequiredService.API_GATEWAY,
-                        RequiredService.KEYCLOAK,
+                        RequiredService.AUTH_SERVICE,
                         RequiredService.COURSE_SERVICE),
                 configuration.requiredServices());
         assertEquals(URI.create("http://course.test:8082"),
@@ -87,7 +99,7 @@ class TestEnvironmentConfigurationTest {
     @Test
     void shouldParseEnrollmentServiceConfigurationWhenEnrollmentTestingIsEnabled() {
         Map<String, String> environment = Map.of(
-                "TEST_REQUIRED_SERVICES", "API_GATEWAY,KEYCLOAK,COURSE_SERVICE,ENROLLMENT_SERVICE",
+                "TEST_REQUIRED_SERVICES", "API_GATEWAY,AUTH_SERVICE,COURSE_SERVICE,ENROLLMENT_SERVICE",
                 "ENROLLMENT_SERVICE_BASE_URL", "http://enrollment.test:8083");
 
         TestEnvironmentConfiguration configuration =
@@ -95,7 +107,7 @@ class TestEnvironmentConfigurationTest {
 
         assertEquals(java.util.List.of(
                         RequiredService.API_GATEWAY,
-                        RequiredService.KEYCLOAK,
+                        RequiredService.AUTH_SERVICE,
                         RequiredService.COURSE_SERVICE,
                         RequiredService.ENROLLMENT_SERVICE),
                 configuration.requiredServices());
@@ -106,7 +118,7 @@ class TestEnvironmentConfigurationTest {
     @Test
     void shouldParseAssignmentServiceConfigurationWhenAssignmentTestingIsEnabled() {
         Map<String, String> environment = Map.of(
-                "TEST_REQUIRED_SERVICES", "API_GATEWAY,KEYCLOAK,COURSE_SERVICE,"
+                "TEST_REQUIRED_SERVICES", "API_GATEWAY,AUTH_SERVICE,COURSE_SERVICE,"
                         + "ENROLLMENT_SERVICE,ASSIGNMENT_SERVICE",
                 "ASSIGNMENT_SERVICE_BASE_URL", "http://assignment.test:8084");
 
@@ -115,7 +127,7 @@ class TestEnvironmentConfigurationTest {
 
         assertEquals(java.util.List.of(
                         RequiredService.API_GATEWAY,
-                        RequiredService.KEYCLOAK,
+                        RequiredService.AUTH_SERVICE,
                         RequiredService.COURSE_SERVICE,
                         RequiredService.ENROLLMENT_SERVICE,
                         RequiredService.ASSIGNMENT_SERVICE),

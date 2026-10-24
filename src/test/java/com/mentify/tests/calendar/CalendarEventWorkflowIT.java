@@ -2,7 +2,6 @@ package com.mentify.tests.calendar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
@@ -15,19 +14,23 @@ import org.junit.jupiter.api.Test;
 class CalendarEventWorkflowIT extends CalendarIntegrationTestSupport {
 
     @Test
-    void shouldAllowTeacherToCreateAndUpdateAnEvent() {
+    void shouldAllowTeacherToCreateUpdateAndReadAnEvent() {
         AuthenticationSession session = login(TestRole.TEACHER);
         String eventId = null;
 
         try {
             Response createResponse = calendarClient.create(validEventRequest("teacher-create"), session.accessToken());
-            assertSuccessful(createResponse);
+            assertSuccessful(createResponse, 201);
             eventId = eventId(createResponse);
 
-            Response updateResponse = calendarClient.update(
-                    eventId, validEventRequest("teacher-update"), session.accessToken());
-            assertSuccessful(updateResponse);
+            Map<String, Object> updateRequest = validEventRequest("teacher-update");
+            Response updateResponse = calendarClient.update(eventId, updateRequest, session.accessToken());
+            assertSuccessful(updateResponse, 200);
             assertEquals("success", updateResponse.jsonPath().getString("status"));
+            Response getResponse = calendarClient.getEvent(eventId, session.accessToken());
+            assertSuccessful(getResponse, 200);
+            assertEquals(eventId, getResponse.jsonPath().getString("data.id"));
+            assertEquals(updateRequest.get("title"), getResponse.jsonPath().getString("data.title"));
         } finally {
             cancelIfCreated(eventId, session);
             logout(session);
@@ -41,7 +44,7 @@ class CalendarEventWorkflowIT extends CalendarIntegrationTestSupport {
 
         try {
             Response response = calendarClient.create(validEventRequest("admin-create"), session.accessToken());
-            assertSuccessful(response);
+            assertSuccessful(response, 201);
             eventId = eventId(response);
         } finally {
             cancelIfCreated(eventId, session);
@@ -54,7 +57,9 @@ class CalendarEventWorkflowIT extends CalendarIntegrationTestSupport {
         AuthenticationSession session = login(TestRole.STUDENT);
 
         try {
-            Response response = calendarClient.events(session.accessToken());
+            LocalDateTime start = LocalDateTime.now().minusDays(1).withNano(0);
+            LocalDateTime end = LocalDateTime.now().plusDays(30).withNano(0);
+            Response response = calendarClient.events(session.accessToken(), start, end);
 
             assertEquals(200, response.statusCode(), response.asString());
             assertEquals("success", response.jsonPath().getString("status"));
@@ -71,11 +76,11 @@ class CalendarEventWorkflowIT extends CalendarIntegrationTestSupport {
 
         try {
             Response createResponse = calendarClient.create(validEventRequest("teacher-cancel"), session.accessToken());
-            assertSuccessful(createResponse);
+            assertSuccessful(createResponse, 201);
             eventId = eventId(createResponse);
 
             Response cancelResponse = calendarClient.cancel(eventId, session.accessToken());
-            assertSuccessful(cancelResponse);
+            assertSuccessful(cancelResponse, 200);
             assertEquals("success", cancelResponse.jsonPath().getString("status"));
             eventId = null;
         } finally {
@@ -132,8 +137,7 @@ class CalendarEventWorkflowIT extends CalendarIntegrationTestSupport {
         try {
             Response response = calendarClient.create(Map.of("allDay", false), session.accessToken());
 
-            assertTrue(response.statusCode() == 400 || response.statusCode() == 422,
-                    "Expected validation failure but received " + response.statusCode() + ": " + response.asString());
+            assertEquals(400, response.statusCode(), response.asString());
         } finally {
             logout(session);
         }
@@ -154,8 +158,7 @@ class CalendarEventWorkflowIT extends CalendarIntegrationTestSupport {
                     "visibility", "PRIVATE");
             Response response = calendarClient.create(request, session.accessToken());
 
-            assertTrue(response.statusCode() == 400 || response.statusCode() == 422,
-                    "Expected date-range validation failure but received " + response.statusCode());
+            assertEquals(400, response.statusCode(), response.asString());
         } finally {
             logout(session);
         }
@@ -169,8 +172,20 @@ class CalendarEventWorkflowIT extends CalendarIntegrationTestSupport {
             Response response = calendarClient.update("00000000-0000-0000-0000-000000000000",
                     validEventRequest("unknown-event"), session.accessToken());
 
-            assertTrue(response.statusCode() == 404 || response.statusCode() == 400,
-                    "Expected not-found response but received " + response.statusCode());
+            assertEquals(404, response.statusCode(), response.asString());
+            assertEquals(404, calendarClient.getEvent("00000000-0000-0000-0000-000000000000",
+                    session.accessToken()).statusCode());
+        } finally {
+            logout(session);
+        }
+    }
+
+    @Test
+    void shouldRejectEventSearchWithoutRequiredDateRange() {
+        AuthenticationSession session = login(TestRole.TEACHER);
+        try {
+            Response response = calendarClient.events(session.accessToken());
+            assertEquals(400, response.statusCode(), response.asString());
         } finally {
             logout(session);
         }
@@ -193,9 +208,8 @@ class CalendarEventWorkflowIT extends CalendarIntegrationTestSupport {
         return "TEST-007 " + scenario + " " + UUID.randomUUID();
     }
 
-    private static void assertSuccessful(Response response) {
-        assertTrue(response.statusCode() >= 200 && response.statusCode() < 300,
-                "Expected successful response but received " + response.statusCode() + ": " + response.asString());
+    private static void assertSuccessful(Response response, int expectedStatus) {
+        assertEquals(expectedStatus, response.statusCode(), response.asString());
         assertEquals("success", response.jsonPath().getString("status"));
     }
 

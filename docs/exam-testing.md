@@ -1,6 +1,6 @@
 # Exam Service integration testing
 
-TEST-017 verifies the Exam Service through the API Gateway with real Keycloak access tokens.
+TEST-017 verifies the Exam Service through the API Gateway with application-issued JWT access tokens.
 
 ## Scope
 
@@ -11,18 +11,22 @@ notification, material, attendance, and communication workflows are outside this
 
 ## Required environment
 
-The live integration profile requires API Gateway, Keycloak, Course Service, Enrollment Service, Exam Service, a
-teacher or administrator account, and an enrolled student fixture. Use the existing role credential variables and
-set:
+The live integration profile requires API Gateway, Auth Service, Course Service, Enrollment Service, Exam Service,
+Material Service (for attachment upload/download), a teacher or administrator account, and an enrolled student
+fixture. Use the existing role credential variables and set:
 
 ```properties
 TEST_ENV_ENABLED=true
-TEST_REQUIRED_SERVICES=API_GATEWAY,KEYCLOAK,COURSE_SERVICE,ENROLLMENT_SERVICE,EXAM_SERVICE
+TEST_REQUIRED_SERVICES=API_GATEWAY,AUTH_SERVICE,COURSE_SERVICE,ENROLLMENT_SERVICE,EXAM_SERVICE,MATERIAL_SERVICE
 EXAM_SERVICE_BASE_URL=http://localhost:8089
 TEST_EXAM_COURSE_ID=<approved-course-uuid>
 TEST_EXAM_STUDENT_ID=<approved-enrolled-student-uuid>
 TEST_EXAM_WRITE_ENABLED=false
 ```
+
+The student account used by the lifecycle test must correspond to
+`TEST_EXAM_STUDENT_ID` and be enrolled in `TEST_EXAM_COURSE_ID`; scheduled-exam
+detail and attachment visibility checks rely on this identity match.
 
 Never commit real credentials, tokens, or production identifiers. Set `TEST_EXAM_WRITE_ENABLED=true` only for an
 approved non-production environment. The write workflow generates a unique exam title and leaves cleanup limited to

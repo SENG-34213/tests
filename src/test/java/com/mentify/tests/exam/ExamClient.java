@@ -4,6 +4,7 @@ import com.mentify.tests.api.ApiClient;
 import io.restassured.response.Response;
 import java.util.Map;
 import java.util.Objects;
+import java.io.File;
 
 public class ExamClient {
 
@@ -18,6 +19,10 @@ public class ExamClient {
         return apiClient.post(PATH, request, token);
     }
 
+    public Response createWithInstructions(Object request, boolean studentVisible, String token) {
+        return apiClient.postMultipart(PATH, Map.of("studentVisible", studentVisible), null, token, "exam", request);
+    }
+
     public Response get(String examId, String token) {
         return apiClient.get(PATH + "/" + id(examId, "examId"), token, Map.of(), Map.of());
     }
@@ -28,6 +33,11 @@ public class ExamClient {
 
     public Response update(String examId, Object request, String token) {
         return apiClient.put(PATH + "/" + id(examId, "examId"), request, token);
+    }
+
+    public Response updateWithInstructions(String examId, Object request, boolean studentVisible, String token) {
+        return apiClient.putMultipart(PATH + "/" + id(examId, "examId"),
+                Map.of("studentVisible", studentVisible), null, token, "exam", request);
     }
 
     public Response cancel(String examId, String token) {
@@ -62,10 +72,40 @@ public class ExamClient {
         return apiClient.get(PATH + "/me", token, Map.of(), Map.of());
     }
 
+    public Response myUpcoming(String token) {
+        return apiClient.get(PATH + "/me/upcoming", token, Map.of(), Map.of());
+    }
+
+    public Response studentExam(String examId, String token) {
+        return apiClient.get(PATH + "/" + id(examId, "examId") + "/student", token, Map.of(), Map.of());
+    }
+
+    public Response attachments(String examId, String token) {
+        return apiClient.get(attachmentPath(examId), token, Map.of(), Map.of());
+    }
+
+    public Response uploadAttachment(String examId, File file, boolean studentVisible, String token) {
+        return apiClient.postMultipart(attachmentPath(examId), Map.of("studentVisible", studentVisible),
+                Objects.requireNonNull(file, "file must not be null"), token);
+    }
+
+    public Response downloadAttachment(String examId, String attachmentId, String token) {
+        return apiClient.get(attachmentPath(examId) + "/" + id(attachmentId, "attachmentId") + "/download",
+                token, Map.of(), Map.of());
+    }
+
+    public Response deleteAttachment(String examId, String attachmentId, String token) {
+        return apiClient.delete(attachmentPath(examId) + "/" + id(attachmentId, "attachmentId"), token);
+    }
+
     private static String id(String value, String name) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(name + " must not be blank");
         }
         return value;
+    }
+
+    private static String attachmentPath(String examId) {
+        return PATH + "/" + id(examId, "examId") + "/attachments";
     }
 }

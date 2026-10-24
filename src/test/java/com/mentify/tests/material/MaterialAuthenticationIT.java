@@ -53,4 +53,25 @@ class MaterialAuthenticationIT extends MaterialIntegrationTestSupport {
             logout(teacher);
         }
     }
+
+    @Test
+    void profileImageUploadRequiresAnImagePart() {
+        AuthenticationSession student = login(TestRole.STUDENT);
+        try {
+            assertEquals(400, materialClient.uploadProfileImageWithoutFile(student.accessToken()).statusCode());
+        } finally {
+            logout(student);
+        }
+    }
+
+    @Test
+    void studentCannotDownloadAnotherUsersProfileImage() {
+        AuthenticationSession student = login(TestRole.STUDENT);
+        try {
+            String otherUsersKey = "materials/profile-images/00000000-0000-0000-0000-000000000001/image.png";
+            assertEquals(403, materialClient.downloadProfileImage(otherUsersKey, student.accessToken()).statusCode());
+        } finally {
+            logout(student);
+        }
+    }
 }

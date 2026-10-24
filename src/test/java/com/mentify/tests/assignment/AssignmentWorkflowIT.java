@@ -32,6 +32,11 @@ class AssignmentWorkflowIT extends AssignmentIntegrationTestSupport {
             assertNotNull(assignmentId, created.asString());
             assertEquals("TEST-011", created.jsonPath().getString("data.title"));
             assertEquals(data.courseId().toString(), created.jsonPath().getString("data.courseId"));
+            assertEquals(2, created.jsonPath().getList("data.rubricItems").size());
+            assertEquals("Correctness", created.jsonPath().getString("data.rubricItems[0].criterion"));
+            assertEquals(60, created.jsonPath().getInt("data.rubricItems[0].marks"));
+            assertEquals("Explanation", created.jsonPath().getString("data.rubricItems[1].criterion"));
+            assertEquals(40, created.jsonPath().getInt("data.rubricItems[1].marks"));
 
             Response read = assignmentClient.get(assignmentId, teacher.accessToken());
             assertEquals(200, read.statusCode(), read.asString());
@@ -45,6 +50,19 @@ class AssignmentWorkflowIT extends AssignmentIntegrationTestSupport {
                     validUpdateRequest("TEST-011 Updated"), teacher.accessToken());
             assertEquals(200, updated.statusCode(), updated.asString());
             assertEquals("TEST-011 Updated", updated.jsonPath().getString("data.title"));
+            assertEquals(2, updated.jsonPath().getList("data.rubricItems").size(),
+                    "Full update must preserve rubric when rubricItems is omitted");
+
+            Response patched = assignmentClient.patch(assignmentId,
+                    Map.of("title", "TEST-011 Patched"), teacher.accessToken());
+            assertEquals(200, patched.statusCode(), patched.asString());
+            assertEquals("TEST-011 Patched", patched.jsonPath().getString("data.title"));
+            assertEquals("Updated synthetic TEST-011 assignment", patched.jsonPath().getString("data.description"),
+                    "PATCH must preserve fields omitted from its request");
+            assertEquals(100, patched.jsonPath().getInt("data.maxMarks"),
+                    "PATCH must preserve omitted numeric fields");
+            assertEquals("Correctness", patched.jsonPath().getString("data.rubricItems[0].criterion"),
+                    "PATCH must preserve omitted rubric items");
 
             Response published = assignmentClient.publish(assignmentId, teacher.accessToken());
             assertEquals(200, published.statusCode(), published.asString());
@@ -71,8 +89,7 @@ class AssignmentWorkflowIT extends AssignmentIntegrationTestSupport {
         AuthenticationSession teacher = login(TestRole.TEACHER);
         try {
             Response response = assignmentClient.get(UNKNOWN_ID, teacher.accessToken());
-            assertTrue(response.statusCode() == 404 || response.statusCode() == 400,
-                    response.asString());
+            assertEquals(404, response.statusCode(), response.asString());
         } finally {
             logout(teacher);
         }
@@ -108,6 +125,9 @@ class AssignmentWorkflowIT extends AssignmentIntegrationTestSupport {
         request.put("allowedAttempts", 2);
         request.put("allowLateSubmission", false);
         request.put("latePenaltyPercentage", 0);
+        request.put("rubricItems", java.util.List.of(
+                Map.of("criterion", "Correctness", "marks", 60),
+                Map.of("criterion", "Explanation", "marks", 40)));
         return request;
     }
 

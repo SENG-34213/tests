@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +50,26 @@ class AssignmentAttachmentAuthenticationIT extends AssignmentIntegrationTestSupp
                     teacher.accessToken()).statusCode());
         } finally {
             logout(teacher);
+        }
+    }
+
+    @Test
+    void multipartUploadRoutesEnforceAuthenticationAndRoles() throws Exception {
+        Path file = Files.createTempFile("mentify-test-upload-auth-", ".txt");
+        Files.writeString(file, "Synthetic multipart authorization probe");
+        AuthenticationSession student = login(TestRole.STUDENT);
+        AuthenticationSession teacher = login(TestRole.TEACHER);
+        try {
+            assertEquals(401, assignmentAttachmentClient.upload(UNKNOWN_ID, file.toFile(), null).statusCode());
+            assertEquals(403, assignmentAttachmentClient.upload(
+                    UNKNOWN_ID, file.toFile(), student.accessToken()).statusCode());
+            assertEquals(401, submissionFileClient.upload(UNKNOWN_ID, file.toFile(), null).statusCode());
+            assertEquals(403, submissionFileClient.upload(
+                    UNKNOWN_ID, file.toFile(), teacher.accessToken()).statusCode());
+        } finally {
+            logout(student);
+            logout(teacher);
+            Files.deleteIfExists(file);
         }
     }
 }

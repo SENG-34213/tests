@@ -21,4 +21,17 @@ final class AttendanceTestDataFactory {
         return Map.of("records", List.of(Map.of("studentId", studentId.toString(), "status", status,
                 "remarks", "TEST-015 integration record")));
     }
+
+    static Map<String, Object> records(List<String> studentIds, String status) {
+        List<Map<String, String>> records = studentIds.stream()
+                .map(studentId -> Map.of("studentId", studentId, "status", status,
+                        "remarks", "TEST-015 integration record"))
+                .toList();
+        return Map.of("records", records);
+    }
+
+    static Map<String, Object> duplicateRecords(UUID studentId) {
+        Map<String, Object> record = Map.of("studentId", studentId.toString(), "status", "PRESENT");
+        return Map.of("records", List.of(record, record));
+    }
 }

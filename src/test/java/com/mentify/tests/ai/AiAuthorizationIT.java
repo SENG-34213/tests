@@ -1,11 +1,13 @@
 package com.mentify.tests.ai;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class AiAuthorizationIT extends AiIntegrationTestSupport {
@@ -23,7 +25,11 @@ class AiAuthorizationIT extends AiIntegrationTestSupport {
     void studentCannotUseChatOrConversationManagement() {
         AuthenticationSession student = login(TestRole.STUDENT);
         try {
-            assertEquals(200, ai.me(student.accessToken()).statusCode());
+            var currentUser = ai.me(student.accessToken());
+            assertEquals(200, currentUser.statusCode(), currentUser.asString());
+            assertNotNull(UUID.fromString(currentUser.jsonPath().getString("userId")), currentUser.asString());
+            assertTrue(currentUser.jsonPath().getList("roles", String.class).contains("STUDENT"),
+                    currentUser.asString());
             assertEquals(403, ai.createConversation(Map.of(), student.accessToken()).statusCode());
             assertEquals(403, ai.conversations(student.accessToken()).statusCode());
             assertEquals(403, ai.chat(Map.of(), student.accessToken()).statusCode());
@@ -35,7 +41,7 @@ class AiAuthorizationIT extends AiIntegrationTestSupport {
 
     @Test
     void quizGenerationIsPublicAccordingToEffectiveBackendSecurity() {
-        assertTrue(ai.generateQuiz(Map.of("courseId", UNKNOWN_ID, "questionCount", "1",
-                "difficulty", "EASY", "questionType", "MULTIPLE_CHOICE"), null, null).statusCode() < 500);
+        assertEquals(400, ai.generateQuiz(Map.of("courseId", "not-a-uuid", "questionCount", "1",
+                "difficulty", "EASY", "questionType", "MULTIPLE_CHOICE"), null, null).statusCode());
     }
 }

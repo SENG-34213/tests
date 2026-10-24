@@ -3,6 +3,7 @@ package com.mentify.tests.communication;
 import com.mentify.tests.api.ApiClient;
 import com.mentify.tests.api.HttpMethod;
 import io.restassured.response.Response;
+import java.io.File;
 import java.util.Map;
 import java.util.Objects;
 
@@ -29,6 +30,10 @@ public class CommunicationClient {
 
     public Response getGroup(String groupId, String token) {
         return apiClient.get(PATH + "/groups/" + id(groupId, "groupId"), token, Map.of(), Map.of());
+    }
+
+    public Response updateGroup(String groupId, Object request, String token) {
+        return apiClient.patch(PATH + "/groups/" + id(groupId, "groupId"), request, token);
     }
 
     public Response listMembers(String groupId, String token) {
@@ -74,6 +79,16 @@ public class CommunicationClient {
         return apiClient.requestResponse(HttpMethod.DELETE,
                 messagePath(groupId) + "/" + id(messageId, "messageId"),
                 null, token, Map.of("scope", scope), Map.of());
+    }
+
+    public Response uploadMessageAttachment(String groupId, File file, String token) {
+        return apiClient.postMultipart(messagePath(groupId) + "/attachments", Map.of(), file, token);
+    }
+
+    public Response downloadMessageAttachment(String groupId, String messageId, String attachmentId, String token) {
+        return apiClient.get(messagePath(groupId) + "/" + id(messageId, "messageId")
+                        + "/attachments/" + id(attachmentId, "attachmentId") + "/download",
+                token, Map.of(), Map.of());
     }
 
     public Response getSettings(String token) {

@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +38,7 @@ class QuizValidationIT extends QuizIntegrationTestSupport {
             assertEquals(400, questionClient.create(UNKNOWN_ID, Map.of(), teacher.accessToken()).statusCode());
             Map<String, Object> tooFew = new HashMap<>();
             tooFew.put("questionText", "invalid");
-            tooFew.put("questionType", "SINGLE_CHOICE");
+            tooFew.put("questionType", "MULTIPLE_CHOICE_SINGLE_ANSWER");
             tooFew.put("marks", 1);
             tooFew.put("questionOrder", 1);
             tooFew.put("options", List.of(Map.of("optionText", "A", "correct", true, "optionOrder", 1)));
@@ -53,6 +55,28 @@ class QuizValidationIT extends QuizIntegrationTestSupport {
                     student.accessToken()).statusCode());
         } finally {
             logout(student);
+        }
+    }
+
+    @Test
+    void aiQuizGenerationRejectsInvalidSettingsBeforeCallingProvider() throws Exception {
+        Path file = Files.createTempFile("mentify-test-ai-quiz-", ".txt");
+        try {
+            Files.writeString(file, "Synthetic document for invalid AI quiz options");
+            Map<String, Object> base = Map.of(
+                    "courseId", UNKNOWN_ID,
+                    "difficulty", "MEDIUM",
+                    "questionType", "MULTIPLE_CHOICE_SINGLE_ANSWER");
+            Map<String, Object> tooFewQuestions = new HashMap<>(base);
+            tooFewQuestions.put("questionCount", 0);
+            assertEquals(400, quizClient.generateAiDraft(tooFewQuestions, file.toFile(), null).statusCode());
+
+            Map<String, Object> unsupportedType = new HashMap<>(base);
+            unsupportedType.put("questionCount", 3);
+            unsupportedType.put("questionType", "TRUE_FALSE");
+            assertEquals(400, quizClient.generateAiDraft(unsupportedType, file.toFile(), null).statusCode());
+        } finally {
+            Files.deleteIfExists(file);
         }
     }
 }

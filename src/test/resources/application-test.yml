@@ -1,10 +1,9 @@
 test:
   environment-enabled: ${TEST_ENV_ENABLED:false}
-  required-services: ${TEST_REQUIRED_SERVICES:API_GATEWAY,KEYCLOAK}
+  required-services: ${TEST_REQUIRED_SERVICES:API_GATEWAY,AUTH_SERVICE}
   backend-base-url: ${BACKEND_BASE_URL:http://localhost:8080}
   api-gateway-base-url: ${API_GATEWAY_BASE_URL:${BACKEND_BASE_URL:http://localhost:8080}}
-  keycloak-base-url: ${KEYCLOAK_BASE_URL:http://localhost:8180}
-  keycloak-realm: ${KEYCLOAK_REALM:mentify}
+  auth-service-base-url: ${AUTH_SERVICE_BASE_URL:http://localhost:8085}
   readiness-timeout-seconds: ${READINESS_TIMEOUT_SECONDS:120}
   readiness-poll-interval-millis: ${READINESS_POLL_INTERVAL_MILLIS:2000}
   http-connect-timeout-millis: ${HTTP_CONNECT_TIMEOUT_MILLIS:5000}

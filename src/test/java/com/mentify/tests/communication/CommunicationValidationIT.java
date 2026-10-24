@@ -1,6 +1,6 @@
 package com.mentify.tests.communication;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
@@ -15,9 +15,10 @@ class CommunicationValidationIT extends CommunicationIntegrationTestSupport {
     void invalidRequestsReturnClientErrors() {
         AuthenticationSession teacher = login(TestRole.TEACHER);
         try {
-            assertTrue(communicationClient.createGroup(Map.of(), teacher.accessToken()).statusCode() < 500);
-            assertTrue(communicationClient.sendMessage(UNKNOWN_ID, Map.of(), teacher.accessToken()).statusCode() < 500);
-            assertTrue(communicationClient.updateSettings(Map.of("unknown", true), teacher.accessToken()).statusCode() < 500);
+            assertEquals(400, communicationClient.createGroup(Map.of(), teacher.accessToken()).statusCode());
+            assertEquals(400, communicationClient.sendMessage(UNKNOWN_ID, Map.of(), teacher.accessToken()).statusCode());
+            assertEquals(400, communicationClient.updateSettings(
+                    Map.of("readReceiptsEnabled", "not-a-boolean"), teacher.accessToken()).statusCode());
         } finally {
             logout(teacher);
         }
@@ -27,9 +28,10 @@ class CommunicationValidationIT extends CommunicationIntegrationTestSupport {
     void unknownCommunicationIdsNeverProduceServerErrors() {
         AuthenticationSession teacher = login(TestRole.TEACHER);
         try {
-            assertTrue(communicationClient.getGroup(UNKNOWN_ID, teacher.accessToken()).statusCode() < 500);
-            assertTrue(communicationClient.listMembers(UNKNOWN_ID, teacher.accessToken()).statusCode() < 500);
-            assertTrue(communicationClient.messageHistory(UNKNOWN_ID, 0, 10, teacher.accessToken()).statusCode() < 500);
+            assertEquals(404, communicationClient.getGroup(UNKNOWN_ID, teacher.accessToken()).statusCode());
+            assertEquals(404, communicationClient.listMembers(UNKNOWN_ID, teacher.accessToken()).statusCode());
+            assertEquals(404, communicationClient.messageHistory(UNKNOWN_ID, 0, 10,
+                    teacher.accessToken()).statusCode());
         } finally {
             logout(teacher);
         }

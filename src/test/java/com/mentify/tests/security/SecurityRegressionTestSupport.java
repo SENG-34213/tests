@@ -29,7 +29,8 @@ abstract class SecurityRegressionTestSupport {
         TestEnvironmentConfiguration environment = TestEnvironmentConfiguration.fromEnvironment();
         BackendReadinessClient readiness = new BackendReadinessClient(environment);
         readiness.awaitService(RequiredService.API_GATEWAY);
-        readiness.awaitService(RequiredService.KEYCLOAK);
+        readiness.awaitService(RequiredService.AUTH_SERVICE);
+        readiness.awaitService(RequiredService.USER_SERVICE);
         api = new ApiClient(ApiClientConfiguration.fromEnvironment(environment, false));
         authentication = new AuthenticationClient(api, AuthenticationConfiguration.fromEnvironment());
         users = new UserClient(api);

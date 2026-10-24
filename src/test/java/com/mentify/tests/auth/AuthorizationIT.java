@@ -11,15 +11,15 @@ class AuthorizationIT extends AuthenticationIntegrationTestSupport {
 
     @Test
     void shouldAllowPublicAccessWithoutAuthentication() {
-        Response response = apiClient.get("/api/v1/auth/public-test");
+        Response response = apiClient.post("/api/v1/auth/login",
+                java.util.Map.of("identifier", "unknown-user@example.invalid", "password", "invalid"), null);
 
-        assertEquals(200, response.statusCode());
-        assertEquals("success", response.jsonPath().getString("status"));
+        assertEquals(400, response.statusCode(), response.asString());
     }
 
     @Test
     void shouldRejectProtectedAccessWithoutAuthentication() {
-        Response response = apiClient.get("/api/v1/auth/protected-test");
+        Response response = apiClient.get("/api/v1/users/me");
 
         assertEquals(401, response.statusCode());
     }
@@ -29,10 +29,10 @@ class AuthorizationIT extends AuthenticationIntegrationTestSupport {
         AuthenticationSession session = login(TestRole.STUDENT);
 
         try {
-            Response response = authenticated(session).get("/api/v1/auth/student-test");
+            Response response = authenticated(session).get("/api/v1/users/me");
 
             assertEquals(200, response.statusCode());
-            assertEquals("success", response.jsonPath().getString("status"));
+            assertEquals(200, response.jsonPath().getInt("statusCode"));
         } finally {
             logout(session);
         }
@@ -43,7 +43,8 @@ class AuthorizationIT extends AuthenticationIntegrationTestSupport {
         AuthenticationSession session = login(TestRole.STUDENT);
 
         try {
-            assertEquals(403, authenticated(session).get("/api/v1/auth/admin-test").statusCode());
+            assertEquals(403, authenticated(session).get("/api/v1/admin/users",
+                    session.accessToken(), java.util.Map.of("role", "STUDENT"), java.util.Map.of()).statusCode());
         } finally {
             logout(session);
         }
@@ -54,8 +55,9 @@ class AuthorizationIT extends AuthenticationIntegrationTestSupport {
         AuthenticationSession session = login(TestRole.TEACHER);
 
         try {
-            assertEquals(200, authenticated(session).get("/api/v1/auth/protected-test").statusCode());
-            assertEquals(403, authenticated(session).get("/api/v1/auth/admin-test").statusCode());
+            assertEquals(200, authenticated(session).get("/api/v1/users/me").statusCode());
+            assertEquals(403, authenticated(session).get("/api/v1/admin/users",
+                    session.accessToken(), java.util.Map.of("role", "STUDENT"), java.util.Map.of()).statusCode());
         } finally {
             logout(session);
         }
@@ -66,10 +68,11 @@ class AuthorizationIT extends AuthenticationIntegrationTestSupport {
         AuthenticationSession session = login(TestRole.ADMIN);
 
         try {
-            Response response = authenticated(session).get("/api/v1/auth/admin-test");
+            Response response = authenticated(session).get("/api/v1/admin/users",
+                    session.accessToken(), java.util.Map.of("role", "STUDENT"), java.util.Map.of());
 
             assertEquals(200, response.statusCode());
-            assertTrue(response.jsonPath().getString("message").contains("Admin authorization"));
+            assertTrue(response.jsonPath().getList("data").size() > 0, response.asString());
         } finally {
             logout(session);
         }

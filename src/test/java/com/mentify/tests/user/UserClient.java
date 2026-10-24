@@ -40,24 +40,66 @@ public class UserClient {
         return apiClient.get("/api/v1/users/me", token, Map.of(), Map.of());
     }
 
+    public Response updateCurrentUser(Object request, String token) {
+        return apiClient.patch("/api/v1/users/me", request, token);
+    }
+
+    public Response changePassword(Object request, String token) {
+        return apiClient.put("/api/v1/users/me/password", request, token);
+    }
+
+    public Response updateTeacherProfile(Object request, String token) {
+        return apiClient.patch("/api/v1/users/teachers/me", request, token);
+    }
+
+    public Response teacherLookup(String teacherId, String token) {
+        return apiClient.get("/api/v1/users/teachers/" + id(teacherId) + "/lookup", token, Map.of(), Map.of());
+    }
+
+    public Response teacherCanonicalId(String teacherId, String token) {
+        return apiClient.get("/api/v1/users/teachers/" + id(teacherId) + "/canonical-id",
+                token, Map.of(), Map.of());
+    }
+
+    public Response studentsLookup(String token, String... ids) {
+        return apiClient.get("/api/v1/users/students/lookup", token, Map.of("ids", java.util.List.of(ids)), Map.of());
+    }
+
+    public Response lookupStudents(Object request, String token) {
+        return apiClient.post("/api/v1/users/students/lookup", request, token);
+    }
+
+    public Response createGuidanceNote(String studentId, Object request, String token) {
+        return apiClient.post("/api/v1/users/students/" + id(studentId) + "/guidance-notes", request, token);
+    }
+
+    public Response guidanceNotes(String studentId, String token) {
+        return apiClient.get("/api/v1/users/students/" + id(studentId) + "/guidance-notes",
+                token, Map.of(), Map.of());
+    }
+
     public Response usersByRole(String role, String token) {
         return apiClient.get("/api/v1/users", token, Map.of("role", role), Map.of());
     }
 
     public Response registerUser(Object request, String token) {
-        return apiClient.post("/api/v1/users/register", request, token);
+        return apiClient.post("/api/v1/admin/users/register", request, token);
     }
 
     public Response registerAdmin(Object request, String token) {
-        return apiClient.post("/api/v1/users/admins/register", request, token);
+        return apiClient.post("/api/v1/admin/users/admins/register", request, token);
     }
 
     public Response resendInvitation(String userId, String token) {
-        return apiClient.post("/api/v1/users/" + id(userId) + "/resend-invitation", null, token);
+        return apiClient.post("/api/v1/admin/users/" + id(userId) + "/resend-invitation", null, token);
     }
 
     public Response updateStatus(String userId, Object request, String token) {
-        return apiClient.patch("/api/v1/users/" + id(userId) + "/status", request, token);
+        return apiClient.patch("/api/v1/admin/users/" + id(userId) + "/status", request, token);
+    }
+
+    public Response deleteUser(String userId, String token) {
+        return apiClient.delete("/api/v1/admin/users/" + id(userId), token);
     }
 
     public Response studentExists(String studentId, String token) {

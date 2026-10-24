@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeAll;
 
 abstract class NotificationIntegrationTestSupport {
 
+    protected static ApiClient apiClient;
     protected static NotificationClient notifications;
     protected static AuthenticationClient authentication;
 
@@ -22,9 +23,9 @@ abstract class NotificationIntegrationTestSupport {
         BackendReadinessClient readiness = new BackendReadinessClient(environment);
         readiness.awaitRequiredServices();
         readiness.awaitService(RequiredService.NOTIFICATION_SERVICE);
-        ApiClient api = new ApiClient(ApiClientConfiguration.fromEnvironment(environment, false));
-        authentication = new AuthenticationClient(api, AuthenticationConfiguration.fromEnvironment());
-        notifications = new NotificationClient(api);
+        apiClient = new ApiClient(ApiClientConfiguration.fromEnvironment(environment, false));
+        authentication = new AuthenticationClient(apiClient, AuthenticationConfiguration.fromEnvironment());
+        notifications = new NotificationClient(apiClient);
     }
 
     protected static AuthenticationSession login(TestRole role) {

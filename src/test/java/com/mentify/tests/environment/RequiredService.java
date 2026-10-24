@@ -4,7 +4,7 @@ import java.util.Locale;
 
 public enum RequiredService {
     API_GATEWAY,
-    KEYCLOAK,
+    AUTH_SERVICE,
     CONFIG_SERVER,
     EUREKA,
     USER_SERVICE,

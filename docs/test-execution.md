@@ -25,7 +25,7 @@ or secret is required.
 
 ```powershell
 $env:TEST_ENV_ENABLED="true"
-$env:TEST_REQUIRED_SERVICES="API_GATEWAY,KEYCLOAK,USER_SERVICE"
+$env:TEST_REQUIRED_SERVICES="API_GATEWAY,AUTH_SERVICE,USER_SERVICE"
 mvn verify -Pintegration
 ```
 
@@ -113,6 +113,62 @@ mvn -Dtest="*Gateway*IT" verify -Pintegration
 
 Reports are written to `target/surefire-reports/` and
 `target/failsafe-reports/`. CI uploads both directories when present.
+
+## Test register and backend coverage evidence
+
+Generate a run-specific test register locally after running the desired test
+profiles. Python 3.12 or later is required for the evidence generator (CI pins
+Python 3.12):
+
+```powershell
+python tools/test-evidence.py `
+  --junit-dir target/surefire-reports `
+  --junit-dir target/failsafe-reports `
+  --metadata docs/test-case-mappings.csv `
+  --output-dir target/test-evidence
+```
+
+The output contains `test-register.csv`, `test-register.md`,
+`coverage-summary.md`, and `evidence.json`. Documented case IDs are discovered
+from `docs/*-test-cases.md`. Until a case has a mapping row, it appears as
+`Not Mapped` with its documentation source and an unmapped SRS requirement.
+The mapping CSV is the maintained source for stable test-case IDs and
+requirement links. Add one row per case, mapping its ID to the exact JUnit
+`class_name` and `method_name`; the committed file starts with headers only,
+so complete requirement traceability is not yet claimed. A mapped case absent
+from the reports is `Not Run`; an executed JUnit method without metadata is
+included as `Unmapped` and called out for follow-up. A skipped result remains
+`Skipped`.
+Do not fill actual results from memory or convert skipped/not-run cases to
+passed.
+
+Backend coverage must come from the backend JaCoCo reports. This repository
+contains API-test code, so its own JaCoCo result would not measure backend
+product code. The backend CI publishes per-service `jacoco-unit-*` and
+`jacoco-integration-*` artifacts. Download the relevant artifacts from the
+same backend workflow run, extract them into a directory, and pass that
+directory as another input:
+
+```powershell
+python tools/test-evidence.py `
+  --junit-dir target/surefire-reports `
+  --junit-dir target/failsafe-reports `
+  --jacoco-dir artifacts/backend-jacoco `
+  --metadata docs/test-case-mappings.csv `
+  --output-dir target/test-evidence
+```
+
+The summarizer aggregates module counters within each category while keeping
+unit and integration results separate. Duplicate module reports in one
+category are treated as invalid input. The optional manual GitHub Actions path
+downloads unit and integration artifacts from a selected backend CI run; set
+the backend run ID and commit SHA together so the evidence manifest identifies
+its source. `coverage-summary.md` reports measured line,
+branch, and instruction counters; it does not claim a threshold passed. The
+Any backend coverage gate result remains the result of the backend checks
+actually configured for the measured module and source scope. The summary does
+not infer that a gate ran or passed. If no JaCoCo XML was supplied, it says
+coverage is unavailable, not zero.
 
 ## Troubleshooting
 

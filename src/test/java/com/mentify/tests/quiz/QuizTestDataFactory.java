@@ -12,12 +12,16 @@ final class QuizTestDataFactory {
     }
 
     static Map<String, Object> quiz(UUID courseId, String suffix) {
+        return quiz(courseId, suffix, BigDecimal.valueOf(50.00));
+    }
+
+    static Map<String, Object> quiz(UUID courseId, String suffix, BigDecimal passMark) {
         return Map.of(
                 "courseId", courseId.toString(),
                 "title", "TEST-QUIZ-" + suffix + "-" + UUID.randomUUID(),
                 "description", "Synthetic integration test quiz",
                 "durationMinutes", 30,
-                "passMark", BigDecimal.valueOf(50.00),
+                "passMark", passMark,
                 "startTime", LocalDateTime.now().minusMinutes(1).withNano(0).toString(),
                 "endTime", LocalDateTime.now().plusDays(7).withNano(0).toString(),
                 "maxAttempts", 2,
@@ -38,7 +42,7 @@ final class QuizTestDataFactory {
     static Map<String, Object> question(String suffix) {
         return Map.of(
                 "questionText", "Which answer is correct " + suffix + "?",
-                "questionType", "SINGLE_CHOICE",
+                "questionType", "MULTIPLE_CHOICE_SINGLE_ANSWER",
                 "marks", BigDecimal.TEN,
                 "questionOrder", 1,
                 "options", List.of(

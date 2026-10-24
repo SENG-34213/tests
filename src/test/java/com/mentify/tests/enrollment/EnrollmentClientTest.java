@@ -34,7 +34,9 @@ class EnrollmentClientTest {
         EnrollmentClient client = new EnrollmentClient(new ApiClient(configuration));
 
         assertThrows(IllegalArgumentException.class, () -> client.update(" ", Map.of(), null));
+        assertThrows(IllegalArgumentException.class, () -> client.delete(" ", null));
         assertThrows(IllegalArgumentException.class, () -> client.membership("student", "", null));
         assertThrows(IllegalArgumentException.class, () -> client.studentCourses(null, null));
+        assertThrows(IllegalArgumentException.class, () -> client.courseEnrollments("", null));
     }
 }

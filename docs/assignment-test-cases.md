@@ -6,6 +6,7 @@
 | TC-TEST-011-02 | Teacher retrieves an assignment | `200`, correct assignment data | Integration |
 | TC-TEST-011-03 | Authorized user lists course assignments | `200`, created assignment is listed | Integration |
 | TC-TEST-011-04 | Teacher updates an assignment | `200`, updated values persist | Integration |
+| TC-TEST-011-19 | Teacher patches one assignment field | `200`, changed field persists and omitted fields remain unchanged | Integration |
 | TC-TEST-011-05 | Teacher publishes an assignment | `200`, status is `PUBLISHED` | Workflow |
 | TC-TEST-011-06 | Teacher closes an assignment | `200`, status is `CLOSED` | Workflow |
 | TC-TEST-011-07 | Teacher deletes a test-created assignment | `200`, record is removed | Cleanup |
@@ -18,7 +19,16 @@
 | TC-TEST-011-14 | Teacher returns a submission | `200`, status is `RETURNED` | Grading |
 | TC-TEST-011-15 | Unauthenticated protected request | `401` | Security |
 | TC-TEST-011-16 | Invalid assignment body | `400` after authentication | Validation |
-| TC-TEST-011-17 | Unknown assignment ID | Documented `404` or `400`, never unexpected `500` | Error |
+| TC-TEST-011-17 | Unknown assignment ID | `404 Not Found` | Error |
 | TC-TEST-011-18 | Client path validation | Blank IDs are rejected before HTTP | Unit |
+| TC-TEST-011-20 | Student lists own eligible course assignments | `200`, page metadata is valid, draft assignments are excluded, course filter is honored | Integration |
+| TC-TEST-011-21 | Student assignment query validates page and date ranges | Invalid page size or `dueFrom > dueTo` returns `400` | Validation |
+| TC-TEST-011-22 | Assignment PATCH with no fields | `400`; no assignment lookup or mutation is performed | Validation |
+| TC-TEST-011-23 | Assignment create rejects invalid allowed-attempts, late-penalty, and rubric DTO bounds | `400` for attempts below one, penalty above 100, blank rubric criterion, and more than 50 rubric items | Validation |
+| TC-TEST-011-24 | Rubric items persist through create, full update without a rubric, and partial PATCH | Rubric criteria, marks, and order are returned; omitted rubric remains unchanged | Workflow |
+| TC-TEST-011-25 | Grading requires marks within the DTO range | Missing, negative, or greater-than-100 marks return `400` before submission lookup | Validation |
+| TC-TEST-011-26 | Student cannot manage assignments | Student assignment creation and PATCH return `403`; own assignment listing remains available | Security |
+| TC-TEST-011-27 | Teacher cannot create student submissions or use student assignment listing | Teacher receives `403` for submission creation and student-only assignment listing | Security |
 
-Attachment and file-storage scenarios are intentionally reserved for a later ticket.
+Assignment attachment and submission file-storage scenarios are covered separately in
+`assignment-attachment-test-cases.md` and remain fixture-gated.

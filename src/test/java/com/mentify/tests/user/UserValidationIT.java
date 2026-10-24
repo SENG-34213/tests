@@ -1,7 +1,8 @@
 package com.mentify.tests.user;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
@@ -17,11 +18,17 @@ class UserValidationIT extends UserIntegrationTestSupport {
         AuthenticationSession admin = login(TestRole.ADMIN);
         try {
             String token = admin.accessToken();
-            assertTrue(users.studentExists("not-a-valid-id", token).statusCode() < 500);
+            var malformedStudentId = users.studentExists("not-a-valid-id", token);
+            assertEquals(200, malformedStudentId.statusCode());
+            assertFalse(malformedStudentId.as(Boolean.class));
+            var unknownStudentId = users.studentExists(UNKNOWN_ID, token);
+            assertEquals(200, unknownStudentId.statusCode());
+            assertFalse(unknownStudentId.as(Boolean.class));
+            var unknownTeacherId = users.teacherExists(UNKNOWN_ID, token);
+            assertEquals(200, unknownTeacherId.statusCode());
+            assertFalse(unknownTeacherId.as(Boolean.class));
             assertThrows(IllegalArgumentException.class, () -> users.teacherExists("", token));
-            assertTrue(users.updateStatus(UNKNOWN_ID, Map.of("active", "invalid"), token).statusCode() < 500);
-            assertTrue(users.listStudents(-1, 0, token).statusCode() < 500);
-            assertTrue(users.listTeachers(0, 1000, token).statusCode() < 500);
+            assertEquals(400, users.updateStatus(UNKNOWN_ID, Map.of(), token).statusCode());
         } finally {
             logout(admin);
         }

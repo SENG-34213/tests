@@ -21,7 +21,7 @@ mvn clean test
 mvn verify
 ```
 
-The foundation smoke test does not require the Mentify backend, Docker, Keycloak, PostgreSQL, Kafka, Mailpit, AI providers, or Stripe.
+The foundation smoke test does not require the Mentify backend, Docker, Auth Service/JWT infrastructure, PostgreSQL, Kafka, Mailpit, AI providers, or Stripe.
 
 When the backend environment is running, execute live integration tests with:
 
@@ -44,10 +44,13 @@ The backend repository is a Java 17 Spring Boot microservice monorepo. This repo
 
 1. API integration tests through the gateway.
 2. Service and database integration tests using Testcontainers.
-3. Keycloak authentication and authorization tests.
+3. Application-issued JWT authentication and authorization tests through the Auth Service and API Gateway.
 4. Kafka, Mailpit, WebSocket, AI, and payment-provider integration tests using controlled test doubles or containers.
 5. End-to-end user journeys.
 6. Security, performance, and staging verification.
+
+Staging verification is an explicit, manual-only, read-only workflow. It must
+not be used against production; see [staging release smoke](docs/staging-release-smoke.md).
 
 Authentication client usage and safe local credential configuration are documented in [docs/authentication-testing.md](docs/authentication-testing.md).
 
@@ -66,6 +69,8 @@ Authentication client usage and safe local credential configuration are document
 - [API contract testing](docs/api-contract-testing.md)
 - [Contract baseline](docs/contract-baseline.md)
 - [Contract change process](docs/contract-change-process.md)
+- [Staging release smoke](docs/staging-release-smoke.md)
+- [Staging smoke test cases](docs/staging-test-cases.md)
 
 ## Standards
 

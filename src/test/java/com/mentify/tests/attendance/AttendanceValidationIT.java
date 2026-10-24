@@ -1,7 +1,6 @@
 package com.mentify.tests.attendance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
@@ -29,12 +28,12 @@ class AttendanceValidationIT extends AttendanceIntegrationTestSupport {
     }
 
     @Test
-    void unknownAttendanceIdsNeverProduceServerErrors() {
+    void unknownAttendanceResourcesReturnNotFound() {
         AuthenticationSession teacher = login(TestRole.TEACHER);
         try {
-            assertTrue(attendanceClient.getSession(UNKNOWN_ID, teacher.accessToken()).statusCode() < 500);
-            assertTrue(attendanceClient.listSessions(UNKNOWN_ID, teacher.accessToken()).statusCode() < 500);
-            assertTrue(attendanceClient.studentSummary(UNKNOWN_ID, UNKNOWN_ID, teacher.accessToken()).statusCode() < 500);
+            assertEquals(404, attendanceClient.getSession(UNKNOWN_ID, teacher.accessToken()).statusCode());
+            assertEquals(404, attendanceClient.listSessions(UNKNOWN_ID, teacher.accessToken()).statusCode());
+            assertEquals(404, attendanceClient.studentSummary(UNKNOWN_ID, UNKNOWN_ID, teacher.accessToken()).statusCode());
         } finally {
             logout(teacher);
         }

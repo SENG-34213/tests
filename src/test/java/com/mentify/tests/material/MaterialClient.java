@@ -24,8 +24,31 @@ public class MaterialClient {
         return apiClient.postMultipart(API_PATH, fields, null, token);
     }
 
+    public Response uploadMarketplaceMaterial(String title, String description, File file, String token) {
+        Map<String, Object> fields = new java.util.LinkedHashMap<>();
+        fields.put("title", required(title, "title"));
+        if (description != null) fields.put("description", description);
+        return apiClient.postMultipart(API_PATH + "/marketplace", fields,
+                Objects.requireNonNull(file, "file must not be null"), token);
+    }
+
+    public Response uploadProfileImageWithoutFile(String token) {
+        return apiClient.postMultipart("/api/v1/profile-images", Map.of(), null, token);
+    }
+
+    public Response downloadProfileImage(String key, String token) {
+        return apiClient.get("/api/v1/profile-images", token, Map.of("key", required(key, "key")), Map.of());
+    }
+
     public Response list(Map<String, ?> queryParameters, String token) {
         return apiClient.get(API_PATH, token, queryParameters, Map.of());
+    }
+
+    public Response aiSources(String courseId, String token) {
+        if (courseId == null || courseId.isBlank()) {
+            throw new IllegalArgumentException("courseId must not be blank");
+        }
+        return apiClient.get(API_PATH + "/ai-sources", token, Map.of("courseId", courseId), Map.of());
     }
 
     public Response get(String materialId, String token) {
@@ -61,5 +84,10 @@ public class MaterialClient {
             throw new IllegalArgumentException("materialId must not be blank");
         }
         return API_PATH + "/" + materialId;
+    }
+
+    private static String required(String value, String name) {
+        if (value == null || value.isBlank()) throw new IllegalArgumentException(name + " must not be blank");
+        return value;
     }
 }

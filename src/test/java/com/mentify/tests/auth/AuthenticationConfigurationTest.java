@@ -31,6 +31,32 @@ class AuthenticationConfigurationTest {
     }
 
     @Test
+    void shouldReadSuperAdminCredentialsSeparatelyFromAdmin() {
+        AuthenticationConfiguration configuration = AuthenticationConfiguration.fromEnvironment(Map.of(
+                "ADMIN_TEST_USERNAME", "admin@example.test",
+                "ADMIN_TEST_PASSWORD", "admin-secret",
+                "SUPER_ADMIN_TEST_USERNAME", "super@example.test",
+                "SUPER_ADMIN_TEST_PASSWORD", "super-secret"));
+
+        assertEquals("admin@example.test", configuration.credentialsFor(TestRole.ADMIN).username());
+        assertEquals("super@example.test", configuration.credentialsFor(TestRole.SUPER_ADMIN).username());
+        assertTrue(configuration.credentialsFor(TestRole.SUPER_ADMIN).toString().contains("[REDACTED]"));
+    }
+
+    @Test
+    void shouldSupportASeparateSecondStudentTestAccount() {
+        AuthenticationConfiguration configuration = AuthenticationConfiguration.fromEnvironment(Map.of(
+                "STUDENT_TEST_USERNAME", "student-one@example.test",
+                "STUDENT_TEST_PASSWORD", "student-one-secret",
+                "SECONDARY_STUDENT_TEST_USERNAME", "student-two@example.test",
+                "SECONDARY_STUDENT_TEST_PASSWORD", "student-two-secret"));
+
+        assertEquals("student-two@example.test",
+                configuration.credentialsFor(TestRole.SECONDARY_STUDENT).username());
+        assertEquals("student-one@example.test", configuration.credentialsFor(TestRole.STUDENT).username());
+    }
+
+    @Test
     void shouldRejectIncompleteCredentialPairs() {
         assertThrows(IllegalArgumentException.class, () -> AuthenticationConfiguration.fromEnvironment(Map.of(
                 "TEST_USERNAME", "student@example.test")));

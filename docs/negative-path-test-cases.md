@@ -2,9 +2,9 @@
 
 | ID | Area | Scenario | Expected result | Test location | Environment |
 |---|---|---|---|---|---|
-| SEC-001 | Authentication | Missing bearer token | Protected endpoint returns 401 | `security/SecurityRegressionIT` | Gateway and Keycloak |
-| SEC-002 | Authentication | Empty bearer token | Protected endpoint returns 401 | `security/SecurityRegressionIT` | Gateway and Keycloak |
-| SEC-003 | Authentication | Invalid or malformed token | Protected endpoint returns 401 | `security/SecurityRegressionIT` | Gateway and Keycloak |
+| SEC-001 | Authentication | Missing bearer token | Protected endpoint returns 401 | `security/SecurityRegressionIT` | Gateway and Auth Service |
+| SEC-002 | Authentication | Empty bearer token | Protected endpoint returns 401 | `security/SecurityRegressionIT` | Gateway and Auth Service |
+| SEC-003 | Authentication | Invalid or malformed token | Protected endpoint returns 401 | `security/SecurityRegressionIT` | Gateway and Auth Service |
 | SEC-004 | Authorization | Student accesses admin probe | Request returns 403 | `security/SecurityRegressionIT` | Student fixture |
 | SEC-005 | Authorization | Teacher accesses admin probe | Request returns 403 | `security/SecurityRegressionIT` | Teacher fixture |
 | SEC-006 | Sensitive data | Authentication error body inspection | No password, token, auth header, or stack trace | `security/SecurityRegressionIT` | Gateway |

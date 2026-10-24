@@ -1,7 +1,6 @@
 package com.mentify.tests.user;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
@@ -12,10 +11,10 @@ class AuthenticationIT extends UserIntegrationTestSupport {
 
     @Test
     void publicAndProtectedAuthenticationProbesFollowTheirSecurityRules() {
-        assertEquals(200, users.publicTest().statusCode());
-        assertEquals(401, users.protectedTest(null).statusCode());
-        assertEquals(401, users.adminTest(null).statusCode());
-        assertEquals(401, users.studentTest(null).statusCode());
+        assertEquals(400, users.login(Map.of("identifier", "unknown-user@example.invalid", "password", "invalid"))
+                .statusCode());
+        assertEquals(401, users.currentUser(null).statusCode());
+        assertEquals(401, users.adminUsers("STUDENT", null).statusCode());
     }
 
     @Test
@@ -23,11 +22,9 @@ class AuthenticationIT extends UserIntegrationTestSupport {
         AuthenticationSession student = login(TestRole.STUDENT);
         AuthenticationSession admin = login(TestRole.ADMIN);
         try {
-            assertEquals(200, users.protectedTest(student.accessToken()).statusCode());
-            assertEquals(200, users.studentTest(student.accessToken()).statusCode());
-            assertEquals(403, users.adminTest(student.accessToken()).statusCode());
-            assertEquals(200, users.adminTest(admin.accessToken()).statusCode());
-            assertEquals(403, users.studentTest(admin.accessToken()).statusCode());
+            assertEquals(200, users.currentUser(student.accessToken()).statusCode());
+            assertEquals(403, users.adminUsers("STUDENT", student.accessToken()).statusCode());
+            assertEquals(200, users.adminUsers("STUDENT", admin.accessToken()).statusCode());
         } finally {
             logout(student);
             logout(admin);
@@ -36,10 +33,10 @@ class AuthenticationIT extends UserIntegrationTestSupport {
 
     @Test
     void invalidAuthenticationPayloadsAreRejectedWithoutSensitiveOutput() {
-        assertTrue(users.login(Map.of()).statusCode() < 500);
-        assertTrue(users.login(Map.of("identifier", "invalid", "password", "invalid")).statusCode() < 500);
-        assertTrue(users.refresh(Map.of()).statusCode() < 500);
-        assertTrue(users.logout(Map.of()).statusCode() < 500);
-        assertTrue(users.forgotPassword(Map.of("email", "invalid")).statusCode() < 500);
+        assertEquals(400, users.login(Map.of()).statusCode());
+        assertEquals(400, users.login(Map.of("identifier", "invalid", "password", "invalid")).statusCode());
+        assertEquals(400, users.refresh(Map.of()).statusCode());
+        assertEquals(400, users.logout(Map.of()).statusCode());
+        assertEquals(400, users.forgotPassword(Map.of("email", "invalid")).statusCode());
     }
 }

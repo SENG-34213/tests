@@ -1,0 +1,79 @@
+name: Staging Read-only Release Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type RUN STAGING READ-ONLY SMOKE to authorize read-only staging probes
+        required: true
+        type: string
+      deployment_revision:
+        description: Backend commit SHA deployed to staging (7-40 hexadecimal characters)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  staging-smoke:
+    name: Read-only staging verification
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 15
+    env:
+      STAGING_ENVIRONMENT: staging
+      STAGING_CONFIRMATION: ${{ inputs.confirmation }}
+      STAGING_DEPLOYMENT_REVISION: ${{ inputs.deployment_revision }}
+      STAGING_BASE_URL: ${{ vars.STAGING_BASE_URL }}
+      STAGING_AUTH_SERVICE_BASE_URL: ${{ vars.STAGING_AUTH_SERVICE_BASE_URL }}
+      STAGING_ALLOWED_HOST_SUFFIX: ${{ vars.STAGING_ALLOWED_HOST_SUFFIX }}
+      STAGING_READINESS_TIMEOUT_SECONDS: ${{ vars.STAGING_READINESS_TIMEOUT_SECONDS || '90' }}
+      STAGING_POLL_INTERVAL_SECONDS: ${{ vars.STAGING_POLL_INTERVAL_SECONDS || '3' }}
+      STAGING_REQUEST_TIMEOUT_SECONDS: ${{ vars.STAGING_REQUEST_TIMEOUT_SECONDS || '8' }}
+
+    steps:
+      - name: Reject unconfirmed runs before network access
+        shell: bash
+        run: |
+          if [[ "$STAGING_CONFIRMATION" != "RUN STAGING READ-ONLY SMOKE" ]]; then
+            echo "Explicit staging confirmation is required. No network probes were run."
+            exit 1
+          fi
+          if [[ ! "$STAGING_DEPLOYMENT_REVISION" =~ ^[[:xdigit:]]{7,40}$ ]]; then
+            echo "deployment_revision must be a 7-40 character Git SHA. No network probes were run."
+            exit 1
+          fi
+          for name in STAGING_BASE_URL STAGING_AUTH_SERVICE_BASE_URL STAGING_ALLOWED_HOST_SUFFIX; do
+            if [[ -z "${!name}" ]]; then
+              echo "$name must be configured on the protected staging environment."
+              exit 1
+            fi
+          done
+
+      - name: Check out test repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Run focused staging smoke tests
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: mvn --batch-mode --no-transfer-progress -Pintegration -Dit.test=StagingSmokeIT verify
+
+      - name: Upload staging JUnit and sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-smoke-${{ github.run_id }}-${{ github.sha }}
+          path: |
+            target/failsafe-reports/
+            target/staging-evidence/
+          if-no-files-found: warn
+          retention-days: 30

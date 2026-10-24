@@ -6,9 +6,13 @@ The service is expected at `ATTENDANCE_SERVICE_BASE_URL` (default `http://localh
 ## Covered operations
 
 - Teacher/admin session creation, course listing, and session retrieval.
-- Marking one or more records with `PRESENT`, `ABSENT`, `LATE`, or `NOT_MARKED`.
+- Marking one or more records with `PRESENT`, `ABSENT`, or `LATE`; `NOT_MARKED`
+  is the initial state and is rejected as a submitted mark.
 - Completing and cancelling sessions, including illegal state transitions.
-- Student self summaries and teacher/admin student summaries.
+- Rejection of incomplete batches and attempts to mark records outside the
+  session or change a completed/cancelled session.
+- Student self summaries and teacher/admin student summaries, including count
+  consistency and percentage calculations.
 - Admin session creation and retrieval when write fixtures are enabled.
 - Authentication, role authorization, validation, unknown identifiers, and isolation.
 

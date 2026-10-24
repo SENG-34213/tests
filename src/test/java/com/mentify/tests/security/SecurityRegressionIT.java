@@ -2,7 +2,6 @@ package com.mentify.tests.security;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
@@ -18,6 +17,19 @@ class SecurityRegressionIT extends SecurityRegressionTestSupport {
         assertEquals(401, users.currentUser("not-a-jwt").statusCode());
         assertEquals(401, users.currentUser("header.payload.signature").statusCode());
         assertEquals(401, users.protectedTest("not-a-jwt").statusCode());
+    }
+
+    @Test
+    void expiredSignedAccessTokenIsRejected() {
+        AuthenticationSession student = login(TestRole.STUDENT);
+        try {
+            String expiredToken = ExpiredJwtFactory.expiredCopy(
+                    student.accessToken(), System.getenv("AUTH_JWT_PRIVATE_KEY_BASE64"));
+
+            assertEquals(401, users.currentUser(expiredToken).statusCode());
+        } finally {
+            logout(student);
+        }
     }
 
     @Test
@@ -37,7 +49,7 @@ class SecurityRegressionIT extends SecurityRegressionTestSupport {
     void protectedErrorResponsesDoNotExposeSensitiveValues() {
         Response response = users.currentUser("not-a-jwt");
         String body = response.asString().toLowerCase();
-        assertTrue(response.statusCode() >= 400 && response.statusCode() < 500);
+        assertEquals(401, response.statusCode());
         assertFalse(body.contains("password"));
         assertFalse(body.contains("access_token"));
         assertFalse(body.contains("refresh_token"));

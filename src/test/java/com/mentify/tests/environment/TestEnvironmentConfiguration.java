@@ -11,7 +11,6 @@ public record TestEnvironmentConfiguration(
         boolean enabled,
         List<RequiredService> requiredServices,
         Map<RequiredService, URI> serviceUrls,
-        String keycloakRealm,
         Duration readinessTimeout,
         Duration pollInterval,
         Duration connectTimeout,
@@ -34,7 +33,6 @@ public record TestEnvironmentConfiguration(
                 booleanValue(environment, "TEST_ENV_ENABLED", false),
                 configuredRequiredServices(environment),
                 urls,
-                value(environment, "KEYCLOAK_REALM", "mentify"),
                 Duration.ofSeconds(positiveLong(environment, "READINESS_TIMEOUT_SECONDS", 120)),
                 Duration.ofMillis(positiveLong(environment, "READINESS_POLL_INTERVAL_MILLIS", 2000)),
                 Duration.ofMillis(positiveLong(environment, "HTTP_CONNECT_TIMEOUT_MILLIS", 5000)),
@@ -42,7 +40,7 @@ public record TestEnvironmentConfiguration(
     }
 
     private static List<RequiredService> configuredRequiredServices(Map<String, String> environment) {
-        String configured = value(environment, "TEST_REQUIRED_SERVICES", "API_GATEWAY,KEYCLOAK");
+        String configured = value(environment, "TEST_REQUIRED_SERVICES", "API_GATEWAY,AUTH_SERVICE");
         return Arrays.stream(configured.split(","))
                 .map(String::trim)
                 .filter(value -> !value.isBlank())
@@ -69,7 +67,7 @@ public record TestEnvironmentConfiguration(
     private static String environmentVariable(RequiredService service) {
         return switch (service) {
             case API_GATEWAY -> "API_GATEWAY_BASE_URL";
-            case KEYCLOAK -> "KEYCLOAK_BASE_URL";
+            case AUTH_SERVICE -> "AUTH_SERVICE_BASE_URL";
             case CONFIG_SERVER -> "CONFIG_SERVER_BASE_URL";
             case EUREKA -> "EUREKA_BASE_URL";
             case USER_SERVICE -> "USER_SERVICE_BASE_URL";
@@ -90,7 +88,7 @@ public record TestEnvironmentConfiguration(
     private static String defaultUrl(RequiredService service) {
         return switch (service) {
             case API_GATEWAY -> "http://localhost:8080";
-            case KEYCLOAK -> "http://localhost:8180";
+            case AUTH_SERVICE -> "http://localhost:8085";
             case CONFIG_SERVER -> "http://localhost:8888";
             case EUREKA -> "http://localhost:8761";
             case USER_SERVICE -> "http://localhost:8081";

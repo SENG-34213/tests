@@ -10,7 +10,7 @@ The `tests` repository contains repository-level integration and end-to-end test
 2. **Integration tests:** real HTTP, database, authentication, messaging, and service interactions.
 3. **End-to-end tests:** complete user journeys through the API Gateway and supported infrastructure.
 
-The development guide targets 80% coverage for new unit-tested code, integration coverage for all API endpoints, and 90% branch coverage for critical business logic. Coverage and test-register evidence will be added as feature tests are implemented.
+The development guide targets 80% line/branch coverage for new unit-tested code, integration coverage for all API endpoints, and 90% branch coverage for critical business logic. These are backend product-code targets. This repository reports API-test execution and traceability; it cannot measure backend code coverage unless it consumes JaCoCo reports produced by an instrumented backend build. Never infer code coverage from the number of API tests.
 
 ## Test principles
 
@@ -25,7 +25,9 @@ The development guide targets 80% coverage for new unit-tested code, integration
 
 ## Backend relationship
 
-The backend is a Java 17 Spring Boot microservice system containing the gateway, service discovery, configuration server, shared library, business services, PostgreSQL, Keycloak, Kafka, Mailpit, AI, and payment integrations. Tests in this repository call supported interfaces and verify cross-service behavior without copying backend source code.
+The backend is a Java 17 Spring Boot microservice system containing the gateway, service discovery, configuration server, shared library, business services, PostgreSQL, an application Auth Service that issues JWTs, Kafka, Mailpit, AI, and payment integrations. Tests in this repository call supported interfaces and verify cross-service behavior without copying backend source code.
+
+The executed register is generated from JUnit XML and `docs/test-case-mappings.csv` by `tools/test-evidence.py`. It distinguishes passed, failed, skipped, not-run, and unmapped tests. Backend JaCoCo artifacts remain the authoritative coverage measurement and gate result.
 
 ## Current limitation
 

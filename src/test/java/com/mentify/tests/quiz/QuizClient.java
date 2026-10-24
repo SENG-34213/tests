@@ -2,6 +2,7 @@ package com.mentify.tests.quiz;
 
 import com.mentify.tests.api.ApiClient;
 import io.restassured.response.Response;
+import java.io.File;
 import java.util.Map;
 import java.util.Objects;
 
@@ -28,6 +29,19 @@ public class QuizClient {
 
     public Response listTeacher(String token) {
         return apiClient.get(PATH + "/teacher", token, Map.of(), Map.of());
+    }
+
+    public Response results(String quizId, String token) {
+        return apiClient.get(quizPath(quizId) + "/results", token, Map.of(), Map.of());
+    }
+
+    public Response teacherGradebookQuizzes(String courseId, String token) {
+        return apiClient.get("/api/v1/teacher/gradebook/quizzes", token,
+                Map.of("courseId", requiredId(courseId, "courseId")), Map.of());
+    }
+
+    public Response generateAiDraft(Map<String, ?> fields, File file, String token) {
+        return apiClient.postMultipart("/api/assignments/quizzes/ai/generate", fields, file, token);
     }
 
     public Response delete(String quizId, String token) {

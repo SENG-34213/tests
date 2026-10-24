@@ -2,6 +2,7 @@ package com.mentify.tests.assignment;
 
 import com.mentify.tests.api.ApiClient;
 import io.restassured.response.Response;
+import java.io.File;
 import java.util.Map;
 import java.util.Objects;
 
@@ -15,6 +16,11 @@ public class AssignmentAttachmentClient {
 
     public Response create(String assignmentId, Object request, String token) {
         return apiClient.post(assignmentPath(assignmentId) + "/attachments", request, token);
+    }
+
+    public Response upload(String assignmentId, File file, String token) {
+        return apiClient.postMultipart(assignmentPath(assignmentId) + "/attachments/upload",
+                Map.of(), Objects.requireNonNull(file, "file must not be null"), token);
     }
 
     public Response list(String assignmentId, String token) {

@@ -20,13 +20,13 @@ test a production object-storage account.
 
 ## Environment
 
-The integration profile requires the gateway, Keycloak, Course Service,
+The integration profile requires the gateway, Auth Service, Course Service,
 Enrollment Service, and Material Service. Configure these values outside source
 control:
 
 ```text
 TEST_ENV_ENABLED=true
-TEST_REQUIRED_SERVICES=API_GATEWAY,KEYCLOAK,COURSE_SERVICE,ENROLLMENT_SERVICE,MATERIAL_SERVICE
+TEST_REQUIRED_SERVICES=API_GATEWAY,AUTH_SERVICE,COURSE_SERVICE,ENROLLMENT_SERVICE,MATERIAL_SERVICE
 MATERIAL_SERVICE_BASE_URL=http://localhost:8091
 COURSE_SERVICE_BASE_URL=http://localhost:8082
 ENROLLMENT_SERVICE_BASE_URL=http://localhost:8083
@@ -43,8 +43,12 @@ course ID and explicit `TEST_MATERIAL_WRITE_ENABLED=true`.
 
 Tests create small unique `.txt` files in the operating system temporary
 directory. The `AutoCloseable` test-file wrapper deletes each file after use.
-The suite checks download metadata only; it does not follow provider URLs or
-print storage keys, credentials, tokens, or response bodies in logs.
+By default the suite checks download metadata only. An optional byte-for-byte
+check follows the presigned HTTPS URL only when
+`TEST_MATERIAL_DOWNLOAD_BYTES_ENABLED=true` and
+`TEST_MATERIAL_DOWNLOAD_ALLOWED_HOST` is set to the exact approved storage host.
+The test refuses a different host or non-HTTPS URL, does not follow redirects,
+and never prints the signed URL or storage credentials.
 
 ## Cleanup behavior
 
@@ -65,5 +69,5 @@ mvn verify -Pintegration -Dtest="Assignment*IT,Submission*IT,Material*IT"
 
 With `TEST_ENV_ENABLED=false`, the integration tests must make no API request;
 the readiness guard stops them before endpoint execution. Live integration runs
-also require the backend services, Keycloak users, approved fixtures, and the
+also require the backend services, test users, approved fixtures, and the
 configured non-production storage provider to be available.

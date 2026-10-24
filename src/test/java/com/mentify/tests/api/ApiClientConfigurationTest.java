@@ -48,4 +48,15 @@ class ApiClientConfigurationTest {
                         .findFirst()
                         .orElseThrow());
     }
+
+    @Test
+    void shouldBuildClientForRequestedServiceGivenServiceConfiguration() {
+        TestEnvironmentConfiguration environment = TestEnvironmentConfiguration.fromEnvironment(Map.of(
+                "AUTH_SERVICE_BASE_URL", "http://auth.test:8185"));
+
+        ApiClientConfiguration configuration = ApiClientConfiguration.forService(
+                environment, RequiredService.AUTH_SERVICE, false);
+
+        assertEquals(URI.create("http://auth.test:8185"), configuration.baseUri());
+    }
 }

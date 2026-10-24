@@ -29,7 +29,7 @@ class AuthenticationLoginIT extends AuthenticationIntegrationTestSupport {
                 "identifier", credentials.username(),
                 "password", "invalid-password-for-test"));
 
-        assertEquals(401, response.statusCode());
+        assertEquals(400, response.statusCode());
         assertFalse(response.asString().contains("invalid-password-for-test"));
     }
 
@@ -39,7 +39,7 @@ class AuthenticationLoginIT extends AuthenticationIntegrationTestSupport {
                 "identifier", "unknown-user-" + System.nanoTime() + "@example.invalid",
                 "password", "invalid-password-for-test"));
 
-        assertEquals(401, response.statusCode());
+        assertEquals(400, response.statusCode());
     }
 
     @Test

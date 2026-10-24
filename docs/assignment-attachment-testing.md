@@ -13,7 +13,7 @@ For live tests, include:
 
 ```text
 TEST_ENV_ENABLED=true
-TEST_REQUIRED_SERVICES=API_GATEWAY,KEYCLOAK,COURSE_SERVICE,ENROLLMENT_SERVICE,ASSIGNMENT_SERVICE,MATERIAL_SERVICE
+TEST_REQUIRED_SERVICES=API_GATEWAY,AUTH_SERVICE,COURSE_SERVICE,ENROLLMENT_SERVICE,ASSIGNMENT_SERVICE,MATERIAL_SERVICE
 TEST_ATTACHMENT_ASSIGNMENT_ID=<published assignment fixture>
 TEST_ATTACHMENT_SUBMISSION_ID=<draft submission owned by the student fixture>
 TEST_ATTACHMENT_MATERIAL_ID=<material in the assignment course>
@@ -38,7 +38,7 @@ mvn verify -Pintegration -Dtest="*Attachment*IT,*File*IT"
 mvn verify -Pintegration -Dtest="Assignment*IT,Submission*IT,*Attachment*IT,*File*IT"
 ```
 
-Run the live commands only after the gateway, Keycloak, course, enrollment,
+Run the live commands only after the gateway, Auth Service, course, enrollment,
 assignment, and material services are available. With `TEST_ENV_ENABLED=false`,
 integration tests stop during readiness and do not issue business requests;
 this mode is useful for confirming the guard is active, not for proving API

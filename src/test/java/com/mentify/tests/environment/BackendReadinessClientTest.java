@@ -1,6 +1,7 @@
 package com.mentify.tests.environment;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Duration;
@@ -50,15 +51,30 @@ class BackendReadinessClientTest {
         assertThrows(BackendReadinessException.class, client::awaitRequiredServices);
     }
 
+    @Test
+    void shouldProbeAuthServiceHealthEndpointGivenJwtEnvironment() {
+        TestEnvironmentConfiguration configuration = TestEnvironmentConfiguration.fromEnvironment(Map.of(
+                "AUTH_SERVICE_BASE_URL", "http://auth.test:8085"));
+        java.net.URI[] requested = new java.net.URI[1];
+        BackendReadinessClient client = new BackendReadinessClient(
+                configuration, endpoint -> {
+                    requested[0] = endpoint;
+                    return 200;
+                }, millis -> { });
+
+        client.awaitService(RequiredService.AUTH_SERVICE);
+
+        assertEquals(java.net.URI.create("http://auth.test:8085/actuator/health"), requested[0]);
+    }
+
     private static TestEnvironmentConfiguration configuration(boolean enabled, Duration timeout) {
         Map<RequiredService, java.net.URI> urls = new EnumMap<>(RequiredService.class);
         urls.put(RequiredService.API_GATEWAY, java.net.URI.create("http://localhost:8080"));
-        urls.put(RequiredService.KEYCLOAK, java.net.URI.create("http://localhost:8180"));
+        urls.put(RequiredService.AUTH_SERVICE, java.net.URI.create("http://localhost:8085"));
         return new TestEnvironmentConfiguration(
                 enabled,
-                List.of(RequiredService.API_GATEWAY),
+                List.of(RequiredService.API_GATEWAY, RequiredService.AUTH_SERVICE),
                 urls,
-                "mentify",
                 timeout,
                 Duration.ZERO,
                 Duration.ofMillis(100),
