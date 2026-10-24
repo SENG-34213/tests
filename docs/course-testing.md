@@ -43,6 +43,11 @@ Never commit credentials, tokens, production data, or production URLs containing
 
 ## Commands
 
+The Course CRUD ownership tests use the configured grade and authenticated teacher identity to create a synthetic
+owned course; Admin removes it in cleanup. The cross-owner test also requires
+TEST_TEACHER_PORTAL_UNOWNED_COURSE_ID to identify another teacher's course and verifies that a rejected update leaves
+the course unchanged.
+
     $env:TEST_ENV_ENABLED="true"
     $env:TEST_REQUIRED_SERVICES="API_GATEWAY,AUTH_SERVICE,COURSE_SERVICE"
     mvn verify -Pintegration -Dtest="Course*IT"

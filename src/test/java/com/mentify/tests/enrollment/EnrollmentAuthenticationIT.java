@@ -286,6 +286,13 @@ class EnrollmentAuthenticationIT extends EnrollmentIntegrationTestSupport {
                     .contains(data.freeCourseId().toString()), response.asString());
             assertTrue(enrollmentClient.membership(data.studentId().toString(),
                     data.freeCourseId().toString(), student.accessToken()).as(Boolean.class));
+
+            Response duplicate = enrollmentClient.selfEnroll(
+                    Map.of("courseIds", List.of(data.freeCourseId().toString())), student.accessToken());
+            assertEquals(409, duplicate.statusCode(), duplicate.asString());
+            assertTrue(enrollmentClient.membership(data.studentId().toString(),
+                    data.freeCourseId().toString(), student.accessToken()).as(Boolean.class),
+                    "The original active enrollment must remain after a duplicate request is rejected");
         } finally {
             try {
                 if (enrollmentId != null) {
