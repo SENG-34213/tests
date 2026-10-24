@@ -30,4 +30,8 @@
 | TC-TEST-020-26 | Deterministic quiz draft | Configured course produces the requested number of questions using the backend-supported `MULTIPLE_CHOICE_SINGLE_ANSWER` type. |
 | TC-TEST-020-27 | Conversation ownership isolation | A configured admin cannot read or mutate a teacher-owned conversation, and the disposable conversation is removed by the teacher. |
 | TC-TEST-020-28 | Public quiz-generation semantic validation | Valid UUID with zero questions, invalid difficulty, or unsupported question type returns `400` before the AI provider is called. |
-| TC-TEST-020-29 | AI WebSocket authentication | With explicit opt-in, a teacher token authenticates STOMP CONNECT at `/ws/ai`; the probe does not subscribe, send chat, or invoke the AI provider. |
+| TC-TEST-020-29 | AI WebSocket authentication | With explicit opt-in, a teacher token authenticates STOMP CONNECT at `/ws/ai`. |
+| TC-TEST-020-30 | AI WebSocket unauthenticated access | Missing bearer authentication is rejected at both the AI Service and Gateway. |
+| TC-TEST-020-31 | AI WebSocket role authorization | A student token is rejected at CONNECT; teacher/admin roles remain the allowed identities. |
+| TC-TEST-020-32 | AI WebSocket destination authorization | A teacher cannot subscribe to an unapproved destination or send to an unapproved application destination. |
+| TC-TEST-020-33 | AI WebSocket response delivery | An unknown synthetic conversation produces PROCESSING followed by a safe not-found error on the authenticated user's queue, without calling the provider. |

@@ -51,6 +51,11 @@ public class ApiClient {
     }
 
     public Response postMultipart(String path, Map<String, ?> fields, File file, String bearerToken) {
+        return postMultipart(path, fields, file, bearerToken, null, null);
+    }
+
+    public Response postMultipart(String path, Map<String, ?> fields, File file, String bearerToken,
+                                  String jsonPartName, Object jsonPart) {
         validatePath(path);
         Objects.requireNonNull(fields, "fields must not be null");
         String effectiveBearerToken = bearerToken == null ? defaultBearerToken : bearerToken;
@@ -58,6 +63,10 @@ public class ApiClient {
                         specificationFactory.create(effectiveBearerToken, Map.of()));
         if (file != null) {
             request.multiPart("file", file);
+        }
+        if (jsonPartName != null) {
+            request.multiPart(jsonPartName, Objects.requireNonNull(jsonPart, "jsonPart must not be null"),
+                    "application/json");
         }
         fields.forEach((name, value) -> request.multiPart(name, String.valueOf(value)));
         if (configuration.loggingEnabled()) {
@@ -74,8 +83,34 @@ public class ApiClient {
         return execute(HttpMethod.PUT, path, body, bearerToken, Map.of(), Map.of());
     }
 
+    public Response putMultipart(String path, Map<String, ?> fields, File file, String bearerToken,
+                                 String jsonPartName, Object jsonPart) {
+        validatePath(path);
+        Objects.requireNonNull(fields, "fields must not be null");
+        String effectiveBearerToken = bearerToken == null ? defaultBearerToken : bearerToken;
+        RequestSpecification request = RestAssured.given(
+                specificationFactory.create(effectiveBearerToken, Map.of()));
+        if (file != null) request.multiPart("file", file);
+        if (jsonPartName != null) {
+            request.multiPart(jsonPartName, Objects.requireNonNull(jsonPart, "jsonPart must not be null"),
+                    "application/json");
+        }
+        fields.forEach((name, value) -> request.multiPart(name, String.valueOf(value)));
+        if (configuration.loggingEnabled()) {
+            LOGGER.info(() -> "PUT " + path + " (multipart fields, file, JSON part, and credentials are omitted)");
+        }
+        Response response = request.when().put(path);
+        if (configuration.loggingEnabled()) LOGGER.info(() -> "PUT " + path + " -> " + response.statusCode());
+        return response;
+    }
+
     public Response patch(String path, Object body, String bearerToken) {
         return execute(HttpMethod.PATCH, path, body, bearerToken, Map.of(), Map.of());
+    }
+
+    public Response patch(String path, Object body, String bearerToken,
+                          Map<String, ?> queryParameters, Map<String, String> headers) {
+        return execute(HttpMethod.PATCH, path, body, bearerToken, queryParameters, headers);
     }
 
     public Response delete(String path, String bearerToken) {

@@ -40,6 +40,10 @@ public class AttendanceClient {
         return apiClient.post(PATH + "/sessions/" + id(sessionId, "sessionId") + "/cancel", null, token);
     }
 
+    public Response deleteSession(String sessionId, String token) {
+        return apiClient.delete(PATH + "/sessions/" + id(sessionId, "sessionId"), token);
+    }
+
     public Response mySummary(String courseId, String token) {
         return apiClient.get(PATH + "/courses/" + id(courseId, "courseId") + "/me",
                 token, Map.of(), Map.of());

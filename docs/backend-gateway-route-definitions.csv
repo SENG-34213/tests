@@ -1,0 +1,19 @@
+route_id,service,service_id,uri,path_predicates,filters
+auth-service,auth,auth-service,lb://auth-service,/api/v1/auth/**,
+analytics-service,analytics,analytics-service,lb://analytics-service,/api/v1/analytics/**,StripPrefix=0
+user-service,user,user-service,lb://user-service,"/api/v1/users/**,/api/v1/admin/users/**,/api/students/**,/api/teachers/**,/api/internal/users/analytics/**,/api/v1/internal/users/**",StripPrefix=0
+exam-service,exam,exam-service,lb://exam-service,/api/v1/exams/**,StripPrefix=0
+calender-service,calendar,calender-service,lb://calender-service,/api/v1/calendar/**,StripPrefix=0
+notification-service,notification,notification-service,lb://notification-service,/api/v1/notifications/**,StripPrefix=0
+course-service,course,course-service,lb://course-service,/api/v1/course/**,
+marketplace-catalog,course,course-service,lb://course-service,/api/v1/marketplace/**,
+teacher-dashboard-course-service,course,course-service,lb://course-service,/api/v1/teacher/**,StripPrefix=0
+teacher-course-service,course,course-service,lb://course-service,/api/v1/teacher/**,StripPrefix=0
+material-service,material,material-service,lb://material-service,"/api/v1/materials,/api/v1/materials/**,/api/v1/profile-images,/api/v1/profile-images/**",StripPrefix=0
+entrollment-service,enrollment,entrollment-service,lb://entrollment-service,/api/v1/enrollments/**,StripPrefix=0
+communication-service,communication,communication-service,lb://communication-service,/api/communication/**,StripPrefix=0
+assignment-service,assignment,assignment-service,lb://assignment-service,"/api/quizzes/**,/api/quiz-attempts/**,/api/courses/*/quizzes,/api/assignments/**,/api/v1/assignments/**,/api/v1/courses/*/assignments,/api/v1/submissions/**,/api/internal/quizzes/analytics/**,/api/v1/internal/analytics/quizzes/**",StripPrefix=0
+payment-service,payment,payment-service,lb://payment-service,/api/v1/payments/**,StripPrefix=0
+ai-service,ai,ai-service,lb://ai-service,/api/ai/**,StripPrefix=0
+ai-service-v1-compat,ai,ai-service,lb://ai-service,/api/v1/ai/**,"RewritePath=/api/v1/ai/(?<segment>.*), /api/ai/${segment}"
+attendance-service,attendance,attendance-service,lb://attendance-service,/api/v1/attendance/**,StripPrefix=0

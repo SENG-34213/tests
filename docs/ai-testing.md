@@ -9,9 +9,10 @@ and content generation, lesson/material summarization, quiz-generation request v
 handling. Tests do not judge AI factual quality, access the database, use production providers, or send confidential
 or real student data.
 
-An opt-in WebSocket smoke test authenticates a teacher's STOMP connection at `/ws/ai`. It does not send a chat
-request, subscribe to a response queue, or invoke the AI provider; those behaviors still need controlled integration
-coverage.
+Opt-in WebSocket probes cover authenticated teacher CONNECT, anonymous and student CONNECT denial, approved
+destination enforcement, Gateway and direct-service handshakes, and delivery of a safe unknown-conversation error to
+the authenticated user queue. The synthetic error case does not invoke the AI provider; successful generated chat
+delivery still requires an owned disposable conversation and approved deterministic provider configuration.
 
 ## Security and provider safety
 
@@ -48,14 +49,14 @@ conversation/chat/generation endpoints have method-level role restrictions.
 - `POST /api/ai/generate`
 - Lesson and material summarization endpoints
 - Multipart `POST /api/ai/quizzes/generate`
-- Opt-in STOMP CONNECT authentication at `/ws/ai`
+- Opt-in STOMP authentication, role/destination authorization, and safe error delivery at `/ws/ai`
 
 ## Cleanup and limitations
 
 Conversations created by enabled tests are deleted through the supported API. No direct database cleanup is used.
 Lesson/material/quiz and external-provider workflows skip when approved fixtures or deterministic dependencies are
-unavailable. WebSocket chat-message authorization/delivery, provider billing, quality evaluation, and production
-email/data remain unverified/out of scope.
+unavailable. Successful provider-backed WebSocket chat and conversation-owner isolation on the response queue,
+provider billing, quality evaluation, and production email/data remain unverified/out of scope.
 
 ## Running
 

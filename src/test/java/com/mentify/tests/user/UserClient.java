@@ -83,19 +83,19 @@ public class UserClient {
     }
 
     public Response registerUser(Object request, String token) {
-        return apiClient.post("/api/v1/users/register", request, token);
+        return apiClient.post("/api/v1/admin/users/register", request, token);
     }
 
     public Response registerAdmin(Object request, String token) {
-        return apiClient.post("/api/v1/users/admins/register", request, token);
+        return apiClient.post("/api/v1/admin/users/admins/register", request, token);
     }
 
     public Response resendInvitation(String userId, String token) {
-        return apiClient.post("/api/v1/users/" + id(userId) + "/resend-invitation", null, token);
+        return apiClient.post("/api/v1/admin/users/" + id(userId) + "/resend-invitation", null, token);
     }
 
     public Response updateStatus(String userId, Object request, String token) {
-        return apiClient.patch("/api/v1/users/" + id(userId) + "/status", request, token);
+        return apiClient.patch("/api/v1/admin/users/" + id(userId) + "/status", request, token);
     }
 
     public Response deleteUser(String userId, String token) {
