@@ -1,6 +1,7 @@
 package com.mentify.tests.exam;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -14,10 +15,12 @@ import com.mentify.tests.environment.BackendReadinessClient;
 import com.mentify.tests.environment.RequiredService;
 import com.mentify.tests.environment.TestEnvironmentConfiguration;
 import com.mentify.tests.material.MaterialClient;
+import com.mentify.tests.material.MaterialDownloadVerifier;
 import io.restassured.response.Response;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -58,7 +61,9 @@ class ExamLifecycleIT {
             verifyAttachmentLifecycle(examId, token);
             assertEquals(200, exams.get(examId, token).statusCode());
             assertEquals(200, exams.listByCourse(data.courseId().toString(), token).statusCode());
-            assertEquals(200, exams.update(examId, data.updateRequest(), token).statusCode());
+            Response updated = exams.update(examId, updateRequestWithCourseChange(), token);
+            assertEquals(200, updated.statusCode(), updated.asString());
+            assertEquals(data.courseId().toString(), updated.jsonPath().getString("data.courseId"), updated.asString());
             assertEquals(200, exams.schedule(examId, token).statusCode());
             AuthenticationSession student = authentication.login(TestRole.STUDENT);
             try {
@@ -73,8 +78,16 @@ class ExamLifecycleIT {
             assertEquals(200, exams.startMarking(examId, token).statusCode());
             assertEquals(200, exams.enterMarks(examId, data.marksRequest(), token).statusCode());
             assertEquals(200, exams.complete(examId, token).statusCode());
-            assertEquals(200, exams.results(examId, token).statusCode());
-            assertEquals(200, exams.summary(examId, token).statusCode());
+            Response resultSheet = exams.results(examId, token);
+            assertEquals(200, resultSheet.statusCode(), resultSheet.asString());
+            assertEquals(examId, resultSheet.jsonPath().getString("data.examId"), resultSheet.asString());
+            assertEquals("COMPLETED", resultSheet.jsonPath().getString("data.status"), resultSheet.asString());
+            assertTrue(resultSheet.jsonPath().getList("data.results.studentId", String.class)
+                    .contains(data.studentId().toString()), resultSheet.asString());
+            Response summary = exams.summary(examId, token);
+            assertEquals(200, summary.statusCode(), summary.asString());
+            assertEquals(examId, summary.jsonPath().getString("data.examId"), summary.asString());
+            assertTrue(summary.jsonPath().getLong("data.totalStudents") >= 1, summary.asString());
         } finally {
             logout(teacher);
         }
@@ -99,6 +112,31 @@ class ExamLifecycleIT {
             assertEquals("Updated TEST-017 exam", updated.jsonPath().getString("data.title"));
         } finally {
             if (examId != null) exams.cancel(examId, teacher.accessToken());
+            logout(teacher);
+        }
+    }
+
+    @Test
+    void teacherCanCancelAnEligibleExam() {
+        ExamTestData data = ExamTestData.fromEnvironment();
+        assumeTrue(data.writeEnabled() && data.fixturesConfigured(),
+                "Set TEST_EXAM_WRITE_ENABLED=true and approved exam fixtures to run write tests");
+        AuthenticationSession teacher = authentication.login(TestRole.TEACHER);
+        String examId = null;
+        try {
+            Response created = exams.create(data.createRequest(), teacher.accessToken());
+            assertEquals(201, created.statusCode(), created.asString());
+            examId = created.jsonPath().getString("data.id");
+            assertTrue(examId != null && !examId.isBlank(), created.asString());
+
+            Response cancelled = exams.cancel(examId, teacher.accessToken());
+            assertEquals(200, cancelled.statusCode(), cancelled.asString());
+            assertEquals("CANCELLED", cancelled.jsonPath().getString("data.status"), cancelled.asString());
+            examId = null;
+        } finally {
+            if (examId != null) {
+                exams.cancel(examId, teacher.accessToken());
+            }
             logout(teacher);
         }
     }
@@ -132,6 +170,9 @@ class ExamLifecycleIT {
             assertEquals(200, downloaded.statusCode());
             assertEquals(attachmentId, downloaded.jsonPath().getString("data.id"));
             assertEquals(content.length(), downloaded.jsonPath().getLong("data.fileSize"));
+            assertNotNull(downloaded.jsonPath().getString("data.downloadUrl"), downloaded.asString());
+            MaterialDownloadVerifier.verifyIfEnabled(
+                    downloaded.jsonPath().getString("data.downloadUrl"), attachment);
         } finally {
             try {
                 if (attachmentId != null) {
@@ -178,6 +219,11 @@ class ExamLifecycleIT {
 
             Response studentDownload = exams.downloadAttachment(examId, attachmentId, studentToken);
             assertEquals(studentVisible ? 200 : 403, studentDownload.statusCode(), studentDownload.asString());
+            if (studentVisible) {
+                assertNotNull(studentDownload.jsonPath().getString("data.downloadUrl"), studentDownload.asString());
+                MaterialDownloadVerifier.verifyIfEnabled(
+                        studentDownload.jsonPath().getString("data.downloadUrl"), attachment);
+            }
         } finally {
             try {
                 if (attachmentId != null) {
@@ -193,6 +239,19 @@ class ExamLifecycleIT {
                 }
             }
         }
+    }
+
+    private static Map<String, Object> updateRequestWithCourseChange() {
+        return Map.of(
+                "title", "Updated TEST-017 exam",
+                "description", "Updated integration fixture",
+                "examDate", java.time.LocalDate.now().plusDays(31).toString(),
+                "startTime", "10:00:00",
+                "endTime", "12:00:00",
+                "totalMarks", 100,
+                "passMarks", 50,
+                "type", "OTHER",
+                "courseId", UUID.randomUUID().toString());
     }
 
     private static void logout(AuthenticationSession session) {

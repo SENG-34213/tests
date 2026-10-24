@@ -8,10 +8,10 @@ TEST-016 covers the HTTP contract exposed by Communication Service through the A
 - Authenticated-user lookup at `/api/communication/me`.
 - Group creation, listing, retrieval, members, course membership, student membership, archive, and unarchive.
 - Message creation, paginated history, update, and deletion for `ME` and `EVERYONE` scopes.
-- Message attachment upload, send-with-attachment, and download metadata, with cleanup in Material Service.
+- Message attachment upload, send-with-attachment, download metadata, optional exact-byte verification, and cleanup in Material Service.
 - Per-user communication settings read and update.
 - Missing authentication, role authorization, validation, unknown IDs, and pagination input.
-- Opt-in STOMP WebSocket connection authentication (`/ws`) using a teacher access token. This smoke probe verifies only CONNECT authentication; group membership authorization, message delivery, Kafka, notifications, and end-to-end real-time delivery still require additional live broker/member fixtures.
+- Opt-in STOMP WebSocket authentication and denial checks, non-member SEND/SUBSCRIBE rejection, test-topic delivery through direct service and Gateway ingress, and a fixture-gated persisted group-message broadcast with API cleanup.
 
 ## Configuration
 
@@ -23,8 +23,11 @@ Use approved non-production UUIDs for `TEST_COMMUNICATION_COURSE_ID`, `TEST_COMM
 for message tests, `TEST_COMMUNICATION_GROUP_ID`. `TEST_COMMUNICATION_WRITE_ENABLED` remains `false` unless a
 maintainer has approved isolated write fixtures. The attachment workflow also requires the configured teacher to be an
 active member of the group and `MATERIAL_SERVICE` readiness. Write tests are skipped when required fixtures are absent
-or the flag is disabled. The WebSocket smoke test requires `TEST_COMMUNICATION_WEBSOCKET_ENABLED=true` and a teacher
-credential; it uses the direct `COMMUNICATION_SERVICE_BASE_URL` endpoint and does not create data.
+or the flag is disabled. WebSocket probes require `TEST_COMMUNICATION_WEBSOCKET_ENABLED=true` and teacher
+credentials. The persisted group-message workflow also needs the enabled write fixture and an active-member group.
+For exact attachment byte verification, set `TEST_MATERIAL_DOWNLOAD_BYTES_ENABLED=true` and
+`TEST_MATERIAL_DOWNLOAD_ALLOWED_HOST` to the exact approved object-storage host; local HTTP requires the separate
+`TEST_MATERIAL_DOWNLOAD_LOCAL_HTTP_ENABLED=true` opt-in.
 
 ## Running
 

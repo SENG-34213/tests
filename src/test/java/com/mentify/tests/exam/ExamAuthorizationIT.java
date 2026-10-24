@@ -50,6 +50,8 @@ class ExamAuthorizationIT {
             assertEquals(403, exams.create(java.util.Map.of(), student.accessToken()).statusCode());
             assertEquals(403, exams.get(UNKNOWN_ID, student.accessToken()).statusCode());
             assertEquals(403, exams.schedule(UNKNOWN_ID, student.accessToken()).statusCode());
+            assertEquals(403, exams.enterMarks(UNKNOWN_ID,
+                    java.util.Map.of("results", java.util.List.of()), student.accessToken()).statusCode());
             assertEquals(200, exams.myResults(student.accessToken()).statusCode());
             assertEquals(200, exams.myUpcoming(student.accessToken()).statusCode());
             assertEquals(404, exams.studentExam(UNKNOWN_ID, student.accessToken()).statusCode());

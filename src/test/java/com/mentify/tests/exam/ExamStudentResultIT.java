@@ -1,6 +1,7 @@
 package com.mentify.tests.exam;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.mentify.tests.api.ApiClient;
 import com.mentify.tests.api.ApiClientConfiguration;
@@ -34,7 +35,9 @@ class ExamStudentResultIT {
     void enrolledStudentCanRetrieveOwnExamResults() {
         AuthenticationSession student = authentication.login(TestRole.STUDENT);
         try {
-            assertEquals(200, exams.myResults(student.accessToken()).statusCode());
+            io.restassured.response.Response response = exams.myResults(student.accessToken());
+            assertEquals(200, response.statusCode(), response.asString());
+            assertNotNull(response.jsonPath().getList("data.results"), response.asString());
         } finally {
             if (student.refreshable()) {
                 authentication.logout(student);
