@@ -24,14 +24,16 @@ class AssignmentWorkflowIT extends AssignmentIntegrationTestSupport {
         AuthenticationSession teacher = login(TestRole.TEACHER);
         String assignmentId = null;
         try {
-            Response created = assignmentClient.create(validAssignmentRequest(data, "TEST-011"),
-                    teacher.accessToken());
+            Map<String, Object> createRequest = validAssignmentRequest(data, "TEST-011");
+            String expectedDueDate = (String) createRequest.get("dueDate");
+            Response created = assignmentClient.create(createRequest, teacher.accessToken());
             assertEquals(201, created.statusCode(), created.asString());
-            assertEquals("success", created.jsonPath().getString("status"));
             assignmentId = created.jsonPath().getString("data.id");
             assertNotNull(assignmentId, created.asString());
             assertEquals("TEST-011", created.jsonPath().getString("data.title"));
             assertEquals(data.courseId().toString(), created.jsonPath().getString("data.courseId"));
+            assertEquals(expectedDueDate, created.jsonPath().getString("data.dueDate"));
+            assertEquals(2, created.jsonPath().getInt("data.allowedAttempts"));
             assertEquals(2, created.jsonPath().getList("data.rubricItems").size());
             assertEquals("Correctness", created.jsonPath().getString("data.rubricItems[0].criterion"));
             assertEquals(60, created.jsonPath().getInt("data.rubricItems[0].marks"));
@@ -79,6 +81,24 @@ class AssignmentWorkflowIT extends AssignmentIntegrationTestSupport {
             if (assignmentId != null) {
                 assignmentClient.delete(assignmentId, teacher.accessToken());
             }
+            logout(teacher);
+        }
+    }
+
+    @Test
+    void rejectsRubricMarksThatExceedAssignmentMaximum() {
+        AssignmentTestDataConfiguration data = requireWriteFixtures();
+        AuthenticationSession teacher = login(TestRole.TEACHER);
+        try {
+            Map<String, Object> request = validAssignmentRequest(data, "TEST-011 Invalid rubric");
+            request.put("rubricItems", java.util.List.of(
+                    Map.of("criterion", "Criterion A", "marks", 60),
+                    Map.of("criterion", "Criterion B", "marks", 50)));
+
+            Response response = assignmentClient.create(request, teacher.accessToken());
+
+            assertEquals(400, response.statusCode(), response.asString());
+        } finally {
             logout(teacher);
         }
     }

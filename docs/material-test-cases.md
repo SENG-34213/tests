@@ -42,6 +42,7 @@ temporary files and approved non-production fixture IDs only.
 | TEST-013-35 | Signed URL alternate target rejection | Alternate hosts and non-HTTPS schemes are rejected before any network request. |
 | TEST-013-36 | Signed URL unsafe component rejection | User-info, fragments, and explicit ports other than 443 are rejected. |
 | TEST-013-37 | Byte probe requires explicit configuration | Missing download URL or approved host is rejected before network access. |
+| TEST-013-39 | A student outside the course cannot read or download its material | A distinct, unenrolled secondary student receives 403 for material retrieval and download metadata. |
 
 The executable integration classes are `MaterialLifecycleIT` and
 `MaterialAuthenticationIT`. Tests requiring writes are skipped unless

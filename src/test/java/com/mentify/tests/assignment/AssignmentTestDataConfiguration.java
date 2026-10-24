@@ -8,6 +8,8 @@ record AssignmentTestDataConfiguration(
         UUID moduleId,
         UUID studentId,
         UUID assignmentId,
+        UUID lateSubmissionId,
+        UUID attemptLimitAssignmentId,
         boolean writeEnabled) {
 
     static AssignmentTestDataConfiguration fromEnvironment() {
@@ -17,6 +19,8 @@ record AssignmentTestDataConfiguration(
                 uuidValue(environment, "TEST_ASSIGNMENT_MODULE_ID"),
                 uuidValue(environment, "TEST_ASSIGNMENT_STUDENT_ID"),
                 uuidValue(environment, "TEST_ASSIGNMENT_ID"),
+                uuidValue(environment, "TEST_ASSIGNMENT_LATE_SUBMISSION_ID"),
+                uuidValue(environment, "TEST_ASSIGNMENT_ATTEMPT_LIMIT_ID"),
                 Boolean.parseBoolean(environment.getOrDefault("TEST_ASSIGNMENT_WRITE_ENABLED", "false")));
     }
 

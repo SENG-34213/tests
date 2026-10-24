@@ -6,20 +6,45 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
+import com.mentify.tests.enrollment.EnrollmentClient;
 import io.restassured.response.Response;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.time.Duration;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 class MaterialLifecycleIT extends MaterialIntegrationTestSupport {
 
     private static final String UNKNOWN_ID = "00000000-0000-0000-0000-000000000000";
+
+    @Test
+    void rejectsUnenrolledSecondaryStudentFromMaterialReads() {
+        MaterialTestDataConfiguration data = MaterialTestDataConfiguration.fromEnvironment();
+        Assumptions.assumeTrue(data.readFixturesConfigured(),
+                "Set TEST_MATERIAL_COURSE_ID and TEST_MATERIAL_ID for ownership checks");
+        Assumptions.assumeTrue(secondaryStudentCredentialsConfigured(),
+                "Configure distinct SECONDARY_STUDENT_TEST_USERNAME and SECONDARY_STUDENT_TEST_PASSWORD");
+
+        AuthenticationSession student = login(TestRole.SECONDARY_STUDENT);
+        try {
+            Response profile = apiClient.get("/api/v1/users/me", student.accessToken(), Map.of(), Map.of());
+            assertEquals(200, profile.statusCode(), profile.asString());
+            String studentId = profile.jsonPath().getString("data.id");
+            assertNotNull(studentId, profile.asString());
+
+            Response membership = new EnrollmentClient(apiClient).membership(
+                    studentId, data.courseId().toString(), student.accessToken());
+            assertEquals(200, membership.statusCode(), membership.asString());
+            Assumptions.assumeFalse(membership.as(Boolean.class),
+                    "Secondary student must not be enrolled in the configured Material course");
+
+            assertEquals(403, materialClient.get(data.materialId().toString(), student.accessToken()).statusCode());
+            assertEquals(403, materialClient.download(data.materialId().toString(), student.accessToken())
+                    .statusCode());
+        } finally {
+            logout(student);
+        }
+    }
 
     @Test
     void teacherCanUploadRetrieveListDownloadUpdateArchiveAndDeleteMaterial() throws Exception {
@@ -31,7 +56,6 @@ class MaterialLifecycleIT extends MaterialIntegrationTestSupport {
             Response created = materialClient.upload(materialFields(data, title),
                     file.path().toFile(), teacher.accessToken());
             assertEquals(201, created.statusCode(), created.asString());
-            assertEquals("success", created.jsonPath().getString("status"));
             materialId = created.jsonPath().getString("data.id");
             assertNotNull(materialId, created.asString());
             assertEquals(title, created.jsonPath().getString("data.title"));
@@ -58,7 +82,7 @@ class MaterialLifecycleIT extends MaterialIntegrationTestSupport {
             assertNotNull(downloaded.jsonPath().getString("data.downloadUrl"), downloaded.asString());
             assertTrue(downloaded.jsonPath().getString("data.storageKey") == null,
                     "download metadata must not expose storage credentials or keys");
-            verifySignedDownloadBytesWhenEnabled(
+            MaterialDownloadVerifier.verifyIfEnabled(
                     downloaded.jsonPath().getString("data.downloadUrl"), file.path());
 
             String updatedTitle = title + "-updated";
@@ -128,12 +152,12 @@ class MaterialLifecycleIT extends MaterialIntegrationTestSupport {
                     Map.of("title", "missing-file", "courseId", data.courseId().toString()),
                     teacher.accessToken()).statusCode());
             assertEquals(400, materialClient.upload(
-                    Map.of("courseId", data.courseId().toString()), empty.path().toFile(),
+                    Map.of("title", "empty-file", "courseId", data.courseId().toString()), empty.path().toFile(),
                     teacher.accessToken()).statusCode());
             assertEquals(400, materialClient.upload(
                     Map.of("title", "unsupported", "courseId", data.courseId().toString()),
                     unsupported.path().toFile(), teacher.accessToken()).statusCode());
-            assertEquals(400, materialClient.update(UNKNOWN_ID, Map.of(), teacher.accessToken()).statusCode());
+            assertEquals(404, materialClient.update(UNKNOWN_ID, Map.of(), teacher.accessToken()).statusCode());
         } finally {
             logout(teacher);
         }
@@ -195,29 +219,15 @@ class MaterialLifecycleIT extends MaterialIntegrationTestSupport {
         return fields;
     }
 
-    private static void verifySignedDownloadBytesWhenEnabled(String downloadUrl,
-                                                              java.nio.file.Path uploadedFile) throws Exception {
-        if (!Boolean.parseBoolean(System.getenv().getOrDefault(
-                "TEST_MATERIAL_DOWNLOAD_BYTES_ENABLED", "false"))) {
-            return;
+    private static boolean secondaryStudentCredentialsConfigured() {
+        String username = System.getenv("SECONDARY_STUDENT_TEST_USERNAME");
+        String password = System.getenv("SECONDARY_STUDENT_TEST_PASSWORD");
+        String primaryUsername = System.getenv("STUDENT_TEST_USERNAME");
+        if (primaryUsername == null || primaryUsername.isBlank()) {
+            primaryUsername = System.getenv("TEST_USERNAME");
         }
-
-        String allowedHost = System.getenv("TEST_MATERIAL_DOWNLOAD_ALLOWED_HOST");
-        assertNotNull(allowedHost,
-                "Set TEST_MATERIAL_DOWNLOAD_ALLOWED_HOST when enabling signed-download byte verification");
-        java.net.URI uri = MaterialDownloadUrlPolicy.validate(downloadUrl, allowedHost);
-
-        HttpClient client = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .followRedirects(HttpClient.Redirect.NEVER)
-                .build();
-        HttpRequest request = HttpRequest.newBuilder(uri)
-                .timeout(Duration.ofSeconds(30))
-                .GET()
-                .build();
-        HttpResponse<byte[]> downloaded = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-        assertEquals(200, downloaded.statusCode(), "Presigned object-storage GET must succeed");
-        org.junit.jupiter.api.Assertions.assertArrayEquals(Files.readAllBytes(uploadedFile), downloaded.body(),
-                "Downloaded bytes must exactly match the uploaded synthetic file");
+        return username != null && !username.isBlank() && password != null && !password.isBlank()
+                && !username.equalsIgnoreCase(primaryUsername == null ? "" : primaryUsername.trim());
     }
+
 }

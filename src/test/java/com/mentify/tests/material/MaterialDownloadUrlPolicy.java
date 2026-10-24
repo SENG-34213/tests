@@ -9,6 +9,10 @@ final class MaterialDownloadUrlPolicy {
     }
 
     static URI validate(String downloadUrl, String allowedHost) {
+        return validate(downloadUrl, allowedHost, false);
+    }
+
+    static URI validate(String downloadUrl, String allowedHost, boolean allowLocalHttp) {
         if (downloadUrl == null || downloadUrl.isBlank()) {
             throw new IllegalArgumentException("A presigned download URL is required");
         }
@@ -17,15 +21,31 @@ final class MaterialDownloadUrlPolicy {
         }
 
         URI uri = URI.create(downloadUrl);
-        if (!"https".equalsIgnoreCase(uri.getScheme())
-                || uri.getHost() == null
+        String scheme = uri.getScheme();
+        String host = uri.getHost();
+        String normalizedAllowedHost = allowedHost.trim().toLowerCase(Locale.ROOT);
+        boolean secureHttps = "https".equalsIgnoreCase(scheme)
+                && (uri.getPort() == -1 || uri.getPort() == 443)
+                && normalizedAllowedHost.equals(host == null ? null : host.toLowerCase(Locale.ROOT));
+        boolean explicitlyAllowedLocalHttp = allowLocalHttp
+                && "http".equalsIgnoreCase(scheme)
+                && isLoopbackHost(host)
+                && uri.getPort() > 0
+                && normalizedAllowedHost.equals((host + ":" + uri.getPort()).toLowerCase(Locale.ROOT));
+
+        if ((!secureHttps && !explicitlyAllowedLocalHttp)
+                || host == null
                 || uri.getUserInfo() != null
-                || uri.getFragment() != null
-                || (uri.getPort() != -1 && uri.getPort() != 443)
-                || !allowedHost.trim().toLowerCase(Locale.ROOT)
-                        .equals(uri.getHost().toLowerCase(Locale.ROOT))) {
-            throw new IllegalArgumentException("Presigned URL is outside the explicitly approved HTTPS host");
+                || uri.getFragment() != null) {
+            throw new IllegalArgumentException("Presigned URL is outside the explicitly approved storage origin");
         }
         return uri;
+    }
+
+    private static boolean isLoopbackHost(String host) {
+        return host != null && (host.equalsIgnoreCase("localhost")
+                || host.equals("127.0.0.1")
+                || host.equals("[::1]")
+                || host.equals("::1"));
     }
 }

@@ -23,6 +23,10 @@ attachment and submission-file API. Integration tests run only with the
 | TC-TEST-012-15 | Multipart upload routes enforce authentication and role restrictions | Anonymous 401; student cannot upload assignment attachment (403); teacher cannot upload submission file (403) |
 | TC-TEST-012-16 | A different student cannot list, download, or delete files on the fixture owner's submission | 403 for each cross-student operation; owner deletes the synthetic file and its test-created Material is cleaned up |
 | TC-TEST-012-17 | Unknown submission-file ID is handled | 404, never 500 |
+| TC-TEST-012-18 | A student not enrolled in the assignment course cannot list or download its attachments | 403 for both operations |
+| TC-TEST-012-19 | Assignment attachment download bytes match the uploaded synthetic file | With explicit byte-check opt-in and approved storage host, downloaded bytes equal the uploaded file |
+| TC-TEST-012-20 | Submission-file download bytes match the uploaded synthetic file | With explicit byte-check opt-in and approved storage host, downloaded bytes equal the uploaded file |
+| TC-TEST-012-21 | Cleanup attempts every action and preserves the primary test failure | Remaining cleanup actions run after one fails; cleanup failures are suppressed onto an existing test failure |
 
 The workflow tests delete only attachment/file records and Material objects
 created during that test. They do not delete assignments, submissions, or
@@ -33,3 +37,7 @@ test-created Material object after the student deletes its submission-file link.
 `TC-TEST-012-16` additionally requires distinct `SECONDARY_STUDENT_TEST_USERNAME` and
 `SECONDARY_STUDENT_TEST_PASSWORD` credentials. It creates only a synthetic
 submission file and never attempts a cross-user mutation.
+TC-TEST-012-18 uses the same distinct secondary-student credentials and
+requires that account not be enrolled in the configured assignment course.
+Byte comparison is opt-in through TEST_MATERIAL_DOWNLOAD_BYTES_ENABLED=true
+and the exact approved TEST_MATERIAL_DOWNLOAD_ALLOWED_HOST.

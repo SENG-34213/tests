@@ -36,6 +36,9 @@ TEST_MATERIAL_WRITE_ENABLED=false
 
 Configure `STUDENT_TEST_*`, `TEACHER_TEST_*`, and `ADMIN_TEST_*` with dedicated
 non-production users. Do not commit credentials or storage-provider secrets.
+The optional cross-student material ownership check also requires distinct
+SECONDARY_STUDENT_TEST_USERNAME and SECONDARY_STUDENT_TEST_PASSWORD values;
+the secondary student must not be enrolled in TEST_MATERIAL_COURSE_ID.
 The read-fixture ID is required for read-only fixture checks; write tests need a
 course ID and explicit `TEST_MATERIAL_WRITE_ENABLED=true`.
 
@@ -44,11 +47,14 @@ course ID and explicit `TEST_MATERIAL_WRITE_ENABLED=true`.
 Tests create small unique `.txt` files in the operating system temporary
 directory. The `AutoCloseable` test-file wrapper deletes each file after use.
 By default the suite checks download metadata only. An optional byte-for-byte
-check follows the presigned HTTPS URL only when
+check follows the presigned URL only when
 `TEST_MATERIAL_DOWNLOAD_BYTES_ENABLED=true` and
 `TEST_MATERIAL_DOWNLOAD_ALLOWED_HOST` is set to the exact approved storage host.
-The test refuses a different host or non-HTTPS URL, does not follow redirects,
-and never prints the signed URL or storage credentials.
+HTTPS is required for remote storage. A local MinIO check may opt into HTTP by
+also setting `TEST_MATERIAL_DOWNLOAD_LOCAL_HTTP_ENABLED=true` and approving the
+exact loopback origin including its port, such as `localhost:9000`; other hosts,
+ports, and HTTP origins remain rejected. Redirects are never followed, and the
+test never prints the signed URL or storage credentials.
 
 ## Cleanup behavior
 
