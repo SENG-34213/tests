@@ -36,3 +36,7 @@
 | TC-TEST-016-32 | Message attachment upload/download auth | Both attachment routes reject requests without authentication. |
 | TC-TEST-016-33 | Message attachment workflow | A teacher uploads a synthetic file, attaches it to a message, verifies download metadata, then deletes the message and soft-deletes the Material Service file. |
 | TC-TEST-016-34 | WebSocket authentication | With explicit opt-in, a teacher connects to `/ws`, sends a STOMP CONNECT frame with its bearer token, and receives CONNECTED; no group or message data is mutated. |
+| TC-TEST-016-36 | WebSocket authentication denial | Missing STOMP bearer credentials are rejected at both the Communication Service and Gateway ingress. |
+| TC-TEST-016-37 | WebSocket group authorization | A teacher who is not an active member cannot SEND to or SUBSCRIBE to a random group; authorization rejection is expected before persistence. |
+| TC-TEST-016-38 | WebSocket test-topic delivery | An authenticated test message is delivered from `/app/test` to `/topic/test` over direct-service and Gateway WebSocket connections. This verifies the test echo route, not persisted production group-message delivery. |
+| TC-TEST-016-39 | WebSocket group-message workflow | With an approved active-member group fixture, a teacher sends over Gateway STOMP, receives the persisted broadcast, then deletes the test-created message through the API. |
