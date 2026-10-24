@@ -7,6 +7,7 @@ record AssignmentAttachmentTestDataConfiguration(
         UUID assignmentId,
         UUID submissionId,
         UUID materialId,
+        UUID submissionMaterialId,
         UUID otherMaterialId,
         boolean writeEnabled) {
 
@@ -16,6 +17,7 @@ record AssignmentAttachmentTestDataConfiguration(
                 uuidValue(environment, "TEST_ATTACHMENT_ASSIGNMENT_ID"),
                 uuidValue(environment, "TEST_ATTACHMENT_SUBMISSION_ID"),
                 uuidValue(environment, "TEST_ATTACHMENT_MATERIAL_ID"),
+                uuidValue(environment, "TEST_ATTACHMENT_SUBMISSION_MATERIAL_ID"),
                 uuidValue(environment, "TEST_ATTACHMENT_OTHER_MATERIAL_ID"),
                 Boolean.parseBoolean(environment.getOrDefault("TEST_ATTACHMENT_WRITE_ENABLED", "false")));
     }

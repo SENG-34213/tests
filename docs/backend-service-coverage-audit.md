@@ -251,3 +251,24 @@ boundaries and every field of teacher analytics are not exhaustively verified.
   “implemented, not live-verified,” not “passed.”
 - `docs/test-case-index.md`, service case catalogs, and generated run evidence
   should be updated whenever additional workflows are implemented or run.
+
+## Step 6 assignment, submission, and material follow-up
+
+TEST-033 adds fixture-gated late-submission and max-attempt regression tests,
+asserts due-date/attempt settings in assignment responses, and checks that
+rubric totals above the assignment maximum return 400. It also adds
+unenrolled-student denial for assignment attachments and Material retrieval,
+reuses the exact-host signed-download byte verifier for assignment/submission
+uploads, and tests cleanup failure aggregation and suppression.
+
+The new due-date and max-attempt tests expect 409 and make no state change
+when rejected. The development snapshot initially returned 500 for both rules.
+The companion backend branch `feature/TEST-034-step6-backend-contract` now maps
+these domain conflicts to 409; its full Assignment service suite passes. Test
+repository fixture-gated behavior was then verified through the local Gateway
+with synthetic non-production accounts and fixtures: 17 Step 6 integration
+tests passed with no skips. This included late/attempt-limit 409 responses,
+assignment settings and rubric validation, ownership denials, attachment and
+submission-file lifecycle operations, and exact signed-download byte equality
+against an ephemeral local MinIO bucket. This verifies the local development
+stack; it does not certify a separate staging or production deployment.

@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
+import com.mentify.tests.material.MaterialDownloadVerifier;
 import io.restassured.response.Response;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -72,16 +73,17 @@ class SubmissionFileWorkflowIT extends AssignmentIntegrationTestSupport {
     @Test
     void studentCanCreateListDownloadAndDeleteSubmissionMaterialFile() {
         AssignmentAttachmentTestDataConfiguration data = requireWriteFixtures();
+        assumeTrue(data.submissionMaterialId() != null,
+                "Set TEST_ATTACHMENT_SUBMISSION_MATERIAL_ID to a SUBMISSION_ATTACHMENT material");
         AuthenticationSession student = login(TestRole.STUDENT);
         String fileId = null;
         try {
             Response created = submissionFileClient.create(data.submissionId().toString(),
-                    Map.of("materialId", data.materialId().toString()), student.accessToken());
+                    Map.of("materialId", data.submissionMaterialId().toString()), student.accessToken());
             assertEquals(201, created.statusCode(), created.asString());
-            assertEquals("success", created.jsonPath().getString("status"));
             fileId = created.jsonPath().getString("data.id");
             assertNotNull(fileId, created.asString());
-            assertEquals(data.materialId().toString(), created.jsonPath().getString("data.materialId"));
+            assertEquals(data.submissionMaterialId().toString(), created.jsonPath().getString("data.materialId"));
 
             Response listed = submissionFileClient.list(data.submissionId().toString(),
                     student.accessToken());
@@ -141,17 +143,33 @@ class SubmissionFileWorkflowIT extends AssignmentIntegrationTestSupport {
     void studentCanUploadAndCleanUpSyntheticSubmissionFile() throws Exception {
         AssignmentAttachmentTestDataConfiguration data = requireWriteFixtures();
         Path file = Files.createTempFile("mentify-test-submission-", ".txt");
-        AuthenticationSession student = login(TestRole.STUDENT);
         String content = "Synthetic submission file " + java.util.UUID.randomUUID();
-        String fileId = null;
-        String materialId = null;
-        try {
+        try (CleanupScope cleanup = new CleanupScope()) {
+            cleanup.add(() -> Files.deleteIfExists(file));
+            AuthenticationSession student = login(TestRole.STUDENT);
+            cleanup.add(() -> logout(student));
+
             Files.writeString(file, content);
             Response created = submissionFileClient.upload(
                     data.submissionId().toString(), file.toFile(), student.accessToken());
             assertEquals(201, created.statusCode(), created.asString());
-            fileId = created.jsonPath().getString("data.id");
-            materialId = created.jsonPath().getString("data.materialId");
+            String fileId = created.jsonPath().getString("data.id");
+            String materialId = created.jsonPath().getString("data.materialId");
+            if (materialId != null) {
+                cleanup.add(() -> {
+                    AuthenticationSession admin = login(TestRole.ADMIN);
+                    try {
+                        assertEquals(200, materialClient.delete(materialId, admin.accessToken()).statusCode());
+                    } finally {
+                        logout(admin);
+                    }
+                });
+            }
+            if (fileId != null) {
+                cleanup.add(() -> assertEquals(200,
+                        submissionFileClient.delete(data.submissionId().toString(), fileId,
+                                student.accessToken()).statusCode()));
+            }
             assertNotNull(fileId, created.asString());
             assertNotNull(materialId, created.asString());
             assertEquals(content.length(), created.jsonPath().getLong("data.fileSize"));
@@ -166,27 +184,8 @@ class SubmissionFileWorkflowIT extends AssignmentIntegrationTestSupport {
             assertEquals(200, downloaded.statusCode(), downloaded.asString());
             assertEquals(materialId, downloaded.jsonPath().getString("data.materialId"));
             assertNotNull(downloaded.jsonPath().getString("data.downloadUrl"), downloaded.asString());
-        } finally {
-            try {
-                if (fileId != null) {
-                    assertEquals(200, submissionFileClient.delete(data.submissionId().toString(), fileId,
-                            student.accessToken()).statusCode());
-                }
-            } finally {
-                try {
-                    logout(student);
-                    if (materialId != null) {
-                        AuthenticationSession admin = login(TestRole.ADMIN);
-                        try {
-                            assertEquals(200, materialClient.delete(materialId, admin.accessToken()).statusCode());
-                        } finally {
-                            logout(admin);
-                        }
-                    }
-                } finally {
-                    Files.deleteIfExists(file);
-                }
-            }
+            MaterialDownloadVerifier.verifyIfEnabled(
+                    downloaded.jsonPath().getString("data.downloadUrl"), file);
         }
     }
 

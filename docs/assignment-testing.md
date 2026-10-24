@@ -31,6 +31,15 @@ Service, Course Service, Enrollment Service, and Material Service for attachment
 Set `TEST_ASSIGNMENT_COURSE_ID`, `TEST_ASSIGNMENT_MODULE_ID`, `TEST_ASSIGNMENT_STUDENT_ID`, and
 `TEST_ASSIGNMENT_ID` to approved synthetic fixtures. The configured student ID must match the
 student credential used by the integration test and be enrolled in the configured course.
+TEST_ASSIGNMENT_LATE_SUBMISSION_ID must identify that student's draft submission on a published
+assignment whose due date has passed and whose late-submission setting is disabled.
+TEST_ASSIGNMENT_ATTEMPT_LIMIT_ID must identify a published assignment where the configured
+student already has at least the allowed number of active attempts. These two boundary tests are
+read-only when the backend rejects the request. The intended response is HTTP 409. The development
+snapshot returned HTTP 500 for these rules; the companion backend branch
+`feature/TEST-034-step6-backend-contract` now maps these conflicts to 409 and its Assignment
+service suite passes. Live gateway verification still requires the configured fixture IDs and
+credentials.
 Assignment and submission writes are disabled unless `TEST_ASSIGNMENT_WRITE_ENABLED=true`. Write
 tests use unique test data and delete assignments they create. Submissions have no deletion endpoint,
 so a dedicated test fixture or documented cleanup process is required. Attachment-link and

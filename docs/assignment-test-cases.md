@@ -29,6 +29,10 @@
 | TC-TEST-011-25 | Grading requires marks within the DTO range | Missing, negative, or greater-than-100 marks return `400` before submission lookup | Validation |
 | TC-TEST-011-26 | Student cannot manage assignments | Student assignment creation and PATCH return `403`; own assignment listing remains available | Security |
 | TC-TEST-011-27 | Teacher cannot create student submissions or use student assignment listing | Teacher receives `403` for submission creation and student-only assignment listing | Security |
+| TC-TEST-011-28 | Assignment due date and attempt limit are returned by the lifecycle | Created assignment returns the configured due date and allowed-attempt count | Workflow |
+| TC-TEST-011-29 | Late submission is rejected when late work is disabled | Past-due draft remains DRAFT; submit returns 409 and does not set submittedAt | Fixture-gated security regression |
+| TC-TEST-011-30 | Submission beyond the configured attempt limit is rejected | Create returns 409; the student's submission count for the assignment does not increase | Fixture-gated security regression |
+| TC-TEST-011-31 | Rubric marks cannot exceed assignment maximum | Creating a rubric totaling more than maxMarks returns 400 before a record is created | Fixture-gated validation |
 
 Assignment attachment and submission file-storage scenarios are covered separately in
 `assignment-attachment-test-cases.md` and remain fixture-gated.

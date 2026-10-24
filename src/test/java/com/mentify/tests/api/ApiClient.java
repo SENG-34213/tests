@@ -4,6 +4,8 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -61,8 +63,9 @@ public class ApiClient {
         String effectiveBearerToken = bearerToken == null ? defaultBearerToken : bearerToken;
         RequestSpecification request = RestAssured.given(
                         specificationFactory.create(effectiveBearerToken, Map.of()));
+        request.contentType("multipart/form-data");
         if (file != null) {
-            request.multiPart("file", file);
+            request.multiPart("file", file, fileContentType(file));
         }
         if (jsonPartName != null) {
             request.multiPart(jsonPartName, Objects.requireNonNull(jsonPart, "jsonPart must not be null"),
@@ -90,7 +93,8 @@ public class ApiClient {
         String effectiveBearerToken = bearerToken == null ? defaultBearerToken : bearerToken;
         RequestSpecification request = RestAssured.given(
                 specificationFactory.create(effectiveBearerToken, Map.of()));
-        if (file != null) request.multiPart("file", file);
+        request.contentType("multipart/form-data");
+        if (file != null) request.multiPart("file", file, fileContentType(file));
         if (jsonPartName != null) {
             request.multiPart(jsonPartName, Objects.requireNonNull(jsonPart, "jsonPart must not be null"),
                     "application/json");
@@ -159,6 +163,15 @@ public class ApiClient {
     private static void validatePath(String path) {
         if (path == null || path.isBlank() || !path.startsWith("/")) {
             throw new IllegalArgumentException("API path must be non-empty and start with '/'");
+        }
+    }
+
+    private static String fileContentType(File file) {
+        try {
+            String contentType = Files.probeContentType(file.toPath());
+            return contentType == null ? "application/octet-stream" : contentType;
+        } catch (IOException exception) {
+            return "application/octet-stream";
         }
     }
 }
