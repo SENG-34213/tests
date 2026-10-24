@@ -40,7 +40,7 @@ assignment. Use a disposable non-production environment. Do not run it against p
 
 - Gateway authentication to User Service current-user data.
 - Student/teacher/admin role preservation across gateway calls.
-- Course lookup and enrollment identifier consistency with an approved course fixture.
+- Course lookup and enrollment consistency for the authenticated student: the test reads the student's ID from User Service, confirms the configured course ID returned by Course Service, checks that the student's own active course list contains that ID, and confirms the same student/course pair through Enrollment Service.
 - Student course learning journey: current identity, active enrollment, lesson, assignment, published quiz, and the student's graded submission. It verifies that the same course and assignment identifiers flow across services.
 - Teacher course journey: an owned course, lesson, material, assignment, and persisted grade on its submission.
 - Admin operations journey: user directory, course list, payment administration, and authenticated notification access.
@@ -48,7 +48,7 @@ assignment. Use a disposable non-production environment. Do not run it against p
 - Payment-notification and learning-provider journeys only when deterministic fixtures are explicitly enabled.
 - Missing-token and downstream authorization/error behavior.
 
-The fixture-backed Student and Teacher journeys are read-only. The full workflow is separately gated by `TEST_E2E_WRITE_ENABLED=true`; it creates disposable synthetic resources and deletes what supported API endpoints allow. Assignment deletion is soft and the backend has no submission-delete route, so the synthetic graded submission remains associated with the archived assignment. No payment is initiated by this journey. Provider journeys are skipped by default and require payment test mode, synthetic notification events, and a safe AI provider. Production credentials, cards, personal data, and direct database assertions are prohibited.
+The fixture-backed Student and Teacher journeys are read-only. The full workflow is separately gated by `TEST_E2E_WRITE_ENABLED=true`; it creates disposable synthetic resources and deletes what supported API endpoints allow. Assignment deletion is soft and the backend has no submission-delete route, so the synthetic graded submission remains associated with the archived assignment. No payment is initiated by this journey. Provider journeys are skipped by default and require payment test mode, synthetic notification events, and a safe AI provider. Production credentials, cards, personal data, and direct database assertions are prohibited. The student course journey uses student-authorized endpoints; admin-wide enrollment listings and teacher-only course roster endpoints do not substitute for the student's own enrollment view.
 
 ## Readiness and skip behavior
 

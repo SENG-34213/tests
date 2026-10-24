@@ -30,7 +30,8 @@ class CourseEnrollmentJourneyIT extends EndToEndIntegrationTestSupport {
             var studentCourses = enrollments.studentCourses(studentId, token);
             assertEquals(200, studentCourses.statusCode(), studentCourses.asString());
             assertEquals("success", studentCourses.jsonPath().getString("status"), studentCourses.asString());
-            assertTrue(studentCourses.jsonPath().getList("data").contains(data.courseId()), studentCourses.asString());
+            assertTrue(studentCourses.jsonPath().getList("data").contains(data.courseId()),
+                    "The authenticated student's Enrollment response must contain the course returned by Course Service");
 
             var membership = enrollments.membership(studentId, data.courseId(), token);
             assertEquals(200, membership.statusCode(), membership.asString());
