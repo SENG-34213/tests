@@ -28,8 +28,13 @@ mvn -Dtest="*PerformanceTest,*ConcurrencyTest" test
 The suite is disabled by default. A `production` environment value is rejected
 by the test support. Counts, concurrency, and timeouts are always bounded.
 
-The optional GitHub Actions workflow is manual-only and requires an approved
-dedicated gateway URL plus CI secrets for the synthetic student account.
+The optional GitHub Actions workflow is manual-only and uses a protected
+`dedicated-performance` environment. Configure its required reviewers,
+`PERFORMANCE_BASE_URL`, `PERFORMANCE_ALLOWED_HOST_SUFFIX`, optional
+`PERFORMANCE_COURSE_ID`, and synthetic student username/password secrets. The
+workflow requires explicit confirmation and the deployed backend commit SHA;
+it accepts only credential-free HTTPS URLs under the configured host suffix.
+It binds the readiness probe and API requests to the same gateway URL.
 
 ## Scenarios
 

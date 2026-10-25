@@ -8,10 +8,13 @@ on:
         required: true
         default: false
         type: boolean
-      base_url:
-        description: Dedicated API Gateway URL
+      confirmation:
+        description: Type RUN DEDICATED PERFORMANCE BASELINE to authorize the bounded run
         required: true
-        default: http://localhost:8080
+        type: string
+      deployment_revision:
+        description: Backend commit SHA deployed to the dedicated environment
+        required: true
         type: string
 
 permissions:
@@ -21,7 +24,43 @@ jobs:
   performance:
     if: ${{ inputs.enabled == true }}
     runs-on: ubuntu-latest
+    environment: dedicated-performance
+    timeout-minutes: 20
+    env:
+      PERFORMANCE_CONFIRMATION: ${{ inputs.confirmation }}
+      PERFORMANCE_DEPLOYMENT_REVISION: ${{ inputs.deployment_revision }}
+      PERFORMANCE_BASE_URL: ${{ vars.PERFORMANCE_BASE_URL }}
+      PERFORMANCE_ALLOWED_HOST_SUFFIX: ${{ vars.PERFORMANCE_ALLOWED_HOST_SUFFIX }}
+
     steps:
+      - name: Validate dedicated target before network access
+        shell: bash
+        run: |
+          if [[ "$PERFORMANCE_CONFIRMATION" != "RUN DEDICATED PERFORMANCE BASELINE" ]]; then
+            echo "Explicit performance confirmation is required. No network requests were made."
+            exit 1
+          fi
+          if [[ ! "$PERFORMANCE_DEPLOYMENT_REVISION" =~ ^[[:xdigit:]]{7,40}$ ]]; then
+            echo "deployment_revision must be a 7-40 character Git SHA. No network requests were made."
+            exit 1
+          fi
+          test -n "$PERFORMANCE_BASE_URL" || { echo "Configure PERFORMANCE_BASE_URL on the protected environment"; exit 1; }
+          test -n "$PERFORMANCE_ALLOWED_HOST_SUFFIX" || { echo "Configure PERFORMANCE_ALLOWED_HOST_SUFFIX on the protected environment"; exit 1; }
+          python3 - <<'PY'
+          import os
+          from urllib.parse import urlsplit
+
+          url = urlsplit(os.environ["PERFORMANCE_BASE_URL"])
+          suffix = os.environ["PERFORMANCE_ALLOWED_HOST_SUFFIX"].lower().strip(".")
+          host = (url.hostname or "").lower().strip(".")
+          if url.scheme != "https" or not host or url.username or url.password or url.query or url.fragment:
+              raise SystemExit("PERFORMANCE_BASE_URL must be a credential-free HTTPS URL without query or fragment")
+          if not suffix or not (host == suffix or host.endswith("." + suffix)):
+              raise SystemExit("Performance target host is outside PERFORMANCE_ALLOWED_HOST_SUFFIX")
+          if "prod" in host or "production" in host:
+              raise SystemExit("Production-looking performance targets are forbidden")
+          PY
+
       - name: Check out repository
         uses: actions/checkout@v4
 
@@ -35,8 +74,12 @@ jobs:
       - name: Run bounded performance baseline
         env:
           PERFORMANCE_TEST_ENABLED: 'true'
-          PERFORMANCE_ENVIRONMENT: dedicated-ci
-          PERFORMANCE_BASE_URL: ${{ inputs.base_url }}
+          PERFORMANCE_ENVIRONMENT: dedicated-performance
+          API_GATEWAY_BASE_URL: ${{ vars.PERFORMANCE_BASE_URL }}
+          TEST_ENV_ENABLED: 'true'
+          TEST_REQUIRED_SERVICES: API_GATEWAY
+          READINESS_TIMEOUT_SECONDS: '90'
+          READINESS_POLL_INTERVAL_MILLIS: '3000'
           PERFORMANCE_WARMUP_REQUESTS: '5'
           PERFORMANCE_MEASURED_REQUESTS: '30'
           PERFORMANCE_CONCURRENCY: '2'
@@ -44,14 +87,29 @@ jobs:
           PERFORMANCE_MAX_ERROR_RATE_PERCENT: '1.0'
           PERFORMANCE_MAX_P95_MS: '2000'
           PERFORMANCE_MAX_P99_MS: '5000'
-          STUDENT_TEST_USERNAME: ${{ secrets.PERFORMANCE_STUDENT_USERNAME }}
-          STUDENT_TEST_PASSWORD: ${{ secrets.PERFORMANCE_STUDENT_PASSWORD }}
+          STUDENT_TEST_USERNAME: ${{ secrets.STUDENT_TEST_USERNAME }}
+          STUDENT_TEST_PASSWORD: ${{ secrets.STUDENT_TEST_PASSWORD }}
+          PERFORMANCE_COURSE_ID: ${{ vars.PERFORMANCE_COURSE_ID }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SHA: ${{ github.sha }}
         run: mvn --batch-mode --no-transfer-progress -Dtest="*PerformanceTest,*ConcurrencyTest" test
+
+      - name: Create sanitized performance evidence
+        if: always()
+        shell: bash
+        run: |
+          python3 tools/performance-evidence.py \
+            --junit-dir target/surefire-reports \
+            --output target/performance-evidence/summary.md \
+            | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Upload performance reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: performance-reports-${{ github.run_number }}
-          path: target/surefire-reports/
+          name: performance-evidence-${{ github.run_number }}-${{ github.sha }}
+          path: |
+            target/surefire-reports/
+            target/performance-evidence/summary.md
           if-no-files-found: warn
+          retention-days: 30

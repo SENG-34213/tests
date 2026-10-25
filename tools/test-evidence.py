@@ -435,6 +435,7 @@ def markdown_coverage(reports: list[dict[str, object]]) -> str:
         "",
         "Coverage is reported only for imported JaCoCo backend reports. This repository's API-test classes are not backend product coverage.",
         "Counters are aggregated across distinct modules within each artifact category. Unit and integration data stay separate.",
+        f"Backend workflow run: `{os_value('BACKEND_RUN_ID', 'not-supplied')}`; backend source SHA: `{os_value('BACKEND_COMMIT_SHA', 'unknown')}`.",
         "",
     ]
     if not reports:

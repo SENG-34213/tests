@@ -21,11 +21,12 @@ does not generate requests.
 
 ## Result interpretation
 
-Review the console summary and Surefire reports under
-`target/surefire-reports/`. Compare the scenario name, environment, request
-counts, concurrency, p95/p99, error rate, timeout count, and throughput with the
-approved baseline. A threshold failure is a regression signal, not proof of a
-production performance guarantee.
+The manual workflow uploads Surefire reports and a sanitized summary at
+`target/performance-evidence/summary.md`. It records the workflow run, test
+repository commit, backend deployment revision, and measured scenario metrics.
+Review request counts, concurrency, p95/p99, error rate, timeout count, and
+throughput against the approved baseline. A threshold failure is a regression
+signal, not proof of a production performance guarantee.
 
 Repeat the baseline at least twice and document material variance. Check that
 no duplicate or uncontrolled records were created and that the environment is
