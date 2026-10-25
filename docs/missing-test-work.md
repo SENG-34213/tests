@@ -10,7 +10,7 @@ Every public row has at least one linked JUnit request/case in this source audit
 
 A count below means the matrix does not link that assertion category to the route. Categories are not blanket requirements for every route: use the route's SRS/backend contract to decide whether a success, unauthenticated, wrong-role, validation, or ownership case applies. `endpoint-test-matrix.csv` retains the exact route row and available test evidence.
 
-- Missing linked success assertion: **4** route rows
+- Missing linked success assertion: **1** route rows
 - Missing linked unauthenticated assertion: **81** route rows
 - Missing linked wrong role assertion: **99** route rows
 - Missing linked validation assertion: **138** route rows
@@ -19,7 +19,7 @@ A count below means the matrix does not link that assertion category to the rout
 
 ## Required follow-up
 
-1. Review rows with a missing linked success assertion against the SRS. Add a safe positive-path test where the endpoint contract defines success and the route currently has only negative evidence.
+1. AI quiz generation is the only public route without a linked automated positive assertion. The user reports manual verification and requested no AI tests; keep it manual-only. No public non-AI success-assertion gap remains in this source audit.
 2. Review authorization, validation, and ownership flags against the effective Gateway and service contracts. Add only the applicable missing scenarios; do not infer public access or ownership coverage from a generic status code.
 3. Keep internal routes in `backend-internal-route-auth-matrix.csv`; service-to-service identities and mutation effects need their specific contracts and approved fixtures.
 4. Execute the live suites against the approved non-production deployment and retain JUnit evidence before claiming runtime coverage.

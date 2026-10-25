@@ -43,6 +43,8 @@ temporary files and approved non-production fixture IDs only.
 | TEST-013-37 | Byte probe requires explicit configuration | Missing download URL or approved host is rejected before network access. |
 | TEST-013-39 | A student outside the course cannot read or download its material | A distinct, unenrolled secondary student receives 403 for material retrieval and download metadata. |
 | TEST-013-40 | Teacher maintenance restrictions | Teacher audit and cleanup requests return 403. |
+| TEST-013-41 | Student profile image upload | Student uploads a synthetic PNG through a local Gateway configured to use the same confirmed local test bucket; the API returns its storage key and `image/png`, then exact-key cleanup removes it. |
+| TEST-013-42 | Student downloads own profile image | Download returns the exact uploaded bytes and content type before exact-key cleanup. |
 
 ## Manual cleanup safeguard (not a JUnit case)
 
@@ -54,3 +56,11 @@ generated case register. The executable cleanup test asserts dry-run behavior.
 The executable integration classes are `MaterialLifecycleIT` and
 `MaterialAuthenticationIT`. Tests requiring writes are skipped unless
 `TEST_MATERIAL_WRITE_ENABLED=true` and a valid course fixture are configured.
+
+Profile image tests additionally require
+`TEST_PROFILE_IMAGE_WRITE_ENABLED=true` and
+`TEST_PROFILE_IMAGE_STORAGE_CLEANUP_ENABLED=true`. They accept only a local
+S3-compatible endpoint and a bucket whose name contains `test` or `local`,
+matching `TEST_PROFILE_IMAGE_TEST_BUCKET`. The test removes only the exact
+object key returned by its upload. AWS cloud endpoints and the backend's default
+development bucket are rejected before upload.

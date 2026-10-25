@@ -37,7 +37,7 @@ class CourseAuthenticationIT extends CourseIntegrationTestSupport {
             Response response = courseClient.myCourses(session.accessToken());
 
             assertEquals(200, response.statusCode(), response.asString());
-            assertEquals("success", response.jsonPath().getString("status"));
+            assertEquals(200, response.jsonPath().getInt("statusCode"), response.asString());
             assertNotNull(response.jsonPath().get("data"));
         } finally {
             logout(session);
@@ -65,7 +65,7 @@ class CourseAuthenticationIT extends CourseIntegrationTestSupport {
             Response response = courseClient.getAllCourses(session.accessToken());
 
             assertEquals(200, response.statusCode(), response.asString());
-            assertEquals("success", response.jsonPath().getString("status"));
+            assertEquals(200, response.jsonPath().getInt("statusCode"), response.asString());
             assertNotNull(response.jsonPath().get("data"));
         } finally {
             logout(session);

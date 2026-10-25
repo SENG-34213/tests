@@ -138,7 +138,7 @@ The output contains `test-register.csv`, `test-register.md`,
 from `docs/*-test-cases.md`. Until a case has a mapping row, it appears as
 `Not Mapped` with its documentation source and an unmapped SRS requirement.
 The mapping CSV contains stable IDs and requirement links for mapped cases.
-It currently has 659 case rows targeting 402 class/method pairs; Notification
+It currently has 663 case rows targeting 406 class/method pairs; Notification
 Kafka event ingestion and local Mailpit email delivery have an exact gated
 JUnit mapping. Static runs skip those live scenarios unless their explicit
 non-production broker and local Mailpit configuration is enabled. Every executed method must map to an exact JUnit class/method and

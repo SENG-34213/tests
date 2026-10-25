@@ -36,7 +36,7 @@ enabled, the workflow retains the downloaded JaCoCo inputs as a separate
 artifact alongside the generated summary and test register.
 
 Detailed test-case IDs are read from `docs/*-test-cases.md`. The maintained
-mapping CSV currently has 659 case rows targeting 402 class/method pairs; all
+mapping CSV currently has 663 case rows targeting 406 class/method pairs; all
 documented functional cases have a JUnit mapping. The Notification Kafka/email
 workflow is opt-in and remains skipped in static CI. CI passes
 `--fail-on-unmapped-tests`, so an executed JUnit method without a case and
