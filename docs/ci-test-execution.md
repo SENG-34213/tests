@@ -35,11 +35,11 @@ and pull requests; those runs require no backend token or live backend. When
 enabled, the workflow retains the downloaded JaCoCo inputs as a separate
 artifact alongside the generated summary and test register.
 
-Detailed test-case IDs are read from `docs/*-test-cases.md`. Until mapped in
-`docs/test-case-mappings.csv`, they appear as `Not Mapped` and their SRS
-requirement is `UNMAPPED`. The CSV currently contains only its header, so
-complete requirement traceability is not yet claimed. JUnit methods without a
-case mapping appear with an `UNMAPPED-*` identifier. Mapped cases with no result
+Detailed test-case IDs are read from `docs/*-test-cases.md`. The maintained
+mapping CSV currently has 472 case rows; 197 documented catalog cases remain
+`Not Mapped` in the generated register and still need reconciliation. CI passes
+`--fail-on-unmapped-tests`, so an executed JUnit method without a case and
+requirement mapping fails evidence generation. Mapped cases absent from a run
 stay `Not Run`; failed and skipped cases remain distinct. Reports omit
 exception bodies to reduce the risk of including sensitive response data.
 

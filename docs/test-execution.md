@@ -137,13 +137,13 @@ The output contains `test-register.csv`, `test-register.md`,
 `coverage-summary.md`, and `evidence.json`. Documented case IDs are discovered
 from `docs/*-test-cases.md`. Until a case has a mapping row, it appears as
 `Not Mapped` with its documentation source and an unmapped SRS requirement.
-The mapping CSV is the maintained source for stable test-case IDs and
-requirement links. Add one row per case, mapping its ID to the exact JUnit
-`class_name` and `method_name`; the committed file starts with headers only,
-so complete requirement traceability is not yet claimed. A mapped case absent
-from the reports is `Not Run`; an executed JUnit method without metadata is
-included as `Unmapped` and called out for follow-up. A skipped result remains
-`Skipped`.
+The mapping CSV contains stable IDs and requirement links for mapped cases.
+It currently has 472 case rows; the evidence register still reports 197
+catalogued cases as `Not Mapped`, so complete catalog traceability is not yet
+claimed. Every executed method must map to an exact JUnit class/method and
+requirement. CI uses `--fail-on-unmapped-tests` so newly executed unmapped
+methods fail evidence generation. A mapped case absent from a run is `Not Run`;
+a skipped result remains `Skipped`.
 Do not fill actual results from memory or convert skipped/not-run cases to
 passed.
 

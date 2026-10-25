@@ -24,8 +24,8 @@ public class CourseClient {
         return apiClient.get(COURSE_PATH, bearerToken, Map.of(), Map.of());
     }
 
-    public Response hello() {
-        return apiClient.get("/");
+    public Response hello(String bearerToken) {
+        return apiClient.get("/", bearerToken, Map.of(), Map.of());
     }
 
     public Response lookup(String courseId, String bearerToken) {

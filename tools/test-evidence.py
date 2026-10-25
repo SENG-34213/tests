@@ -99,6 +99,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-dir", type=Path, default=Path("target/test-evidence")
     )
+    parser.add_argument(
+        "--fail-on-unmapped-tests",
+        action="store_true",
+        help="Return a failing exit code when an executed JUnit method has no case/requirement mapping.",
+    )
     return parser.parse_args()
 
 
@@ -553,6 +558,8 @@ def main() -> int:
     print(
         f"Evidence generated: {len(rows)} register rows, {len(coverage)} JaCoCo reports ({manifest['coverage_status']})."
     )
+    if args.fail_on_unmapped_tests and manifest["unmapped_executed_count"]:
+        return 1
     return 1 if junit_errors or jacoco_errors else 0
 
 

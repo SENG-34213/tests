@@ -99,6 +99,7 @@ jobs:
           --jacoco-dir artifacts/backend-jacoco
           --metadata docs/test-case-mappings.csv
           --output-dir target/test-evidence
+          --fail-on-unmapped-tests
 
       - name: Check documentation and repository hygiene
         shell: bash

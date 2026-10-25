@@ -29,6 +29,8 @@ The backend is a Java 17 Spring Boot microservice system containing the gateway,
 
 The executed register is generated from JUnit XML and `docs/test-case-mappings.csv` by `tools/test-evidence.py`. It distinguishes passed, failed, skipped, not-run, and unmapped tests. Backend JaCoCo artifacts remain the authoritative coverage measurement and gate result.
 
-## Current limitation
+## Current verified state and limitations
 
-TEST-001 only verifies the test framework itself. It does not start the backend or execute feature tests. Backend-backed integration and E2E environments will be introduced by later approved tickets.
+The repository now contains service integration suites, contracts, security/resilience tests, performance checks, staging smoke, and read-only/write-gated Gateway journeys. `mvn clean verify` runs the deterministic suite; `mvn clean verify -Pintegration` safely skips live classes unless `TEST_ENV_ENABLED=true`. The default CI job does not claim live API coverage.
+
+The source route audit links each of 187 public route rows to at least one request/case. A route link is not a live pass or complete business-semantic assertion. The mapping CSV has 472 case IDs, but the latest generated register still identifies 197 cases from the case catalogs without a JUnit mapping. The local run had no JaCoCo reports, so backend line/branch targets are unverified. See [`testing-requirements-matrix.md`](testing-requirements-matrix.md) for the complete requirement crosswalk and open actions.

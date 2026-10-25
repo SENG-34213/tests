@@ -41,7 +41,8 @@
 ## CI
 
 - Default CI verifies the static suite with live flags disabled; it does not
-  prove that every backend service is healthy.
+  prove that every backend service is healthy. `mvn verify -Pintegration` now
+  marks all live test classes skipped unless `TEST_ENV_ENABLED=true`.
 - Live integration execution needs separately configured services and secrets.
 - JUnit tags are reserved vocabulary, but class-pattern selection is the
   currently verified Maven mechanism. Tag filtering must not be claimed until
@@ -55,9 +56,11 @@
 - Automated backend-artifact download is available only on manual tests-CI runs
   and requires the selected backend run ID, commit SHA, and the
   `BACKEND_ARTIFACTS_TOKEN` repository secret. Routine static CI does not use it.
-- The test-case mapping CSV currently has no data rows. Documented cases appear
-  as `Not Mapped` and executed methods appear as unmapped until their case,
-  requirement, and JUnit method mappings are added.
+- The test-case mapping CSV currently has 472 rows, but the latest evidence
+  register still has 197 documented cases marked `Not Mapped`. Executed methods
+  have mappings in the recorded run; CI now fails if a future run executes an
+  unmapped method. Reconcile the remaining catalog entries against the actual
+  test source or move checklist-only entries out of functional case catalogs.
 - Integration tests absent from a run are reported as not run; generated
   registers are run-specific evidence and do not by themselves constitute a
   complete sprint test register.

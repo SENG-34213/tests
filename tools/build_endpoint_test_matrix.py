@@ -60,7 +60,7 @@ def role_for(row):
         ("AuthController", "logout"): "Public; auth SecurityFilterChain permitAll (refresh token required)",
         ("AuthController", "jwks"): "Public; auth SecurityFilterChain permitAll",
         ("CommunicationGroupController", "getGroupById"): "Authenticated user; active group membership is enforced by service",
-        ("HelloController", "helloCourse"): "Public service-root endpoint",
+        ("HelloController", "helloCourse"): "Authenticated user (default SecurityFilterChain requires authentication)",
         ("MarketplaceProductController", "listPublic"): "Public marketplace read",
         ("MarketplaceProductController", "getPublic"): "Public marketplace read",
         ("NotificationController", "getNotifications"): "Authenticated user; JWT subject scopes results to owner",
@@ -139,20 +139,21 @@ def main():
                 "source_evidence": row["source_file"] + " :: " + row["controller"] + "#" + row["java_method"] + " | " + evidence,
             })
     with REPORT.open("w", encoding="utf-8", newline="") as stream:
-        stream.write("# Remaining endpoint test work\n\n")
-        stream.write("This report is generated from `backend-route-test-matrix.csv` and linked assertion text. A linked status-code assertion is evidence of a response check, not proof that the full business contract, payload, persistence, or security semantics are correct. Do not treat `NOT EVIDENCED` as proof that no test exists; it means this route audit does not link one.\n\n")
-        stream.write(f"Public/user-facing, admin-facing, teacher-facing and service-root rows audited: **{len(public)}** of {len(rows)} source route rows. Internal/operational routes excluded from this public endpoint matrix: **{len(rows)-len(public)}**; track them in `backend-internal-route-auth-matrix.csv`.\n\n")
-        stream.write("## Route-by-route gap counts\n\n")
-        for key in ("no_linked_case", "success", "unauthenticated", "wrong_role", "validation", "ownership", "role_contract_review"):
-            stream.write(f"- {key.replace('_', ' ')}: **{report_counts[key]}** route rows\n")
+        stream.write("# Endpoint test evidence review\n\n")
+        stream.write("This is a source-level link audit generated from `backend-route-test-matrix.csv`. A linked assertion proves a request and response check are present in test source; it does not prove the test passed against a live deployment or that payload/state semantics are fully asserted.\n\n")
+        stream.write(f"The public/user-facing, admin-facing, teacher-facing, and service-root matrix has **{len(public)} rows** out of **{len(rows)} HTTP route rows**. The other **{len(rows)-len(public)} internal/operational rows** are tracked in `backend-internal-route-auth-matrix.csv`; WebSocket routes are tracked separately.\n\n")
+        stream.write("Every public row has at least one linked JUnit request/case in this source audit: **%d/%d**. This is the project-guide endpoint-presence check, not live-run evidence.\n\n" % (len(public) - report_counts["no_linked_case"], len(public)))
+        stream.write("## Assertion-category review flags\n\n")
+        stream.write("A count below means the matrix does not link that assertion category to the route. Categories are not blanket requirements for every route: use the route's SRS/backend contract to decide whether a success, unauthenticated, wrong-role, validation, or ownership case applies. `endpoint-test-matrix.csv` retains the exact route row and available test evidence.\n\n")
+        for key in ("success", "unauthenticated", "wrong_role", "validation", "ownership", "role_contract_review"):
+            stream.write(f"- Missing linked {key.replace('_', ' ')} assertion: **{report_counts[key]}** route rows\n")
         stream.write("\n## Required follow-up\n\n")
-        stream.write("1. Review each `required_role` entry against the effective service security filter chain, method/class annotations, Gateway rules, and SRS. Entries explicitly asking for security-chain review are unresolved, not assumed public.\n")
-        stream.write("2. For every `NOT EVIDENCED` cell in the CSV, inspect the referenced test code and either link the exact request plus assertion or add a test. A mere case name is insufficient.\n")
-        stream.write("3. Add explicit ownership/isolation checks for resource routes (foreign user/course/assignment/enrollment/etc.); generic 403/404 checks are not ownership evidence.\n")
-        stream.write("4. Confirm success payload/schema and state changes, validation field/path, and role matrix per SRS; the matrix intentionally does not infer these from status codes.\n")
-        stream.write("5. Review every endpoint row and every service-root/Gateway mapping for effective ingress path correctness. WebSocket routes are tracked separately in `backend-websocket-route-test-matrix.csv`.\n\n")
-        stream.write("## Scope and caveats\n\n")
-        stream.write("This artifact is a traceable audit baseline, not a declaration that Step 1 is complete: every row retains source and test evidence, while unproven categories remain visibly open. The 48 internal/operational route mappings are listed separately because they are not public product endpoints; their authentication/role evidence remains in the internal auth matrix.\n")
+        stream.write("1. Review rows with a missing linked success assertion against the SRS. Add a safe positive-path test where the endpoint contract defines success and the route currently has only negative evidence.\n")
+        stream.write("2. Review authorization, validation, and ownership flags against the effective Gateway and service contracts. Add only the applicable missing scenarios; do not infer public access or ownership coverage from a generic status code.\n")
+        stream.write("3. Keep internal routes in `backend-internal-route-auth-matrix.csv`; service-to-service identities and mutation effects need their specific contracts and approved fixtures.\n")
+        stream.write("4. Execute the live suites against the approved non-production deployment and retain JUnit evidence before claiming runtime coverage.\n\n")
+        stream.write("## Scope and status\n\n")
+        stream.write("A zero category flag means the audit could not link a matching request/assertion string; it is not a product failure by itself. A nonzero flag is a review item, not proof that related behavior has no test. This matrix is static source evidence only and does not certify all business semantics, Gateway behavior, or deployed service health.\n")
     print(f"Wrote {OUT} ({len(public)} endpoint rows); {REPORT}")
 
 

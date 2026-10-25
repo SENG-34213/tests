@@ -1,3 +1,5 @@
+> Historical Step 1 inventory from earlier test-repository branches. Its baseline SHAs and counts are snapshots, not the current repository status. Use [testing-requirements-matrix.md](testing-requirements-matrix.md), [endpoint-test-matrix.csv](endpoint-test-matrix.csv), and [missing-test-work.md](missing-test-work.md) for current evidence.
+
 # Step 1: Requirement, API, UI-flow, and existing-test inventory
 
 Audit baseline: GitHub development branch commits queried on 2026-10-23: backend `6755c82d198f74180deb09523983ac6d9818e2ff`, frontend `b41fd3d6136b98293b722d4608f8ceecf4cdc9c3`, and tests `c51984f0f097a9eb39e2b2f91cc26987c9e731cb`. The working branch is `feature/TEST-029-development-inventory`, created from the fetched tests development commit. The backend and frontend exact commits were fetched and their source trees inspected without switching or modifying their working branches. Presence of a test class is not evidence that its live test passed.

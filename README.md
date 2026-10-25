@@ -2,10 +2,12 @@
 
 This repository contains the Mentify platform's repository-level integration and end-to-end test suites. It complements the unit and service-level tests in [Mentify-backend](https://github.com/SENG-34213/Mentify-backend).
 
-The repository contains reusable API/authentication clients, service integration
-tests, authentication and authorization coverage, and gateway end-to-end smoke
-tests completed through TEST-022. TEST-023 provides the final quality-gate,
-traceability, execution, and limitation documentation.
+The repository contains reusable API/authentication clients, service-level
+integration suites, authentication/authorization and contract checks, security
+and resilience probes, performance checks, staging smoke, and Gateway-based
+student/teacher/admin journeys. See the current [SENG 34213 testing requirements
+matrix](docs/testing-requirements-matrix.md) for coverage evidence and remaining
+external prerequisites.
 
 ## Prerequisites
 
@@ -40,7 +42,7 @@ Copy `.env.example` to `.env` for local overrides. Never commit `.env` or real c
 
 The backend repository is a Java 17 Spring Boot microservice monorepo. This repository tests its public boundaries and complete workflows rather than copying backend implementation code. The backend integration branch is currently named `development`.
 
-## Planned test layers
+## Test layers
 
 1. API integration tests through the gateway.
 2. Service and database integration tests using Testcontainers.
