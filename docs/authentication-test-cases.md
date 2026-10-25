@@ -22,6 +22,8 @@ These integration test cases use the backend `development` branch contract and e
 | TC-AUTH-CLIENT-001 | Create an authenticated API client after login | Successful login produces a usable authenticated client and logout clears the session | `AuthenticationClientIT` | Integration | P1 |
 | TC-AUTH-RECOVERY-001 | Request reset for unknown account without account disclosure | Generic recovery response | `AuthenticationRecoveryIT` | Security integration | P1 |
 | TC-AUTH-RECOVERY-002 | Reject invalid reset OTP and token | Recovery cannot proceed without valid OTP/token | `AuthenticationRecoveryIT` | Validation integration | P1 |
+| TC-AUTH-RECOVERY-003 | Verify a password-reset OTP from local Mailpit | Valid OTP returns a reset token | `UserRegistrationWorkflowIT` | Integration | P1 |
+| TC-AUTH-RECOVERY-004 | Reset a synthetic user's password | Valid reset token updates the synthetic account password | `UserRegistrationWorkflowIT` | Integration | P1 |
 | TC-AUTH-JWKS-001 | Read public signing-key document | JWKS is publicly available | `AuthenticationRecoveryIT` | Contract integration | P1 |
 
 ## Backend endpoints verified

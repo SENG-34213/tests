@@ -56,11 +56,15 @@
 - Automated backend-artifact download is available only on manual tests-CI runs
   and requires the selected backend run ID, commit SHA, and the
   `BACKEND_ARTIFACTS_TOKEN` repository secret. Routine static CI does not use it.
-- The test-case mapping CSV currently has 472 rows, but the latest evidence
-  register still has 197 documented cases marked `Not Mapped`. Executed methods
-  have mappings in the recorded run; CI now fails if a future run executes an
-  unmapped method. Reconcile the remaining catalog entries against the actual
-  test source or move checklist-only entries out of functional case catalogs.
+- The test-case mapping CSV has 659 unique case rows targeting 402
+  class/method pairs. Notification Kafka event ingestion and email delivery
+  now have a gated live workflow; static CI skips it, and a source mapping is
+  not live-pass evidence. CI rejects executed test methods without a mapping.
+- The public endpoint matrix links requests/assertions for all 187 public routes;
+  four still lack a positive response assertion: AI quiz generation, Calendar
+  venue creation, and profile image upload/download. Positive writes need a
+  deterministic AI provider or supported cleanup for persistent venues and
+  profile-image objects before they can run safely.
 - Integration tests absent from a run are reported as not run; generated
   registers are run-specific evidence and do not by themselves constitute a
   complete sprint test register.

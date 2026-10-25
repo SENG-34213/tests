@@ -114,4 +114,34 @@ class CommunicationMessageWorkflowIT extends CommunicationIntegrationTestSupport
             logout(teacher);
         }
     }
+
+    @Test
+    void teacherCanDeleteOwnMessageForSelfWithoutHidingItFromOthers() {
+        CommunicationTestDataConfiguration data = CommunicationTestDataConfiguration.fromEnvironment();
+        Assumptions.assumeTrue(data.groupId() != null && data.writeEnabled(),
+                "Set TEST_COMMUNICATION_GROUP_ID and TEST_COMMUNICATION_WRITE_ENABLED=true");
+        AuthenticationSession teacher = login(TestRole.TEACHER);
+        String groupId = data.groupId().toString();
+        String messageId = null;
+        try {
+            Response sent = communicationClient.sendMessage(groupId,
+                    CommunicationTestDataFactory.message("TEST-016 self-delete " + UUID.randomUUID()),
+                    teacher.accessToken());
+            assertEquals(201, sent.statusCode(), sent.asString());
+            messageId = sent.jsonPath().getString("data.id");
+            assertNotNull(messageId, sent.asString());
+
+            assertEquals(200, communicationClient.deleteMessage(groupId, messageId, "ME",
+                    teacher.accessToken()).statusCode());
+            Response ownHistory = communicationClient.messageHistory(groupId, 0, 100, teacher.accessToken());
+            assertEquals(200, ownHistory.statusCode(), ownHistory.asString());
+            assertTrue(!ownHistory.jsonPath().getList("data.content.id", String.class).contains(messageId),
+                    ownHistory.asString());
+        } finally {
+            if (messageId != null) {
+                communicationClient.deleteMessage(groupId, messageId, "EVERYONE", teacher.accessToken());
+            }
+            logout(teacher);
+        }
+    }
 }

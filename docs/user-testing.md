@@ -17,6 +17,10 @@ TEST_ENV_ENABLED=true
 TEST_REQUIRED_SERVICES=API_GATEWAY,AUTH_SERVICE,USER_SERVICE
 USER_SERVICE_BASE_URL=http://localhost:8081
 TEST_USER_WRITE_ENABLED=false
+TEST_USER_MAIL_CAPTURE_ENABLED=false
+TEST_USER_STATUS_USERNAME=
+TEST_USER_STATUS_PASSWORD=
+MAILPIT_API_BASE_URL=http://localhost:8025
 TEST_SUPER_ADMIN_SUPPORTED=false
 USER_EMAIL_TEST_MODE=false
 ```
@@ -24,7 +28,11 @@ USER_EMAIL_TEST_MODE=false
 Use external synthetic accounts for Student, Teacher, and Administrator roles. Add a Super Administrator only when
 the environment explicitly supports it. Never commit passwords, access/refresh tokens, reset
 links, invitation links, or real personal data. Password-reset and invitation tests are contract-only unless a safe
-mail-capture service is configured.
+mail-capture service is configured. Set `TEST_USER_WRITE_ENABLED=true` and `TEST_USER_MAIL_CAPTURE_ENABLED=true` only
+after backend SMTP is confirmed to point at Mailpit. Registration uses a unique `.invalid` address; tests delete only
+the account and messages they created. `MAILPIT_API_BASE_URL` must resolve to a loopback host; optional
+`MAILPIT_API_USERNAME/PASSWORD` credentials must remain in the environment. Status tests require a disposable account
+identified by `TEST_USER_ID` and matching `TEST_USER_STATUS_USERNAME/PASSWORD`; cleanup restores its active status.
 
 ## Endpoint notes
 

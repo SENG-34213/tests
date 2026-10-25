@@ -21,8 +21,12 @@ class UserAdministrationIT extends UserIntegrationTestSupport {
             assertRoleFilter(users.usersByRole("STUDENT", token), "data", "STUDENT");
             assertRoleFilter(users.usersByRole("TEACHER", token), "data", "TEACHER");
             assertRoleFilter(users.adminUsers("STUDENT", token), "data", "STUDENT");
-            assertRoleFilter(users.listStudents(0, 20, token), "data.content", "STUDENT");
-            assertRoleFilter(users.listTeachers(0, 20, token), "data.content", "TEACHER");
+            var students = users.listStudents(0, 20, token);
+            assertEquals(200, students.statusCode(), students.asString());
+            assertRoleFilter(students, "data.content", "STUDENT");
+            var teachers = users.listTeachers(0, 20, token);
+            assertEquals(200, teachers.statusCode(), teachers.asString());
+            assertRoleFilter(teachers, "data.content", "TEACHER");
             assertEquals(200, users.analytics(token).statusCode());
         } finally {
             logout(admin);

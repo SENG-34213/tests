@@ -27,10 +27,17 @@
 | TC-TEST-015-23 | Missing student or status | `400` |
 | TC-TEST-015-24 | Unknown session ID | `404 Not Found` |
 | TC-TEST-015-25 | Unknown course ID | `404 Not Found` |
-| TC-TEST-015-26 | Unknown student/course summary | `404` for an unknown course; summary is zero-valued when student has no records in a known course |
+| TC-TEST-015-26 | Student with no records in a known course receives a zero-valued summary | `200`; session and attendance counts and percentage are zero |
 | TC-TEST-015-27 | Overlong title or remarks | `400` |
 | TC-TEST-015-28 | Invalid attendance status | `400` |
 | TC-TEST-015-29 | Session course isolation | A course cannot read another course's sessions |
-| TC-TEST-015-30 | Fixture cleanup review | Writes use unique data and document retention/cleanup limits |
-| TC-TEST-015-31 | Regression verification | Unit tests and Checkstyle pass |
 | TC-TEST-015-32 | Delete a newly created open attendance session | `200`; subsequent read returns `404` |
+| TC-TEST-015-33 | Unknown course or student summary identifiers | `404 Not Found` |
+
+## Manual quality checks (not JUnit test cases)
+
+- **TC-TEST-015-30 - Fixture cleanup review:** Review that attendance writes use approved fixtures and document any service behavior that prevents cleanup.
+- **TC-TEST-015-31 - Regression verification:** Run the unit suite and Checkstyle in CI before merging.
+
+These are review and CI checks, not runtime scenarios, so they are not included
+in the generated JUnit case register.

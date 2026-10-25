@@ -1,15 +1,29 @@
 package com.mentify.tests.communication;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class CommunicationAuthenticationIT extends CommunicationIntegrationTestSupport {
 
     private static final String UNKNOWN_ID = "00000000-0000-0000-0000-000000000000";
+
+    @Test
+    void authenticatedUserCanReadTheirCommunicationIdentity() {
+        AuthenticationSession student = login(TestRole.STUDENT);
+        try {
+            var response = communicationClient.me(student.accessToken());
+            assertEquals(200, response.statusCode(), response.asString());
+            assertNotNull(UUID.fromString(response.jsonPath().getString("userId")), response.asString());
+        } finally {
+            logout(student);
+        }
+    }
 
     @Test
     void protectedCommunicationRequestsRejectMissingAuthentication() {

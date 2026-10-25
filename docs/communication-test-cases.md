@@ -31,8 +31,6 @@
 | TC-TEST-016-27 | Settings update | An authenticated user can update own settings. |
 | TC-TEST-016-28 | Settings isolation | Settings are scoped to the authenticated user. |
 | TC-TEST-016-29 | Role authorization | Student cannot manage groups. |
-| TC-TEST-016-30 | Test isolation | Write data uses unique values and approved fixtures. |
-| TC-TEST-016-31 | Documentation | Endpoints, roles, fixtures, cleanup, scopes, and commands are documented. |
 | TC-TEST-016-32 | Message attachment upload/download auth | Both attachment routes reject requests without authentication. |
 | TC-TEST-016-33 | Message attachment workflow | A teacher uploads a synthetic file, attaches it to a message, verifies download metadata and optionally exact stored bytes, then deletes the message and soft-deletes the Material Service file. |
 | TC-TEST-016-34 | WebSocket authentication | With explicit opt-in, a teacher connects to `/ws`, sends a STOMP CONNECT frame with its bearer token, and receives CONNECTED; no group or message data is mutated. |
@@ -41,3 +39,11 @@
 | TC-TEST-016-38 | WebSocket test-topic delivery | An authenticated test message is delivered from `/app/test` to `/topic/test` over direct-service and Gateway WebSocket connections. This verifies the test echo route, not persisted production group-message delivery. |
 | TC-TEST-016-39 | WebSocket group-message workflow | With an approved active-member group fixture, a teacher sends over Gateway STOMP, receives the persisted broadcast, then deletes the test-created message through the API. |
 | TC-TEST-016-40 | Message attachment byte integrity | When signed-download verification is enabled, downloaded bytes exactly match the synthetic upload using an explicitly approved storage host. |
+
+## Manual quality checks (not JUnit test cases)
+
+- **TC-TEST-016-30 - Test isolation:** Review that write scenarios use approved fixtures and unique synthetic data and do not mutate unrelated group/user data.
+- **TC-TEST-016-31 - Documentation:** Review endpoint, role, fixture, cleanup, scope, and command documentation when changing this suite.
+
+These are manual review safeguards and are not included in the generated JUnit
+case register.

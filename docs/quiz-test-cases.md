@@ -25,6 +25,7 @@
 | TC-TEST-014-37 | AI quiz generation input validation | Multipart generation with question count zero or unsupported question type returns `400` before the AI provider is called. |
 | TC-TEST-014-38 | Student role cannot manage quizzes | Student requests to teacher quiz-management routes return `403`. |
 | TC-TEST-014-39 | Teacher gradebook quiz route validates course ID | Missing or malformed `courseId` returns `400`. |
+| TC-TEST-014-41 | Quiz dependency readiness | Gateway, Auth, Course, Enrollment, and Assignment services are healthy before quiz workflow tests. |
 | TC-TEST-014-15 | Student creates a quiz | HTTP 403 |
 | TC-TEST-014-16 | Student manages a question | HTTP 403 |
 | TC-TEST-014-17 | Teacher starts an attempt | HTTP 403 |
@@ -38,9 +39,12 @@
 | TC-TEST-014-25 | Unknown quiz ID on read/update/delete/publish | `404 Not Found` |
 | TC-TEST-014-26 | Unknown attempt ID | `404 Not Found` |
 | TC-TEST-014-27 | Disabled environment | Readiness stops before live requests |
-| TC-TEST-014-28 | Client unit tests | All unit tests pass |
-| TC-TEST-014-29 | Checkstyle | Zero violations |
-| TC-TEST-014-30 | Maven reports | Surefire/Failsafe reports are generated |
 
 Live workflow tests require a synthetic course and an enrolled test student. They create unique quizzes and keep
 created IDs in memory; cleanup attempts delete only records created by the test.
+
+## Manual CI and release evidence
+
+- **TC-TEST-014-28 — Client unit tests:** Confirm quiz client unit tests pass in the Surefire report.
+- **TC-TEST-014-29 — Checkstyle:** Confirm Maven Checkstyle reports zero violations.
+- **TC-TEST-014-30 — Maven reports:** Confirm Surefire and Failsafe reports are generated and attached to CI evidence.

@@ -16,6 +16,6 @@ class BackendReadinessIT {
 
     @Test
     void shouldKeepRequiredBackendServicesReady() {
-        // Readiness is validated before the test and remains a prerequisite for future API tests.
+        readinessClient.awaitRequiredServices();
     }
 }

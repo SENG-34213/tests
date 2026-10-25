@@ -34,6 +34,11 @@ abstract class AttendanceIntegrationTestSupport {
         return authenticationClient.login(role);
     }
 
+    protected static void requireAdditionalService(RequiredService service) {
+        TestEnvironmentConfiguration environment = TestEnvironmentConfiguration.fromEnvironment();
+        new BackendReadinessClient(environment).awaitService(service);
+    }
+
     protected static void logout(AuthenticationSession session) {
         if (session != null && session.refreshable()) {
             authenticationClient.logout(session);

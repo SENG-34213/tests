@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
+import com.mentify.tests.environment.RequiredService;
+import com.mentify.tests.user.UserClient;
 import org.junit.jupiter.api.Test;
 
 class AttendanceSummaryIT extends AttendanceIntegrationTestSupport {
@@ -38,6 +40,35 @@ class AttendanceSummaryIT extends AttendanceIntegrationTestSupport {
             assertSummaryContract(response, data.courseId().toString());
         } finally {
             logout(teacher);
+        }
+    }
+
+    @Test
+    void studentWithNoAttendanceRecordsReceivesZeroSummary() {
+        AttendanceTestDataConfiguration data = AttendanceTestDataConfiguration.fromEnvironment();
+        assumeTrue(data.courseId() != null && data.emptySummaryStudentId() != null,
+                "Set TEST_ATTENDANCE_COURSE_ID and TEST_ATTENDANCE_EMPTY_SUMMARY_STUDENT_ID for a student with no records");
+        requireAdditionalService(RequiredService.USER_SERVICE);
+        AuthenticationSession student = login(TestRole.STUDENT);
+        try {
+            var profile = new UserClient(apiClient).currentUser(student.accessToken());
+            assertEquals(200, profile.statusCode(), profile.asString());
+            assertEquals(data.emptySummaryStudentId().toString(), profile.jsonPath().getString("data.id"),
+                    profile.asString());
+
+            var response = attendanceClient.studentSummary(data.emptySummaryStudentId().toString(),
+                    data.courseId().toString(), student.accessToken());
+            assertEquals(200, response.statusCode(), response.asString());
+            assertEquals(data.emptySummaryStudentId().toString(), response.jsonPath().getString("data.studentId"));
+            assertEquals(data.courseId().toString(), response.jsonPath().getString("data.courseId"));
+            assertEquals(0, response.jsonPath().getLong("data.completedSessions"));
+            assertEquals(0, response.jsonPath().getLong("data.presentCount"));
+            assertEquals(0, response.jsonPath().getLong("data.lateCount"));
+            assertEquals(0, response.jsonPath().getLong("data.absentCount"));
+            assertEquals(0, response.jsonPath().getLong("data.attendedCount"));
+            assertEquals(0.0, response.jsonPath().getDouble("data.attendancePercentage"), 0.001);
+        } finally {
+            logout(student);
         }
     }
 

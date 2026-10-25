@@ -10,6 +10,11 @@ import org.junit.jupiter.api.Test;
 class UserProfileIT extends UserIntegrationTestSupport {
 
     @Test
+    void requiredUserServicesAreReady() {
+        requireUserEnvironment();
+    }
+
+    @Test
     void authenticatedUserCanRetrieveOwnProfileWithoutSensitiveFields() {
         AuthenticationSession student = login(TestRole.STUDENT);
         try {

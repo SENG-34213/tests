@@ -29,11 +29,13 @@ class TeacherPortalDataIT extends CourseIntegrationTestSupport {
         AuthenticationSession teacher = login(TestRole.TEACHER);
         try {
             Response directory = courseClient.teacherStudents(data.courseId().toString(), teacher.accessToken());
+            assertEquals(200, directory.statusCode(), directory.asString());
             assertSuccessfulData(directory);
             assertNotNull(directory.jsonPath().getList("data"), directory.asString());
 
             Response summary = courseClient.teacherStudentSummary(data.enrolledStudentId().toString(),
                     data.courseId().toString(), teacher.accessToken());
+            assertEquals(200, summary.statusCode(), summary.asString());
             assertSuccessfulData(summary);
             assertEquals(data.courseId().toString(), summary.jsonPath().getString("data.courseId"));
             assertEquals(data.enrolledStudentId().toString(), summary.jsonPath().getString("data.studentId"));
@@ -41,6 +43,7 @@ class TeacherPortalDataIT extends CourseIntegrationTestSupport {
             assertNotNull(summary.jsonPath().get("data.overallPercentage"), summary.asString());
 
             Response gradebook = courseClient.teacherGradebook(data.courseId().toString(), teacher.accessToken());
+            assertEquals(200, gradebook.statusCode(), gradebook.asString());
             assertSuccessfulData(gradebook);
             assertEquals(data.courseId().toString(), gradebook.jsonPath().getString("data.courseId"));
             assertNotNull(gradebook.jsonPath().getMap("data.gradingScale"), gradebook.asString());

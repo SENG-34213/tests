@@ -52,21 +52,29 @@ public class AuthenticationClient {
 
     public AuthenticationSession refresh(AuthenticationSession session) {
         requireRefreshable(session);
-        Response response = apiClient.post(REFRESH_PATH,
-                Map.of("refreshToken", session.refreshToken()), null);
+        Response response = refreshResponse(session.refreshToken());
         AuthenticationSession replacement = AuthenticationResponseParser.successfulSession(response);
         session.replaceTokens(replacement);
         return session;
     }
 
+    public Response refreshResponse(String refreshToken) {
+        requireRefreshToken(refreshToken);
+        return apiClient.post(REFRESH_PATH, Map.of("refreshToken", refreshToken), null);
+    }
+
     public void logout(AuthenticationSession session) {
         requireRefreshable(session);
-        Response response = apiClient.post(LOGOUT_PATH,
-                Map.of("refreshToken", session.refreshToken()), null);
+        Response response = logoutResponse(session.refreshToken());
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
             throw AuthenticationResponseParser.failure(response);
         }
         session.clear();
+    }
+
+    public Response logoutResponse(String refreshToken) {
+        requireRefreshToken(refreshToken);
+        return apiClient.post(LOGOUT_PATH, Map.of("refreshToken", refreshToken), null);
     }
 
     public Response requestPasswordReset(String email) {
@@ -84,7 +92,7 @@ public class AuthenticationClient {
     }
 
     public Response jwks() {
-        return authServiceClient.get("/api/v1/auth/.well-known/jwks.json");
+        return apiClient.get("/api/v1/auth/.well-known/jwks.json");
     }
 
     public ApiClient authenticatedApiClient(AuthenticationSession session) {
@@ -97,6 +105,12 @@ public class AuthenticationClient {
     private static void requireRefreshable(AuthenticationSession session) {
         if (session == null || !session.refreshable()) {
             throw new IllegalArgumentException("A refreshable authentication session is required");
+        }
+    }
+
+    private static void requireRefreshToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new IllegalArgumentException("A refresh token is required");
         }
     }
 }

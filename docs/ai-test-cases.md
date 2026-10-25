@@ -22,8 +22,6 @@
 | TC-TEST-020-18 | Unauthenticated access | Protected AI endpoints reject missing authentication. |
 | TC-TEST-020-19 | Invalid resources | Invalid conversation, lesson, and material IDs are handled safely. |
 | TC-TEST-020-20 | Provider failures | Deterministic provider failures are tested when available. |
-| TC-TEST-020-21 | Sensitive data | No secrets, private prompts, or real user data are committed or exposed. |
-| TC-TEST-020-22 | Documentation | Provider mode, fixtures, cleanup, and skip behavior are documented. |
 | TC-TEST-020-23 | Deterministic chat and text generation | Enabled provider returns `200` and response data, not merely a non-server-error status. |
 | TC-TEST-020-24 | Deterministic lesson summary | Configured lesson ID produces a non-empty summary. |
 | TC-TEST-020-25 | Deterministic material summary | Configured material ID produces a non-empty summary. |
@@ -35,3 +33,12 @@
 | TC-TEST-020-31 | AI WebSocket role authorization | A student token is rejected at CONNECT; teacher/admin roles remain the allowed identities. |
 | TC-TEST-020-32 | AI WebSocket destination authorization | A teacher cannot subscribe to an unapproved destination or send to an unapproved application destination. |
 | TC-TEST-020-33 | AI WebSocket response delivery | An unknown synthetic conversation produces PROCESSING followed by a safe not-found error on the authenticated user's queue, without calling the provider. |
+
+## Manual safeguards (not JUnit test cases)
+
+- **TC-TEST-020-21 - Sensitive data:** Review changes for secrets, private prompts, and real user data before merge. Test fixtures and prompts must remain synthetic.
+- **TC-TEST-020-22 - Documentation:** Review provider mode, required fixtures, cleanup behavior, and skip conditions when changing AI tests.
+
+These are manual review safeguards. They are kept out of the generated JUnit
+case register because no JUnit method can prove that a pull request contains
+no sensitive data or that its documentation is complete.

@@ -12,12 +12,16 @@ class CrossServiceAuthorizationIT extends EndToEndIntegrationTestSupport {
     void gatewayPreservesRoleRestrictionsAcrossUserAndEnrollmentServices() {
         AuthenticationSession student = login(TestRole.STUDENT);
         AuthenticationSession teacher = login(TestRole.TEACHER);
+        AuthenticationSession admin = login(TestRole.ADMIN);
         try {
+            var adminProbe = users.adminTest(admin.accessToken());
+            assertEquals(200, adminProbe.statusCode(), adminProbe.asString());
             assertEquals(403, users.adminTest(student.accessToken()).statusCode());
             assertEquals(403, users.adminTest(teacher.accessToken()).statusCode());
         } finally {
             logout(student);
             logout(teacher);
+            logout(admin);
         }
     }
 }

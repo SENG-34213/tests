@@ -62,7 +62,7 @@ These cases map existing JUnit integration methods that were present in the test
 | TC-TRACE-056 | QuizValidationIT | rejectsInvalidQuizRequests | integration | quiz |
 | TC-TRACE-057 | QuizValidationIT | rejectsInvalidQuestionAndAnswerRequests | integration | quiz |
 | TC-TRACE-058 | DownstreamFailureIT | controlledDownstreamFailureRequiresApprovedFaultInjection | integration | resilience |
-| TC-TRACE-059 | ProviderFailureIT | providerFailureRequiresExplicitProviderFailureMode | integration | resilience |
+| TC-TRACE-059 | AiProviderFailureIT | controlledProviderFailureReturnsSanitizedServerError | integration | resilience |
 | TC-TRACE-060 | AuthenticationIT | publicAndProtectedAuthenticationProbesFollowTheirSecurityRules | security | user |
 | TC-TRACE-061 | AuthenticationIT | roleProbesMatchStudentAndAdministratorTokens | security | user |
 | TC-TRACE-062 | AuthenticationIT | invalidAuthenticationPayloadsAreRejectedWithoutSensitiveOutput | security | user |

@@ -16,8 +16,12 @@ record UserTestData(String userId, boolean writeEnabled, boolean superAdminSuppo
     }
 
     static Map<String, Object> validRegistration() {
+        return validRegistration("step4-denied-user@mentify.test");
+    }
+
+    static Map<String, Object> validRegistration(String email) {
         return Map.of(
-                "email", "step4-denied-user@mentify.test",
+                "email", email,
                 "firstName", "Step Four",
                 "lastName", "Denied User",
                 "role", "STUDENT",
@@ -31,9 +35,29 @@ record UserTestData(String userId, boolean writeEnabled, boolean superAdminSuppo
                 "address", Map.of("addressLine1", "1 Test Street", "city", "Colombo", "district", "Colombo"));
     }
 
-    static Map<String, Object> validAdminRegistration() {
+    static Map<String, Object> validPublicStudentRegistration(String email) {
         return Map.of(
-                "email", "step4-denied-admin@mentify.test",
+                "email", email,
+                "firstName", "Synthetic",
+                "lastName", "Public Student",
+                "schoolName", "Mentify Test School",
+                "dateOfBirth", "2000-01-01",
+                "guardianName", "Synthetic Guardian",
+                "guardianPhone", "0771234567",
+                "attendanceMode", "ONLINE",
+                "address", Map.of(
+                        "addressLine1", "1 Synthetic Test Street",
+                        "city", "Colombo",
+                        "district", "Colombo"));
+    }
+
+    static Map<String, Object> validAdminRegistration() {
+        return validAdminRegistration("step4-denied-admin@mentify.test");
+    }
+
+    static Map<String, Object> validAdminRegistration(String email) {
+        return Map.of(
+                "email", email,
                 "firstName", "Step Four",
                 "lastName", "Denied Admin",
                 "adminProfile", Map.of(),
