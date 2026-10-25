@@ -23,7 +23,7 @@ Environment` means the test is intentionally gated.
 | Payment authorization and safe flows | Payment Service | TEST-018 | `payment/*` | Partially Covered | Provider writes/refunds are disabled by default. |
 | Notification ownership and validation | Notification Service | TEST-019 | `notification/*` | Covered | Email provider mode is disabled by default. |
 | AI conversations and provider boundary | AI Service | TEST-020 | `ai/*` | Partially Covered | Provider calls require explicit test mode. |
-| Cross-service workflow | API Gateway and core services | TEST-022 | `e2e/*` | Skipped by Environment | Enable E2E and provide services/fixtures. |
+| Cross-service workflow | API Gateway and core services | TEST-022 | `e2e/*` | Partially Covered | `CompleteWorkflowIT` implements student, teacher, and admin journeys; live execution still needs write opt-in, role credentials, a grade fixture, and all required services. The frontend enrollment payload mismatch is documented. |
 | Service readiness and failure reporting | All configured services | TEST-002, TEST-022 | `environment/*` | Covered | Failures identify the missing service. |
 | CI build, reports, and safe defaults | Maven and GitHub Actions | TEST-022, TEST-023 | `.github/workflows/test.yml` | Covered | Static CI needs no live services or secrets. |
 | Final traceability and quality review | Test repository | TEST-023 | This document and related final documents | Covered | Reviewed during TEST-023. |
