@@ -8,6 +8,13 @@
   fails clearly for a required service that is unavailable.
 - E2E tests require `TEST_E2E_ENABLED=true`; the course journey also requires
   `TEST_E2E_COURSE_ID`.
+- The complete Step 10 API journey is gated by write opt-in, role credentials,
+  a grade fixture, and all required services. Assignment deletion is soft and
+  no submission-delete endpoint exists, so one synthetic graded submission
+  remains on its archived assignment after cleanup.
+- Frontend `development` currently posts a singular `courseId` to student
+  self-enrollment; the backend contract requires a `courseIds` list. Resolve
+  this payload mismatch before frontend browser-flow verification.
 - Provider journeys and writes are disabled unless explicitly approved.
 - Some workflows require existing non-production IDs because shared data must
   not be deleted by tests.
