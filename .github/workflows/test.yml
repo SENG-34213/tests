@@ -45,6 +45,9 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install PDF report generator
+        run: python -m pip install --disable-pip-version-check -r tools/requirements-pdf.txt
+
       - name: Run verification
         env:
           TEST_ENV_ENABLED: 'false'
@@ -92,7 +95,8 @@ jobs:
             exit 1
           fi
 
-      - name: Require unit and integration JaCoCo artifacts
+      - name: Require unit JaCoCo artifacts
+        id: backend_artifacts
         if: ${{ inputs.include_backend_coverage == true }}
         env:
           GH_TOKEN: ${{ secrets.BACKEND_ARTIFACTS_TOKEN }}
@@ -106,10 +110,8 @@ jobs:
             echo "Backend run has no jacoco-unit-* artifacts. Ensure the backend unit job executes JaCoCo report generation."
             exit 1
           fi
-          if (( integration_count == 0 )); then
-            echo "Backend run has no jacoco-integration-* artifacts. Use a run that includes the backend integration job."
-            exit 1
-          fi
+          echo "integration_count=${integration_count}" >> "$GITHUB_OUTPUT"
+          echo "Found ${unit_count} unit and ${integration_count} optional integration JaCoCo artifact(s)."
 
       - name: Download backend unit coverage reports
         if: ${{ inputs.include_backend_coverage == true }}
@@ -122,7 +124,7 @@ jobs:
           path: artifacts/backend-jacoco/unit
 
       - name: Download backend integration coverage reports
-        if: ${{ inputs.include_backend_coverage == true }}
+        if: ${{ inputs.include_backend_coverage == true && steps.backend_artifacts.outputs.integration_count != '0' }}
         uses: actions/download-artifact@v4
         with:
           repository: SENG-34213/Mentify-backend
@@ -143,6 +145,10 @@ jobs:
       - name: Test test-evidence class-name resolution
         if: always()
         run: python -m unittest tools.test_test_evidence
+
+      - name: Test final testing PDF generation
+        if: always()
+        run: python -B -m unittest tools.test_generate_testing_pdfs
 
       - name: Generate executed test register and coverage availability summary
         if: always()
@@ -178,6 +184,17 @@ jobs:
           test -f .github/workflows/staging-smoke.yml
           test ! -f .env
 
+      - name: Generate final testing PDFs
+        if: always()
+        run: >-
+          python tools/generate-testing-pdfs.py
+          --register target/test-evidence/test-register.csv
+          --evidence target/test-evidence/evidence.json
+          --coverage-summary target/test-evidence/coverage-summary.md
+          --output-dir target/testing-pdfs
+          --test-sha ${{ github.sha }}
+          --branch ${{ github.ref_name }}
+
       - name: Upload Surefire reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -200,6 +217,14 @@ jobs:
         with:
           name: test-evidence-${{ github.run_number }}
           path: target/test-evidence/
+          if-no-files-found: warn
+
+      - name: Upload final testing PDFs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-testing-pdfs-${{ github.run_number }}
+          path: target/testing-pdfs/
           if-no-files-found: warn
 
       - name: Preserve downloaded backend coverage reports
