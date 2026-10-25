@@ -17,15 +17,22 @@ target for all new code or the 90% critical-logic target. Backend owners must
 define the intended changed-code/critical-class scope and enforce those rules
 in backend CI.
 
-The latest successful backend `development` run inspected for this task,
+The successful backend development run inspected initially,
 [run 40108590104](https://github.com/SENG-34213/Mentify-backend/actions/runs/40108590104)
-at SHA `9b7ae670e22d38ee6be0ffc166e9a55f65b677ab`, actually contains only
-`surefire-unit-*` artifacts; it has no `jacoco-unit-*` artifacts. The unit CI
-job runs Maven `test`, while the JaCoCo `report` execution is bound to `verify`,
-so that report is not generated in the unit job. The development push also did
-not run the PR/main-only integration jobs. The backend workflow must generate
-and upload JaCoCo XML in the unit job and produce a matching integration run
-before this repo can import complete coverage evidence.
+at SHA `9b7ae670e22d38ee6be0ffc166e9a55f65b677ab`, had only
+`surefire-unit-*` artifacts; it had no `jacoco-unit-*` artifacts. The unit CI
+job ran Maven `test`, while the JaCoCo `report` execution was bound to `verify`.
+The development push also skipped the PR/main-only integration jobs.
+
+To address this, backend branch
+[`feature/TEST-041-jacoco-report-artifacts`](https://github.com/SENG-34213/Mentify-backend/tree/feature/TEST-041-jacoco-report-artifacts)
+now runs `jacoco:report` after unit tests and emits XML for all service classes.
+Its successful [run 40171617525](https://github.com/SENG-34213/Mentify-backend/actions/runs/40171617525)
+at SHA `157d990bbe9d25e67826e04f14c9e9e69dfe6e58` produced 12 JaCoCo unit
+artifacts. The test evidence generator measured the 12-module aggregate at
+53.28% line and 33.73% branch coverage. These are aggregate measurements, not
+the changed-code threshold result; the backend's 80% auth/security check did
+not run in this push job, and integration coverage was not produced.
 
 The test repository can summarize JaCoCo XML; it cannot instrument backend
 classes or independently prove that the backend's Maven gate passed. Its manual
@@ -33,7 +40,8 @@ coverage path now checks that the selected backend Actions run succeeded, that
 the supplied SHA matches that run, and that the artifacts contain JaCoCo XML.
 The generated summary and evidence manifest record the backend run ID and SHA.
 Coverage percentages remain measurements; the backend CI check is authoritative
-for gate outcomes.
+for gate outcomes. The locally generated run-specific summary is under
+`target/test-classes/com/mentify/tests/backend-coverage-evidence/coverage-summary.md`.
 
 To produce this evidence after backend CI publishes JaCoCo XML, dispatch **Test
 Repository CI** with backend unit coverage enabled, the successful backend
