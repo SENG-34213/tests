@@ -10,7 +10,7 @@ Every public row has at least one linked JUnit request/case in this source audit
 
 A count below means the matrix does not link that assertion category to the route. Categories are not blanket requirements for every route: use the route's SRS/backend contract to decide whether a success, unauthenticated, wrong-role, validation, or ownership case applies. `endpoint-test-matrix.csv` retains the exact route row and available test evidence.
 
-- Missing linked success assertion: **4** route rows
+- Missing linked success assertion: **1** route rows
 - Missing linked unauthenticated assertion: **81** route rows
 - Missing linked wrong role assertion: **99** route rows
 - Missing linked validation assertion: **138** route rows

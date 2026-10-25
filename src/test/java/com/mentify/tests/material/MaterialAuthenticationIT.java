@@ -1,15 +1,26 @@
 package com.mentify.tests.material;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
+import io.restassured.response.Response;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Base64;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class MaterialAuthenticationIT extends MaterialIntegrationTestSupport {
 
     private static final String UNKNOWN_ID = "00000000-0000-0000-0000-000000000000";
+    private static final byte[] SYNTHETIC_PNG = Base64.getDecoder().decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/jWQAAAAASUVORK5CYII=");
 
     @Test
     void rejectsProtectedMaterialRequestsWithoutAuthentication() {
@@ -72,6 +83,47 @@ class MaterialAuthenticationIT extends MaterialIntegrationTestSupport {
             assertEquals(403, materialClient.downloadProfileImage(otherUsersKey, student.accessToken()).statusCode());
         } finally {
             logout(student);
+        }
+    }
+
+    @Test
+    void studentCanUploadAndDownloadOwnProfileImageFromLocalTestStorage() throws IOException {
+        assumeTrue(Boolean.parseBoolean(System.getenv().getOrDefault(
+                        "TEST_PROFILE_IMAGE_WRITE_ENABLED", "false")),
+                "Set TEST_PROFILE_IMAGE_WRITE_ENABLED=true for local profile-image integration");
+        LocalProfileImageStorageCleanup storageCleanup = LocalProfileImageStorageCleanup.fromEnvironment();
+        Path image = Files.createTempFile("mentify-profile-image-test-", ".png");
+        Files.write(image, SYNTHETIC_PNG);
+        AuthenticationSession student = null;
+        String storageKey = null;
+        try {
+            student = login(TestRole.STUDENT);
+            Response uploaded = materialClient.uploadProfileImage(image.toFile(), student.accessToken());
+            assertEquals(201, uploaded.statusCode(), uploaded.asString());
+            storageKey = uploaded.jsonPath().getString("data.storageKey");
+            assertNotNull(storageKey, uploaded.asString());
+            assertEquals("image/png", uploaded.jsonPath().getString("data.contentType"));
+
+            Response downloaded = materialClient.downloadProfileImage(storageKey, student.accessToken());
+            assertEquals(200, downloaded.statusCode(), downloaded.asString());
+            assertTrue(downloaded.getContentType().startsWith("image/png"), downloaded.getContentType());
+            assertArrayEquals(SYNTHETIC_PNG, downloaded.asByteArray());
+        } finally {
+            try {
+                if (storageKey != null) {
+                    storageCleanup.deleteCreatedProfileImage(storageKey);
+                }
+            } finally {
+                try {
+                    logout(student);
+                } finally {
+                    try {
+                        Files.deleteIfExists(image);
+                    } finally {
+                        storageCleanup.close();
+                    }
+                }
+            }
         }
     }
 }

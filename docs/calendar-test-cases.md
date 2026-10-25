@@ -25,6 +25,7 @@
 | TC-CAL-021 | Unknown event detail is not found | `GET /api/v1/calendar/events/{eventId}` | `404 Not Found` | Negative |
 | TC-CAL-022 | Event query requires a date range | `GET /api/v1/calendar/events` | Valid range returns `200`; missing required `start`/`end` returns `400` | Validation |
 | TC-CAL-023 | Event detail requires authentication | `GET /api/v1/calendar/events/{eventId}` | `401 Unauthorized` without a token | Security |
+| TC-CAL-025 | Admin creates a venue in an isolated database | `POST /api/v1/calendar/venues` | `201`; venue appears in authenticated venue listing | Integration (disposable database only) |
 
 ## Preconditions
 
@@ -36,4 +37,4 @@
 
 ## Isolation and safety
 
-TEST-006 tests do not create persistent events. TEST-007 creates unique future events through authorized users and cancels them during cleanup. Tests do not access the database directly or depend on execution order.
+TEST-006 tests do not create persistent events. TEST-007 creates unique future events through authorized users and cancels them during cleanup. TC-CAL-025 creates one uniquely named venue; the backend has no venue delete endpoint, so it runs only when `TEST_CALENDAR_DISPOSABLE_DATABASE_CONFIRMED=true` and the Calendar database will be discarded after the test. Do not enable it against a shared development database. Tests do not access the database directly or depend on execution order.

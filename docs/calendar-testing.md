@@ -34,3 +34,9 @@ successful.
     mvn verify -Pintegration
 
 The default command `mvn clean verify` runs unit tests and does not require the backend environment.
+
+The venue-create positive-path probe is separately gated by
+`TEST_CALENDAR_VENUE_WRITE_ENABLED=true` and
+`TEST_CALENDAR_DISPOSABLE_DATABASE_CONFIRMED=true`. The backend exposes no
+venue-delete route, so use only a disposable Calendar database; its uniquely
+named test venue remains until that database is discarded.

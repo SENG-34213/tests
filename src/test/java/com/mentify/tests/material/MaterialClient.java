@@ -36,6 +36,11 @@ public class MaterialClient {
         return apiClient.postMultipart("/api/v1/profile-images", Map.of(), null, token);
     }
 
+    public Response uploadProfileImage(File file, String token) {
+        return apiClient.postMultipart("/api/v1/profile-images", Map.of(),
+                Objects.requireNonNull(file, "file must not be null"), token);
+    }
+
     public Response downloadProfileImage(String key, String token) {
         return apiClient.get("/api/v1/profile-images", token, Map.of("key", required(key, "key")), Map.of());
     }
