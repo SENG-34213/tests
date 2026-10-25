@@ -13,9 +13,11 @@ import com.mentify.tests.environment.BackendReadinessClient;
 import com.mentify.tests.environment.RequiredService;
 import com.mentify.tests.environment.TestEnvironmentConfiguration;
 import io.restassured.response.Response;
-import java.util.ArrayList;
-import java.util.List;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,9 +37,13 @@ abstract class PerformanceTestSupport {
         performance = PerformanceConfiguration.fromEnvironment();
         assumeTrue(performance.enabled(),
                 "Set PERFORMANCE_TEST_ENABLED=true to run performance baselines");
-        TestEnvironmentConfiguration environment = TestEnvironmentConfiguration.fromEnvironment();
         assumeTrue("production".equalsIgnoreCase(performance.environment()) == false,
                 "Performance tests must never run against production");
+        Map<String, String> readinessSettings = new HashMap<>(System.getenv());
+        readinessSettings.put("TEST_ENV_ENABLED", "true");
+        readinessSettings.put("TEST_REQUIRED_SERVICES", "API_GATEWAY");
+        readinessSettings.put("API_GATEWAY_BASE_URL", performance.baseUrl());
+        TestEnvironmentConfiguration environment = TestEnvironmentConfiguration.fromEnvironment(readinessSettings);
         BackendReadinessClient readiness = new BackendReadinessClient(environment);
         readiness.awaitService(RequiredService.API_GATEWAY);
         api = new ApiClient(new ApiClientConfiguration(

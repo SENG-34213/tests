@@ -170,11 +170,18 @@ category are treated as invalid input. The optional manual GitHub Actions path
 downloads unit and integration artifacts from a selected backend CI run; set
 the backend run ID and commit SHA together so the evidence manifest identifies
 its source. `coverage-summary.md` reports measured line,
-branch, and instruction counters; it does not claim a threshold passed. The
-Any backend coverage gate result remains the result of the backend checks
-actually configured for the measured module and source scope. The summary does
+branch, and instruction counters; it does not claim a threshold passed. Any
+backend coverage gate result remains the result of backend checks actually
+configured for the measured module and source scope. The summary does
 not infer that a gate ran or passed. If no JaCoCo XML was supplied, it says
 coverage is unavailable, not zero.
+
+When the manual coverage option is enabled, CI verifies that the selected
+backend workflow run succeeded and that its actual source SHA matches the
+provided commit SHA before downloading reports. It then requires at least one
+JaCoCo XML file. The generated coverage summary records the backend run ID and
+source SHA. This verifies artifact provenance and measurements; it does not
+replace the backend's own threshold gate.
 
 ## Troubleshooting
 

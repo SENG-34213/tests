@@ -63,6 +63,35 @@ jobs:
           test -n "$BACKEND_COMMIT_SHA" || { echo "backend_commit_sha is required"; exit 1; }
           test -n "$BACKEND_ARTIFACTS_TOKEN" || { echo "Configure BACKEND_ARTIFACTS_TOKEN with read access to backend workflow artifacts"; exit 1; }
 
+      - name: Verify backend run identity and successful conclusion
+        if: ${{ inputs.include_backend_coverage == true }}
+        env:
+          GH_TOKEN: ${{ secrets.BACKEND_ARTIFACTS_TOKEN }}
+          BACKEND_RUN_ID: ${{ inputs.backend_workflow_run_id }}
+          EXPECTED_BACKEND_SHA: ${{ inputs.backend_commit_sha }}
+        shell: bash
+        run: |
+          if [[ ! "$BACKEND_RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "backend_workflow_run_id must be numeric."
+            exit 1
+          fi
+          if [[ ! "$EXPECTED_BACKEND_SHA" =~ ^[[:xdigit:]]{7,40}$ ]]; then
+            echo "backend_commit_sha must be a 7-40 character Git SHA."
+            exit 1
+          fi
+          run_json="$(gh api "repos/SENG-34213/Mentify-backend/actions/runs/${BACKEND_RUN_ID}")"
+          actual_sha="$(jq -r '.head_sha' <<< "$run_json" | tr '[:upper:]' '[:lower:]')"
+          expected_sha="$(printf '%s' "$EXPECTED_BACKEND_SHA" | tr '[:upper:]' '[:lower:]')"
+          conclusion="$(jq -r '.conclusion' <<< "$run_json")"
+          if [[ "$actual_sha" != "$expected_sha" && "$actual_sha" != "$expected_sha"* ]]; then
+            echo "Selected backend run SHA does not match backend_commit_sha."
+            exit 1
+          fi
+          if [[ "$conclusion" != "success" ]]; then
+            echo "Selected backend workflow run did not conclude successfully (conclusion: ${conclusion})."
+            exit 1
+          fi
+
       - name: Download backend unit coverage reports
         if: ${{ inputs.include_backend_coverage == true }}
         uses: actions/download-artifact@v4
@@ -82,6 +111,15 @@ jobs:
           github-token: ${{ secrets.BACKEND_ARTIFACTS_TOKEN }}
           pattern: jacoco-integration-*
           path: artifacts/backend-jacoco/integration
+
+      - name: Require JaCoCo XML from the selected backend run
+        if: ${{ inputs.include_backend_coverage == true }}
+        shell: bash
+        run: |
+          if ! find artifacts/backend-jacoco -type f -name jacoco.xml -print -quit | grep -q .; then
+            echo "The selected backend run supplied no JaCoCo XML reports; coverage evidence cannot be generated."
+            exit 1
+          fi
 
       - name: Test test-evidence class-name resolution
         if: always()
