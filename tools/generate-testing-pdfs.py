@@ -146,11 +146,15 @@ def register_pdf(register_path: Path, evidence_path: Path, out: Path, test_sha: 
     report.save(out)
 
 
-def coverage_pdf(summary_path: Path, out: Path, test_sha: str, branch: str):
+def coverage_pdf(summary_path: Path, out: Path, test_sha: str, branch: str, backend_run_id: str, backend_sha: str, backend_conclusion: str):
     text = summary_path.read_text(encoding="utf-8") if summary_path.exists() else ""
     report = Report("Backend Coverage Report", "Imported JaCoCo measurements; backend CI is the threshold authority")
     report.heading("Provenance")
     report.paragraph(f"Test branch: {branch}; test repository SHA: {test_sha or 'not supplied'}.")
+    if backend_run_id and backend_sha and backend_conclusion:
+        report.paragraph(f"TEST-042 backend CI run: {backend_run_id}; backend source SHA: {backend_sha}; conclusion: {backend_conclusion}.")
+    else:
+        report.paragraph("No TEST-042 backend CI run identity was supplied to this PDF generation.", color=RED)
     found = re.search(r"Backend workflow run: ([^;]+); backend source SHA: ([^.]+)", text)
     if found:
         report.paragraph(f"Backend workflow run: {found.group(1).strip(chr(96))}; backend source SHA: {found.group(2).strip().strip(chr(96))}.")
@@ -170,7 +174,10 @@ def coverage_pdf(summary_path: Path, out: Path, test_sha: str, branch: str):
         report.paragraph("No JaCoCo XML was imported into this test-repository run. The latest separately recorded backend CI aggregate is run 40172276922 at backend SHA 40deaa168180365c3f9370aefcffe92471c58c26: 12 unit modules, 53.28% line, 33.73% branch, and 50.55% instruction coverage.", color=RED)
     report.heading("Guideline comparison")
     report.paragraph("The guideline requires at least 80% line and branch coverage for new code, 100% API endpoint integration-test coverage, and 90% branch coverage for critical business logic (SENG 34213 System Development Project Guideline, section 6.4).")
-    report.paragraph("The aggregate figures above are measurements across unit reports; they are not changed-code coverage. Backend TEST-042 adds a per-class 90% branch gate for QuizGradingServiceImpl and GradingServiceImpl, mapped to SDS sections 4.5 and 4.6. Full assignment-service verify passed locally: 95 tests, zero failures/errors/skips; both classes reached 100% line and branch coverage (Quiz 35/35 lines, 14/14 branches; Assignment 68/68 lines, 38/38 branches). This local run has no GitHub Actions run ID yet.", color=RED)
+    if backend_run_id and backend_sha and backend_conclusion == "success":
+        report.paragraph("The current TEST-042 backend unit/coverage workflow completed successfully, including the assignment-service unit job and JaCoCo artifact. Its aggregate values, when shown above, remain a separate measurement and are not changed-code coverage. The per-class 90% branch gate covers QuizGradingServiceImpl and GradingServiceImpl, mapped to SDS sections 4.5 and 4.6. Local full assignment-service verify also passed: 95 tests, zero failures/errors/skips; Quiz reached 35/35 lines and 14/14 branches, and Assignment reached 68/68 lines and 38/38 branches.", color=GREEN)
+    else:
+        report.paragraph("Aggregate figures are not changed-code coverage. Backend TEST-042 adds a per-class 90% branch gate for QuizGradingServiceImpl and GradingServiceImpl, mapped to SDS sections 4.5 and 4.6. Full local assignment-service verify passed: 95 tests, zero failures/errors/skips; both classes reached 100% line and branch coverage. No successful TEST-042 backend CI run was supplied to this PDF generation.", color=RED)
     report.paragraph("No integration JaCoCo report is attached to this evidence. The route matrix links source-level requests/assertions; it does not establish that every effective API endpoint passed an integration test. The 80% changed-code line/branch requirement also still needs CI evidence.", color=MUTED)
     report.save(out)
 
@@ -197,7 +204,7 @@ def performance_pdf(out: Path, test_sha: str, branch: str):
     report.save(out)
 
 
-def summary_pdf(register_path: Path, route_matrix: Path, coverage_summary: Path, out: Path, test_sha: str, branch: str):
+def summary_pdf(register_path: Path, route_matrix: Path, coverage_summary: Path, out: Path, test_sha: str, branch: str, backend_run_id: str, backend_sha: str, backend_conclusion: str):
     cases = read_rows(register_path)
     counts = Counter(row.get("status", "Not Run") for row in cases)
     routes = read_rows(route_matrix) if route_matrix.exists() else []
@@ -217,7 +224,11 @@ def summary_pdf(register_path: Path, route_matrix: Path, coverage_summary: Path,
     report.paragraph(f"Backend JaCoCo source: run {found.group(1).strip(chr(96))}, SHA {found.group(2).strip().strip(chr(96))}." if found else "No matching backend run ID/SHA was supplied.")
     aggregate = next((line for line in coverage.splitlines() if line.startswith("| unit aggregate |")), "")
     report.paragraph("Measured unit aggregate: " + aggregate.replace("|", " ").strip() if aggregate else "No backend JaCoCo report was imported.")
-    report.paragraph("The latest historical backend aggregate is 53.28% line and 33.73% branch across 12 unit modules, below the 80% guideline target and not a changed-code measurement. Backend TEST-042 adds a 90% branch gate for the SDS quiz and assignment grading classes. Full assignment-service verify passed locally with 95 tests; both classes reached 100% line and branch coverage. The branch's Actions artifact is pending.", color=RED)
+    report.paragraph("The latest recorded backend aggregate is 53.28% line and 33.73% branch across 12 unit modules, below the 80% guideline target and not a changed-code measurement. Backend TEST-042 adds a 90% branch gate for the SDS quiz and assignment grading classes. Full assignment-service verify passed locally with 95 tests; both classes reached 100% line and branch coverage.", color=RED)
+    if backend_run_id and backend_sha and backend_conclusion:
+        report.paragraph(f"Current TEST-042 backend Actions result: run {backend_run_id}, SHA {backend_sha}, conclusion {backend_conclusion}. The backend run's JaCoCo unit artifacts include the assignment-service report.", color=GREEN if backend_conclusion == "success" else RED)
+    else:
+        report.paragraph("Current TEST-042 backend Actions run ID/SHA was not supplied; the local coverage result is not a substitute for CI evidence.", color=RED)
     report.heading("Performance and staging")
     report.paragraph("Performance: NOT RUN. No approved dedicated target, test account secrets, or successful workflow result was available. No latency/throughput/error measurements are claimed.", color=RED)
     report.paragraph("Staging: NOT RUN. No approved staging URLs, protected environment approval, or successful smoke workflow result was available.", color=RED)
@@ -242,13 +253,16 @@ def main():
     parser.add_argument("--output-dir", type=Path, default=Path("docs/testing"))
     parser.add_argument("--test-sha", default="unknown")
     parser.add_argument("--branch", default="unknown")
+    parser.add_argument("--backend-ci-run-id", default="")
+    parser.add_argument("--backend-ci-sha", default="")
+    parser.add_argument("--backend-ci-conclusion", default="")
     args = parser.parse_args()
     if not args.register.exists():
         parser.error(f"test register does not exist: {args.register}")
     register_pdf(args.register, args.evidence, args.output_dir / "test-register.pdf", args.test_sha, args.branch)
-    coverage_pdf(args.coverage_summary, args.output_dir / "coverage-sprint8.pdf", args.test_sha, args.branch)
+    coverage_pdf(args.coverage_summary, args.output_dir / "coverage-sprint8.pdf", args.test_sha, args.branch, args.backend_ci_run_id, args.backend_ci_sha, args.backend_ci_conclusion)
     performance_pdf(args.output_dir / "performance-report.pdf", args.test_sha, args.branch)
-    summary_pdf(args.register, args.route_matrix, args.coverage_summary, args.output_dir / "testing-summary.pdf", args.test_sha, args.branch)
+    summary_pdf(args.register, args.route_matrix, args.coverage_summary, args.output_dir / "testing-summary.pdf", args.test_sha, args.branch, args.backend_ci_run_id, args.backend_ci_sha, args.backend_ci_conclusion)
     print(f"Generated PDFs under {args.output_dir}")
 
 

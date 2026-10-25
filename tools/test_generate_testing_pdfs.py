@@ -69,15 +69,21 @@ class TestingPdfGenerationTests(unittest.TestCase):
                 writer.writerow({"coverage_status": "REQUEST_WITH_SUCCESS_RESPONSE_ASSERTION_LINKED"})
 
             pdfs.register_pdf(register, evidence, output / "test-register.pdf", "a" * 40, "feature/test")
-            pdfs.coverage_pdf(summary, output / "coverage-sprint8.pdf", "a" * 40, "feature/test")
+            pdfs.coverage_pdf(
+                summary, output / "coverage-sprint8.pdf", "a" * 40, "feature/test",
+                "40180383416", "8cb633c2c12868cb3239a8940e24cad1abd42746", "success",
+            )
             pdfs.performance_pdf(output / "performance-report.pdf", "a" * 40, "feature/test")
-            pdfs.summary_pdf(register, routes, summary, output / "testing-summary.pdf", "a" * 40, "feature/test")
+            pdfs.summary_pdf(
+                register, routes, summary, output / "testing-summary.pdf", "a" * 40, "feature/test",
+                "40180383416", "8cb633c2c12868cb3239a8940e24cad1abd42746", "success",
+            )
 
             expected = {
                 "test-register.pdf": ["TC-COURSE-001", "Passed", "Course readiness"],
-                "coverage-sprint8.pdf": ["53.28%", "33.73%", "not changed-code coverage"],
+                "coverage-sprint8.pdf": ["53.28%", "33.73%", "40180383416", "conclusion: success"],
                 "performance-report.pdf": ["BLOCKED / NOT RUN", "PERFORMANCE_BASE_URL"],
-                "testing-summary.pdf": ["Route audit inventory", "NOT RUN", "90% branch gate"],
+                "testing-summary.pdf": ["Route audit inventory", "NOT RUN", "90% branch gate", "40180383416"],
             }
             for name, markers in expected.items():
                 path = output / name

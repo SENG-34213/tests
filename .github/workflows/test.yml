@@ -20,6 +20,14 @@ on:
         description: Backend commit SHA represented by those artifacts
         required: false
         type: string
+      backend_ci_run_id:
+        description: Optional successful backend CI run ID to cite in the final PDFs
+        required: false
+        type: string
+      backend_ci_sha:
+        description: Backend commit SHA for backend_ci_run_id
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -142,6 +150,25 @@ jobs:
             exit 1
           fi
 
+      - name: Verify optional backend CI provenance for final reports
+        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.backend_ci_run_id != '' || inputs.backend_ci_sha != '') }}
+        env:
+          BACKEND_CI_RUN_ID: ${{ inputs.backend_ci_run_id }}
+          EXPECTED_BACKEND_CI_SHA: ${{ inputs.backend_ci_sha }}
+        shell: bash
+        run: |
+          test -n "$BACKEND_CI_RUN_ID" || { echo "backend_ci_run_id and backend_ci_sha must be supplied together."; exit 1; }
+          test -n "$EXPECTED_BACKEND_CI_SHA" || { echo "backend_ci_run_id and backend_ci_sha must be supplied together."; exit 1; }
+          [[ "$BACKEND_CI_RUN_ID" =~ ^[0-9]+$ ]] || { echo "backend_ci_run_id must be numeric."; exit 1; }
+          [[ "$EXPECTED_BACKEND_CI_SHA" =~ ^[[:xdigit:]]{40}$ ]] || { echo "backend_ci_sha must be a full 40-character SHA."; exit 1; }
+          run_json="$(curl --fail --silent --show-error "https://api.github.com/repos/SENG-34213/Mentify-backend/actions/runs/${BACKEND_CI_RUN_ID}")"
+          actual_sha="$(jq -r '.head_sha | ascii_downcase' <<< "$run_json")"
+          expected_sha="$(printf '%s' "$EXPECTED_BACKEND_CI_SHA" | tr '[:upper:]' '[:lower:]')"
+          conclusion="$(jq -r '.conclusion' <<< "$run_json")"
+          test "$actual_sha" = "$expected_sha" || { echo "Backend run SHA does not match backend_ci_sha."; exit 1; }
+          test "$conclusion" = "success" || { echo "Backend CI run must have conclusion success."; exit 1; }
+          echo "BACKEND_CI_CONCLUSION=${conclusion}" >> "$GITHUB_ENV"
+
       - name: Test test-evidence class-name resolution
         if: always()
         run: python -m unittest tools.test_test_evidence
@@ -186,14 +213,22 @@ jobs:
 
       - name: Generate final testing PDFs
         if: always()
+        env:
+          TEST_REPORT_SHA: ${{ github.sha }}
+          TEST_REPORT_BRANCH: ${{ github.ref_name }}
+          BACKEND_CI_RUN_ID: ${{ inputs.backend_ci_run_id }}
+          BACKEND_CI_SHA: ${{ inputs.backend_ci_sha }}
         run: >-
           python tools/generate-testing-pdfs.py
           --register target/test-evidence/test-register.csv
           --evidence target/test-evidence/evidence.json
           --coverage-summary target/test-evidence/coverage-summary.md
           --output-dir target/testing-pdfs
-          --test-sha ${{ github.sha }}
-          --branch ${{ github.ref_name }}
+          --test-sha "$TEST_REPORT_SHA"
+          --branch "$TEST_REPORT_BRANCH"
+          --backend-ci-run-id "$BACKEND_CI_RUN_ID"
+          --backend-ci-sha "$BACKEND_CI_SHA"
+          --backend-ci-conclusion "${BACKEND_CI_CONCLUSION:-}"
 
       - name: Upload Surefire reports
         if: always()
