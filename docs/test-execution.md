@@ -53,9 +53,14 @@ Class suffix and package conventions are the supported selection mechanism.
 $env:TEST_E2E_ENABLED="true"
 $env:TEST_E2E_COURSE_ID="approved-non-production-course-id"
 $env:TEST_E2E_PROVIDER_JOURNEYS_ENABLED="false"
-mvn -Dtest="*Gateway*IT,*JourneyIT" verify -Pintegration
+$env:TEST_REQUIRED_SERVICES="API_GATEWAY,AUTH_SERVICE,USER_SERVICE,COURSE_SERVICE,ENROLLMENT_SERVICE,ASSIGNMENT_SERVICE,MATERIAL_SERVICE,PAYMENT_SERVICE,NOTIFICATION_SERVICE"
+mvn -Pintegration verify "-Dit.test=*Gateway*IT,*JourneyIT,*CrossService*IT"
 ```
 
+The complete student/teacher/admin write journey is separately gated by
+`TEST_E2E_WRITE_ENABLED=true` and `TEST_E2E_COURSE_GRADE_ID`; provide dedicated
+student, teacher, and admin credentials. Run it only in a disposable
+non-production environment because the backend has no submission deletion API.
 Provider journeys remain disabled unless provider test mode and write flags are
 explicitly approved. Never put credentials or provider keys in source files.
 
