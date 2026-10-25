@@ -11,6 +11,17 @@ TEST_ENV_ENABLED=true
 TEST_E2E_ENABLED=true
 TEST_REQUIRED_SERVICES=API_GATEWAY,AUTH_SERVICE,USER_SERVICE,COURSE_SERVICE,ENROLLMENT_SERVICE,ASSIGNMENT_SERVICE,MATERIAL_SERVICE,PAYMENT_SERVICE,NOTIFICATION_SERVICE
 TEST_E2E_COURSE_ID=<approved-course-uuid>
+TEST_E2E_MODULE_ID=<student-course-module-uuid>
+TEST_E2E_LESSON_ID=<student-course-lesson-uuid>
+TEST_E2E_ASSIGNMENT_ID=<student-course-assignment-uuid>
+TEST_E2E_QUIZ_ID=<published-student-course-quiz-uuid>
+TEST_E2E_GRADED_SUBMISSION_ID=<graded-submission-owned-by-student>
+TEST_E2E_TEACHER_COURSE_ID=<course-owned-by-teacher>
+TEST_E2E_TEACHER_MODULE_ID=<teacher-course-module-uuid>
+TEST_E2E_TEACHER_LESSON_ID=<teacher-course-lesson-uuid>
+TEST_E2E_TEACHER_MATERIAL_ID=<teacher-course-material-uuid>
+TEST_E2E_TEACHER_ASSIGNMENT_ID=<teacher-course-assignment-uuid>
+TEST_E2E_TEACHER_SUBMISSION_ID=<graded-submission-for-teacher-course>
 TEST_E2E_PROVIDER_JOURNEYS_ENABLED=false
 TEST_E2E_WRITE_ENABLED=false
 TEST_E2E_COURSE_GRADE_ID=<non-production-grade-uuid>
@@ -30,15 +41,14 @@ assignment. Use a disposable non-production environment. Do not run it against p
 - Gateway authentication to User Service current-user data.
 - Student/teacher/admin role preservation across gateway calls.
 - Course lookup and enrollment identifier consistency with an approved course fixture.
-- Complete teacher-created course, student self-enrollment/approval, lesson/material access, assignment submission and
-  grading, quiz attempt/result, and administrator user/course/payment/notification reads.
+- Student course learning journey: current identity, active enrollment, lesson, assignment, published quiz, and the student's graded submission. It verifies that the same course and assignment identifiers flow across services.
+- Teacher course journey: an owned course, lesson, material, assignment, and persisted grade on its submission.
+- Admin operations journey: user directory, course list, payment administration, and authenticated notification access.
+- Complete teacher-created course, student self-enrollment/approval, lesson/material access, assignment submission and grading, quiz attempt/result, and administrator user/course/payment/notification reads.
 - Payment-notification and learning-provider journeys only when deterministic fixtures are explicitly enabled.
 - Missing-token and downstream authorization/error behavior.
 
-Write journeys and provider journeys are skipped by default. The full write journey only uses synthetic test data and
-does not initiate a payment; payment coverage in that journey is the administrator's read-only payment-list access.
-Provider journeys must use payment test mode, synthetic notification events, and a safe AI provider; production
-credentials, cards, personal data, and direct database assertions are prohibited.
+The fixture-backed Student and Teacher journeys are read-only. The full workflow is separately gated by `TEST_E2E_WRITE_ENABLED=true`; it creates disposable synthetic resources and deletes what supported API endpoints allow. Assignment deletion is soft and the backend has no submission-delete route, so the synthetic graded submission remains associated with the archived assignment. No payment is initiated by this journey. Provider journeys are skipped by default and require payment test mode, synthetic notification events, and a safe AI provider. Production credentials, cards, personal data, and direct database assertions are prohibited.
 
 ## Readiness and skip behavior
 
