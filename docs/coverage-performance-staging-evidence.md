@@ -27,12 +27,17 @@ The development push also skipped the PR/main-only integration jobs.
 To address this, backend branch
 [`feature/TEST-041-jacoco-report-artifacts`](https://github.com/SENG-34213/Mentify-backend/tree/feature/TEST-041-jacoco-report-artifacts)
 now runs `jacoco:report` after unit tests and emits XML for all service classes.
-Its successful [run 40171617525](https://github.com/SENG-34213/Mentify-backend/actions/runs/40171617525)
-at SHA `157d990bbe9d25e67826e04f14c9e9e69dfe6e58` produced 12 JaCoCo unit
-artifacts. The test evidence generator measured the 12-module aggregate at
-53.28% line and 33.73% branch coverage. These are aggregate measurements, not
-the changed-code threshold result; the backend's 80% auth/security check did
-not run in this push job, and integration coverage was not produced.
+The backend feature branch now runs `verify` in its unit jobs, so the report and
+configured JaCoCo check execute together. Its successful [run 40172276922](https://github.com/SENG-34213/Mentify-backend/actions/runs/40172276922)
+at SHA `40deaa168180365c3f9370aefcffe92471c58c26` produced 12 JaCoCo unit
+artifacts; all unit test/coverage jobs and report uploads completed successfully.
+The test evidence generator measured the 12-module aggregate at 53.28% line,
+33.73% branch, and 50.55% instruction coverage. These are aggregate measurements,
+not changed-code coverage and do not meet a global 80% line/branch target. The
+backend CI configured check remains scoped to the named auth/security classes;
+its successful job step confirms that configured check passed, but it does not
+establish the 90% critical-business-logic target. Integration coverage was not
+produced in this push run.
 
 The test repository can summarize JaCoCo XML; it cannot instrument backend
 classes or independently prove that the backend's Maven gate passed. Its manual
