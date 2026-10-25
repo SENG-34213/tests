@@ -209,7 +209,6 @@ def summary_pdf(register_path: Path, route_matrix: Path, coverage_summary: Path,
     counts = Counter(row.get("status", "Not Run") for row in cases)
     routes = read_rows(route_matrix) if route_matrix.exists() else []
     route_counts = Counter(row.get("coverage_status", "") for row in routes)
-    coverage = coverage_summary.read_text(encoding="utf-8") if coverage_summary.exists() else ""
     report = Report("Testing Evidence Summary", "Final report testing chapter - verified outcomes and remaining execution evidence")
     report.heading("Scope and provenance")
     report.paragraph("This summary follows SENG 34213 System Development Project Guideline sections 6.2, 6.4, 10.1, and 10.4. It distinguishes local test results, CI evidence, source-level endpoint links, and live environment results.")
@@ -223,22 +222,24 @@ def summary_pdf(register_path: Path, route_matrix: Path, coverage_summary: Path,
     report.paragraph("Frontend: 5 Student/Admin Playwright E2E tests passed locally. The AI chat E2E was excluded under the team's decision to verify AI manually. The tested E2E files match the frontend development branch; no frontend code change was needed.")
     report.heading("Coverage results and guideline interpretation")
     report.paragraph("The guideline's 80% line and branch target applies to new or modified production code. Backend TEST-042 added tests, JaCoCo configuration, CI, and documentation; it did not change production Java source. Therefore the whole-backend aggregate is not the 80% acceptance gate for this branch.")
-    found = re.search(r"Backend workflow run: ([^;]+); backend source SHA: ([^.]+)", coverage)
-    report.paragraph(f"Historical backend-wide baseline: run {found.group(1).strip(chr(96))}, SHA {found.group(2).strip().strip(chr(96))}. It measured 12 unit modules at 53.28% line, 33.73% branch, and 50.55% instruction. This older aggregate is context only; it is not the changed-production-code result for TEST-042.") if found else report.paragraph("No backend-wide aggregate was supplied for the current run. The report does not infer an aggregate percentage from class-level results.", color=MUTED)
+    report.paragraph("Latest available backend-wide aggregate baseline: run 40172276922, SHA 40deaa168180365c3f9370aefcffe92471c58c26. It measured 12 unit modules at 53.28% line, 33.73% branch, and 50.55% instruction. This is historical context only, not a current-run aggregate or the changed-production-code result for TEST-042.")
     if backend_run_id and backend_sha and backend_conclusion:
         report.paragraph(f"Current backend unit/coverage CI: run {backend_run_id}; source SHA {backend_sha}; conclusion {backend_conclusion}. All 14 unit/coverage matrix jobs passed and 12 JaCoCo module artifacts were published, including assignment-service.", color=GREEN if backend_conclusion == "success" else RED)
     else:
         report.paragraph("The current backend unit/coverage CI run ID, SHA, and conclusion were not supplied to this summary.", color=RED)
     report.paragraph("SDS critical logic: the Maven build enforces at least 90% branch coverage independently for QuizGradingServiceImpl (SDS quiz auto-grading, section 4.5) and GradingServiceImpl (SDS assignment grading, section 4.6). Both measured 100% line and branch coverage locally: Quiz 35/35 lines and 14/14 branches; Assignment 68/68 lines and 38/38 branches. The full assignment-service verify passed 95 tests, and its backend CI job passed with a JaCoCo artifact.", color=GREEN)
-    report.heading("Execution evidence still required")
+    report.new_page()
+    report.heading("Guideline acceptance matrix")
     remaining = [
-        {"area": "Backend API integration", "evidence": "235 route rows have source links; 546 register cases are Not Run.", "status": "Run the PR-triggered integration workflow and verify each effective endpoint against passing JUnit evidence."},
-        {"area": "Performance", "evidence": "No measured latency, throughput, error-rate, or timeout results are recorded.", "status": "Run the bounded workflow twice against the approved dedicated-performance environment."},
-        {"area": "Staging smoke", "evidence": "No staging run ID, deployed SHA, or smoke artifact is recorded.", "status": "Run the read-only smoke workflow against the approved staging environment."},
-        {"area": "AI", "evidence": "The team reports manual verification; AI chat E2E was excluded.", "status": "No automated/live AI result is claimed in this summary."},
+        {"criterion": "New/changed production code", "target": ">=80% line and branch", "evidence": "TEST-042 changes no backend production Java source; this branch does not claim a whole-backend 80% aggregate.", "status": "Target scope: not triggered by this branch."},
+        {"criterion": "API integration", "target": "At least one passing integration case per effective endpoint", "evidence": "235 route rows have source links; 546 register rows remain Not Run; no current live endpoint run is recorded.", "status": "Incomplete; run the PR-triggered backend integration workflow."},
+        {"criterion": "SDS critical grading", "target": ">=90% branch per scoped class", "evidence": "QuizGradingServiceImpl: 100% (14/14); GradingServiceImpl: 100% (38/38); backend CI verify passed.", "status": "Met for the two documented grading classes."},
+        {"criterion": "Performance", "target": "Measured bounded run and reported latency/throughput/errors", "evidence": "No performance measurements or successful workflow run are recorded.", "status": "Pending dedicated-performance run."},
+        {"criterion": "Staging smoke", "target": "Approved read-only staging run with run ID and deployed SHA", "evidence": "No staging run ID, deployment SHA, or smoke artifact is recorded.", "status": "Pending staging run."},
+        {"criterion": "AI verification", "target": "Team's chosen manual verification", "evidence": "AI chat E2E was excluded; the team reports manual verification.", "status": "No automated/live AI result is claimed."},
     ]
-    add_table(report, remaining, [("Area", "area", 105), ("Current evidence", "evidence", 300), ("Status / required evidence", "status", 381)], fontsize=7.1)
-    report.paragraph("Performance and staging results must be added after those runs complete. Their absence here is an execution status, not a failed test result.", color=MUTED)
+    add_table(report, remaining, [("Criterion", "criterion", 105), ("Guideline target", "target", 155), ("Evidence", "evidence", 300), ("Assessment", "status", 226)], fontsize=6.7)
+    report.paragraph("Not Run/Pending is a recorded execution state, not a failed test result. Update the relevant report only after a successful run produces its JUnit/JaCoCo or sanitized environment artifact.", color=MUTED)
     report.save(out)
 
 

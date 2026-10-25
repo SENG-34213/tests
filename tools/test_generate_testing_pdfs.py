@@ -88,7 +88,8 @@ class TestingPdfGenerationTests(unittest.TestCase):
                     "235-row route matrix", "546 rows", "Not Run, with zero Failed",
                     "80% line and branch target",
                     "14 unit/coverage matrix jobs passed", "90% branch coverage independently",
-                    "40181135024", "Run the PR-triggered integration workflow", "not a failed test result",
+                    "40181135024", "Guideline acceptance matrix", "Not Run/Pending",
+                    "historical context only", "not a current-run aggregate",
                 ],
             }
             for name, markers in expected.items():
