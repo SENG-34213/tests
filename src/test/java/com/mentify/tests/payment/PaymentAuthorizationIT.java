@@ -59,4 +59,17 @@ class PaymentAuthorizationIT extends PaymentIntegrationTestSupport {
             logout(teacher);
         }
     }
+
+    @Test
+    void studentsAndTeachersCannotRefundPayments() {
+        AuthenticationSession student = login(TestRole.STUDENT);
+        AuthenticationSession teacher = login(TestRole.TEACHER);
+        try {
+            assertEquals(403, payments.refund(UNKNOWN_ID, null, student.accessToken()).statusCode());
+            assertEquals(403, payments.refund(UNKNOWN_ID, null, teacher.accessToken()).statusCode());
+        } finally {
+            logout(student);
+            logout(teacher);
+        }
+    }
 }

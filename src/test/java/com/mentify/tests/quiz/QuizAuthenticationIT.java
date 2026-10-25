@@ -49,6 +49,10 @@ class QuizAuthenticationIT extends QuizIntegrationTestSupport {
             quizId = created.jsonPath().getString("data.id");
             Assumptions.assumeTrue(quizId != null && !quizId.isBlank(),
                     "A valid quiz fixture is required for role authorization checks");
+            var question = questionClient.create(quizId, QuizTestDataFactory.question("ROLE-STUDENT"),
+                    teacher.accessToken());
+            assertEquals(201, question.statusCode(), question.asString());
+            String questionId = question.jsonPath().getString("data.id");
 
             student = login(TestRole.STUDENT);
             assertEquals(403, quizClient.create(QuizTestDataFactory.quiz(config.courseId(), "BLOCKED"),
@@ -61,6 +65,9 @@ class QuizAuthenticationIT extends QuizIntegrationTestSupport {
             assertEquals(403, quizClient.publish(quizId, student.accessToken()).statusCode());
             assertEquals(403, questionClient.create(quizId, QuizTestDataFactory.question("BLOCKED"),
                     student.accessToken()).statusCode());
+            assertEquals(403, questionClient.update(quizId, questionId,
+                    QuizTestDataFactory.question("BLOCKED"), student.accessToken()).statusCode());
+            assertEquals(403, questionClient.delete(quizId, questionId, student.accessToken()).statusCode());
         } finally {
             try {
                 logout(student);

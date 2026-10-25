@@ -40,6 +40,21 @@ class AiAuthorizationIT extends AiIntegrationTestSupport {
     }
 
     @Test
+    void studentAndTeacherCannotUseAdministratorOnlyGeneration() {
+        AuthenticationSession student = login(TestRole.STUDENT);
+        AuthenticationSession teacher = null;
+        try {
+            teacher = login(TestRole.TEACHER);
+            Map<String, Object> request = Map.of("prompt", "synthetic generation authorization probe");
+            assertEquals(403, ai.generate(request, student.accessToken()).statusCode());
+            assertEquals(403, ai.generate(request, teacher.accessToken()).statusCode());
+        } finally {
+            logout(teacher);
+            logout(student);
+        }
+    }
+
+    @Test
     void quizGenerationIsPublicAccordingToEffectiveBackendSecurity() {
         assertEquals(400, ai.generateQuiz(Map.of("courseId", "not-a-uuid", "questionCount", "1",
                 "difficulty", "EASY", "questionType", "MULTIPLE_CHOICE"), null, null).statusCode());

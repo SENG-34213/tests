@@ -59,6 +59,10 @@ class MaterialLifecycleIT extends MaterialIntegrationTestSupport {
             materialId = created.jsonPath().getString("data.id");
             assertNotNull(materialId, created.asString());
             assertEquals(title, created.jsonPath().getString("data.title"));
+            assertEquals(file.path().getFileName().toString(),
+                    created.jsonPath().getString("data.originalFilename"), created.asString());
+            assertEquals("text/plain", created.jsonPath().getString("data.contentType"), created.asString());
+            assertEquals("UPLOADED", created.jsonPath().getString("data.status"), created.asString());
             assertEquals(data.courseId().toString(), created.jsonPath().getString("data.courseId"));
             assertEquals("LEARNING_MATERIAL", created.jsonPath().getString("data.purpose"));
             assertTrue(created.jsonPath().getLong("data.fileSize") > 0, created.asString());
@@ -75,15 +79,20 @@ class MaterialLifecycleIT extends MaterialIntegrationTestSupport {
             assertEquals(200, listed.statusCode(), listed.asString());
             assertTrue(listed.jsonPath().getList("data.content.id").contains(materialId),
                     listed.asString());
+            assertEquals(20, listed.jsonPath().getInt("data.size"), listed.asString());
 
             Response downloaded = materialClient.download(materialId, teacher.accessToken());
             assertEquals(200, downloaded.statusCode(), downloaded.asString());
             assertEquals(materialId, downloaded.jsonPath().getString("data.id"));
             assertNotNull(downloaded.jsonPath().getString("data.downloadUrl"), downloaded.asString());
+            assertNotNull(downloaded.jsonPath().getString("data.expiresAt"), downloaded.asString());
             assertTrue(downloaded.jsonPath().getString("data.storageKey") == null,
                     "download metadata must not expose storage credentials or keys");
             MaterialDownloadVerifier.verifyIfEnabled(
                     downloaded.jsonPath().getString("data.downloadUrl"), file.path());
+
+            assertEquals(400, materialClient.update(materialId, Map.of(), teacher.accessToken()).statusCode(),
+                    "Empty material update payload must be rejected");
 
             String updatedTitle = title + "-updated";
             Response updated = materialClient.update(materialId,
@@ -143,11 +152,33 @@ class MaterialLifecycleIT extends MaterialIntegrationTestSupport {
     }
 
     @Test
+    void administratorCanUploadAndDeleteSyntheticMaterial() throws Exception {
+        MaterialTestDataConfiguration data = requireWriteFixtures();
+        AuthenticationSession admin = login(TestRole.ADMIN);
+        String materialId = null;
+        try (MaterialTestFileFactory.TestFile file = MaterialTestFileFactory.createTextFile()) {
+            Response created = materialClient.upload(materialFields(data,
+                    "TEST-013-admin-" + java.util.UUID.randomUUID()), file.path().toFile(), admin.accessToken());
+            assertEquals(201, created.statusCode(), created.asString());
+            materialId = created.jsonPath().getString("data.id");
+            assertNotNull(materialId, created.asString());
+            assertEquals(200, materialClient.delete(materialId, admin.accessToken()).statusCode());
+            materialId = null;
+        } finally {
+            if (materialId != null) {
+                materialClient.delete(materialId, admin.accessToken());
+            }
+            logout(admin);
+        }
+    }
+
+    @Test
     void rejectsInvalidMaterialUploadsAndUpdates() {
         MaterialTestDataConfiguration data = requireWriteFixtures();
         AuthenticationSession teacher = login(TestRole.TEACHER);
         try (MaterialTestFileFactory.TestFile empty = MaterialTestFileFactory.createEmptyFile();
-             MaterialTestFileFactory.TestFile unsupported = MaterialTestFileFactory.createUnsupportedFile()) {
+             MaterialTestFileFactory.TestFile unsupported = MaterialTestFileFactory.createUnsupportedFile();
+             MaterialTestFileFactory.TestFile valid = MaterialTestFileFactory.createTextFile()) {
             assertEquals(400, materialClient.uploadWithoutFile(
                     Map.of("title", "missing-file", "courseId", data.courseId().toString()),
                     teacher.accessToken()).statusCode());
@@ -157,6 +188,11 @@ class MaterialLifecycleIT extends MaterialIntegrationTestSupport {
             assertEquals(400, materialClient.upload(
                     Map.of("title", "unsupported", "courseId", data.courseId().toString()),
                     unsupported.path().toFile(), teacher.accessToken()).statusCode());
+            assertEquals(400, materialClient.upload(
+                    Map.of("courseId", data.courseId().toString()), valid.path().toFile(),
+                    teacher.accessToken()).statusCode());
+            assertEquals(400, materialClient.upload(
+                    Map.of("title", "missing-course"), valid.path().toFile(), teacher.accessToken()).statusCode());
             assertEquals(404, materialClient.update(UNKNOWN_ID, Map.of(), teacher.accessToken()).statusCode());
         } finally {
             logout(teacher);

@@ -18,6 +18,11 @@ class QuizManagementIT extends QuizIntegrationTestSupport {
     private static final String UNKNOWN_ID = "00000000-0000-0000-0000-000000000000";
 
     @Test
+    void requiredQuizServicesAreReady() {
+        requireQuizEnvironment();
+    }
+
+    @Test
     void teacherManagesQuestionsAndPublishesQuiz() {
         QuizTestDataConfiguration config = QuizTestDataConfiguration.fromEnvironment();
         Assumptions.assumeTrue(config.writeEnabled() && config.courseId() != null,
@@ -81,7 +86,8 @@ class QuizManagementIT extends QuizIntegrationTestSupport {
             assertTrue(published.jsonPath().getString("data.status").equalsIgnoreCase("PUBLISHED"));
         } finally {
             if (quizId != null) {
-                quizClient.delete(quizId, teacher.accessToken());
+                Response deleted = quizClient.delete(quizId, teacher.accessToken());
+                assertEquals(200, deleted.statusCode(), deleted.asString());
             }
             logout(teacher);
         }

@@ -21,7 +21,6 @@ temporary files and approved non-production fixture IDs only.
 | TEST-013-14 | Teacher delete | A teacher can delete an archived test material. |
 | TEST-013-15 | Admin audit | An administrator can run the maintenance audit. |
 | TEST-013-16 | Safe cleanup | An administrator can run cleanup with `dryRun=true`. |
-| TEST-013-17 | Cleanup safety | Tests never call destructive cleanup with `dryRun=false`. |
 | TEST-013-18 | Missing file | Upload without a file is rejected with a client error. |
 | TEST-013-19 | Empty file | Empty uploads are rejected. |
 | TEST-013-20 | Unsupported file | Unsupported file types are rejected. |
@@ -33,7 +32,7 @@ temporary files and approved non-production fixture IDs only.
 | TEST-013-26 | Unknown update | Unknown update IDs return `404 Not Found`. |
 | TEST-013-27 | Unknown archive/delete | Unknown lifecycle IDs return `404 Not Found`. |
 | TEST-013-28 | Unauthenticated access | Protected endpoints return 401 without a token. |
-| TEST-013-29 | Role restrictions | Student management and teacher maintenance requests return 403. |
+| TEST-013-29 | Student role restrictions | Student material-management and maintenance requests return 403. |
 | TEST-013-30 | Temporary-file cleanup | Generated test files are deleted after each test. |
 | TEST-013-31 | Verified AI sources | Teachers/admins can list AI source materials for a course; students and unauthenticated callers are denied. |
 | TEST-013-32 | Purpose and status filters | List filters return the test upload under `LEARNING_MATERIAL`/`UPLOADED` and after transition under `LEARNING_MATERIAL`/`ARCHIVED`. |
@@ -43,6 +42,14 @@ temporary files and approved non-production fixture IDs only.
 | TEST-013-36 | Signed URL unsafe component rejection | User-info, fragments, and explicit ports other than 443 are rejected. |
 | TEST-013-37 | Byte probe requires explicit configuration | Missing download URL or approved host is rejected before network access. |
 | TEST-013-39 | A student outside the course cannot read or download its material | A distinct, unenrolled secondary student receives 403 for material retrieval and download metadata. |
+| TEST-013-40 | Teacher maintenance restrictions | Teacher audit and cleanup requests return 403. |
+
+## Manual cleanup safeguard (not a JUnit case)
+
+- **TEST-013-17 - Cleanup safety:** Review material cleanup calls and require `dryRun=true`; destructive cleanup must not be used by test automation.
+
+This source-review safeguard is not a JUnit outcome and is excluded from the
+generated case register. The executable cleanup test asserts dry-run behavior.
 
 The executable integration classes are `MaterialLifecycleIT` and
 `MaterialAuthenticationIT`. Tests requiring writes are skipped unless

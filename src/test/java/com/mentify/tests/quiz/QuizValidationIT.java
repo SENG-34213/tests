@@ -36,6 +36,12 @@ class QuizValidationIT extends QuizIntegrationTestSupport {
         AuthenticationSession teacher = login(TestRole.TEACHER);
         try {
             assertEquals(400, questionClient.create(UNKNOWN_ID, Map.of(), teacher.accessToken()).statusCode());
+            Map<String, Object> missingOptions = new HashMap<>();
+            missingOptions.put("questionText", "missing options");
+            missingOptions.put("questionType", "MULTIPLE_CHOICE_SINGLE_ANSWER");
+            missingOptions.put("marks", 1);
+            missingOptions.put("questionOrder", 1);
+            assertEquals(400, questionClient.create(UNKNOWN_ID, missingOptions, teacher.accessToken()).statusCode());
             Map<String, Object> tooFew = new HashMap<>();
             tooFew.put("questionText", "invalid");
             tooFew.put("questionType", "MULTIPLE_CHOICE_SINGLE_ANSWER");
@@ -49,6 +55,9 @@ class QuizValidationIT extends QuizIntegrationTestSupport {
 
         AuthenticationSession student = login(TestRole.STUDENT);
         try {
+            assertEquals(404, attemptClient.saveAnswer(UNKNOWN_ID,
+                    QuizTestDataFactory.answer(UNKNOWN_ID, UNKNOWN_ID), student.accessToken()).statusCode());
+            assertEquals(404, attemptClient.submit(UNKNOWN_ID, student.accessToken()).statusCode());
             assertEquals(400, attemptClient.saveAnswer(UNKNOWN_ID, Map.of(), student.accessToken()).statusCode());
             assertEquals(400, attemptClient.saveAnswer(UNKNOWN_ID,
                     Map.of("questionId", "not-a-uuid", "selectedOptionId", "not-a-uuid"),

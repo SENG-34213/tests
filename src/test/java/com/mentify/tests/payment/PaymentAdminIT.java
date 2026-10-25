@@ -23,6 +23,9 @@ class PaymentAdminIT extends PaymentIntegrationTestSupport {
             assertEquals(200, listed.statusCode(), listed.asString());
             assertTrue(listed.jsonPath().get("data") != null);
             assertPageContract(listed, 20, 0);
+            Response laterPage = payments.adminPayments(null, null, null, null, null, null, 1, 1, token);
+            assertEquals(200, laterPage.statusCode(), laterPage.asString());
+            assertPageContract(laterPage, 1, 1);
             if (data.fixturesConfigured()) {
                 Response ownerAndCourse = payments.adminPayments(null, data.studentId().toString(),
                         data.courseId().toString(), null, null, null, 0, 20, token);

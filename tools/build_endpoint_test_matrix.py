@@ -19,6 +19,7 @@ FIELDS = [
     "existing_test_class", "existing_test_method", "missing_work", "coverage_status",
     "gateway_ingress", "source_evidence",
 ]
+CASE_ID_PATTERN = r"(?:TC-[A-Z0-9-]+|TEST-[A-Z0-9-]+|NO_CASE_ID)"
 
 
 def role_for(row):
@@ -92,19 +93,21 @@ def main():
             # functional service/category in the user's 15-service Step 1 plan.
             service = "quiz" if re.search(r"quiz", row["controller"], re.I) else row["service"]
             evidence = row["test_evidence"]
-            evidence_items = re.split(r";\s*(?=(?:TC-[A-Z0-9-]+|NO_CASE_ID):)", evidence)
-            cases = re.findall(r"(?:TC-[A-Z0-9-]+|NO_CASE_ID):([^#;]+)#([^ ;]+)", evidence)
+            evidence_items = re.split(r";\s*(?=" + CASE_ID_PATTERN + r":)", evidence)
+            cases = re.findall(CASE_ID_PATTERN + r":([^#;]+)#([^ ;]+)", evidence)
             classes = sorted({c for c, _ in cases})
             methods = sorted({m for _, m in cases})
             def linked_assertions(codes=None, ownership=False):
                 linked = []
                 for item in evidence_items:
-                    identity = re.search(r"(?:TC-[A-Z0-9-]+|NO_CASE_ID):[^#;]+#[^ ;]+", item)
+                    identity = re.search(CASE_ID_PATTERN + r":[^#;]+#[^ ;]+", item)
                     if not identity:
                         continue
                     if ownership and not re.search(r"owner|ownership|foreign|other user|different.*(owner|user)|belongs to another|cannot access another", item, re.I):
                         continue
                     assertions = [int(x) for x in re.findall(r"assertEquals\s*\(\s*(\d{3})", item)]
+                    assertions.extend(int(x) for x in re.findall(
+                        r"assertSuccessful\s*\([^,]+,\s*(\d{3})", item))
                     denied = [int(x) for group in re.findall(r"assertDenied\s*\((\d{3}(?:/\d{3})*)", item) for x in group.split("/")]
                     statuses = assertions + denied
                     if codes is None or any(code in codes for code in statuses):

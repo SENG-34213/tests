@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.restassured.response.Response;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
@@ -14,10 +15,12 @@ class AuthenticationRefreshIT extends AuthenticationIntegrationTestSupport {
         AuthenticationSession session = login(TestRole.STUDENT);
 
         try {
-            AuthenticationSession refreshed = authenticationClient.refresh(session);
-
-            assertTrue(refreshed.authenticated());
-            assertTrue(refreshed.accessToken() != null && !refreshed.accessToken().isBlank());
+            Response response = authenticationClient.refreshResponse(session.refreshToken());
+            assertEquals(200, response.statusCode(), response.asString());
+            AuthenticationSession refreshed = AuthenticationResponseParser.successfulSession(response);
+            session.replaceTokens(refreshed);
+            assertTrue(session.authenticated());
+            assertTrue(session.accessToken() != null && !session.accessToken().isBlank());
         } finally {
             logout(session);
         }

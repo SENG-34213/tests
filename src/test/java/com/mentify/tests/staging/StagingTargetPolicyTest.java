@@ -26,6 +26,8 @@ class StagingTargetPolicyTest {
         environment.put("STAGING_CONFIRMATION", "");
 
         assertThrows(IllegalArgumentException.class, () -> StagingTargetPolicy.fromEnvironment(environment));
+        environment.put("STAGING_CONFIRMATION", "wrong-confirmation");
+        assertThrows(IllegalArgumentException.class, () -> StagingTargetPolicy.fromEnvironment(environment));
     }
 
     @Test
@@ -42,6 +44,7 @@ class StagingTargetPolicyTest {
                 "http://api.staging.example.test",
                 "https://user:password@api.staging.example.test",
                 "https://api.staging.example.test?token=secret",
+                "https://api.staging.example.test:8443",
                 "https://api.production.example.test"
         }) {
             Map<String, String> environment = validEnvironment();

@@ -19,13 +19,11 @@
 | TC-TEST-021-15 | Admin validation | Invalid roles, IDs, status, and registration fields are handled safely. |
 | TC-TEST-021-16 | Student authorization | Student cannot perform admin operations. |
 | TC-TEST-021-17 | Teacher authorization | Teacher cannot perform admin operations. |
-| TC-TEST-021-18 | Registration | Unique user registration is enabled only with approved isolated fixtures. |
+| TC-TEST-021-18 | Registration | Administrator creates a unique synthetic student; the created account is deleted in cleanup. |
 | TC-TEST-021-19 | Super-admin registration | Scenario is enabled only when Super Admin support is confirmed. |
-| TC-TEST-021-20 | Invitation/reset email | Safe mail capture is required; otherwise contract tests are used. |
-| TC-TEST-021-21 | Status lifecycle | Deactivation/reactivation is enabled only with safe account fixtures. |
+| TC-TEST-021-20 | Invitation/reset email | Invitation and password-reset emails for the synthetic account are captured in local Mailpit; messages are deleted in cleanup. |
+| TC-TEST-021-21 | Status lifecycle | Administrator deactivates and reactivates only the explicitly configured disposable user; cleanup restores active status. |
 | TC-TEST-021-22 | Existence checks | Known malformed and unknown student/teacher IDs return `false` without private data leakage. |
-| TC-TEST-021-23 | Security | No passwords, tokens, reset links, invitation links, or personal data are committed. |
-| TC-TEST-021-24 | Documentation | JWT authentication, roles, fixtures, cleanup, and skip behavior are documented. |
 | TC-TEST-021-25 | User-management role matrix | Student/teacher cannot list users, register accounts, or delete users; non-super-admin cannot create an admin. |
 | TC-TEST-021-26 | Self-service profile read and no-op update | Authenticated student reads own profile and submits an empty update without changing data. |
 | TC-TEST-021-27 | Teacher profile and guidance-note authorization | Teacher route allows teacher role; student role is denied; invalid note input is rejected. |
@@ -36,3 +34,13 @@
 | TC-TEST-021-32 | Admin role-filter integrity | User listing and paginated student/teacher directories contain only records matching the requested role. |
 | TC-TEST-021-33 | Existence response values | Unknown student and teacher IDs, including malformed student identities, return an explicit `false` response. |
 | TC-TEST-021-34 | Unknown administration targets | A valid status update, invitation resend, and delete for an unknown user return `404`; malformed status input remains `400`. |
+| TC-TEST-021-35 | Public JWKS route | The public key set is returned through the API Gateway without authentication. |
+| TC-TEST-021-36 | Student-only authentication probe | Student receives success; missing authentication and teacher role are rejected. |
+| TC-TEST-021-37 | Delete disposable registration | Administrator deletes the synthetic registered user and confirms successful cleanup. |
+| TC-TEST-021-38 | Resend invitation | Administrator resends the synthetic user's invitation and captures the message in local Mailpit. |
+| TC-TEST-021-39 | Public student registration | A synthetic `.invalid` student account is created, its credentials email is captured locally, and the account is deleted. |
+
+## Manual safeguards
+
+- **TC-TEST-021-23 — Security review:** Confirm passwords, tokens, reset links, invitation links, and personal data are not committed or exposed in logs/reports.
+- **TC-TEST-021-24 — Documentation review:** Recheck JWT authentication, roles, fixtures, cleanup, and skip behavior when user tests change.

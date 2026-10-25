@@ -39,6 +39,14 @@ class AttendanceSessionWorkflowIT extends AttendanceIntegrationTestSupport {
             assertEquals(404, attendanceClient.markAttendance(sessionId,
                     AttendanceTestDataFactory.records(UUID.randomUUID(), "ABSENT"), teacher.accessToken()).statusCode(),
                     "A student outside the session must not be added by marking attendance");
+            Response singleMarked = attendanceClient.markAttendance(sessionId,
+                    AttendanceTestDataFactory.records(data.studentId(), "LATE"), teacher.accessToken());
+            assertEquals(200, singleMarked.statusCode(), singleMarked.asString());
+            assertEquals(1, singleMarked.jsonPath().getList("data.records").size(), singleMarked.asString());
+            assertEquals(data.studentId().toString(),
+                    singleMarked.jsonPath().getString("data.records[0].studentId"), singleMarked.asString());
+            assertEquals("LATE", singleMarked.jsonPath().getString("data.records[0].status"),
+                    singleMarked.asString());
             assertEquals(400, attendanceClient.markAttendance(sessionId,
                     AttendanceTestDataFactory.records(data.studentId(), "NOT_MARKED"), teacher.accessToken()).statusCode(),
                     "NOT_MARKED is a session default, not a valid marking status");

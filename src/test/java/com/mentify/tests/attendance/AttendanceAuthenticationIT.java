@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.mentify.tests.auth.AuthenticationSession;
 import com.mentify.tests.auth.TestRole;
+import com.mentify.tests.environment.RequiredService;
+import com.mentify.tests.user.UserClient;
 import java.util.Map;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -44,6 +46,37 @@ class AttendanceAuthenticationIT extends AttendanceIntegrationTestSupport {
     }
 
     @Test
+    void studentCannotReadAnotherStudentsAttendanceSummary() {
+        AttendanceTestDataConfiguration config = AttendanceTestDataConfiguration.fromEnvironment();
+        Assumptions.assumeTrue(config.courseId() != null && config.studentId() != null
+                        && config.otherStudentId() != null && !config.studentId().equals(config.otherStudentId()),
+                "Set distinct TEST_ATTENDANCE_STUDENT_ID and TEST_ATTENDANCE_OTHER_STUDENT_ID values");
+        Assumptions.assumeTrue(hasSecondaryStudentCredentials(),
+                "Set distinct SECONDARY_STUDENT_TEST_USERNAME/PASSWORD credentials");
+        requireAdditionalService(RequiredService.USER_SERVICE);
+
+        AuthenticationSession student = login(TestRole.STUDENT);
+        AuthenticationSession otherStudent = null;
+        try {
+            otherStudent = login(TestRole.SECONDARY_STUDENT);
+            UserClient users = new UserClient(apiClient);
+            var ownProfile = users.currentUser(student.accessToken());
+            var otherProfile = users.currentUser(otherStudent.accessToken());
+            assertEquals(200, ownProfile.statusCode(), ownProfile.asString());
+            assertEquals(200, otherProfile.statusCode(), otherProfile.asString());
+            assertEquals(config.studentId().toString(), ownProfile.jsonPath().getString("data.id"),
+                    ownProfile.asString());
+            assertEquals(config.otherStudentId().toString(), otherProfile.jsonPath().getString("data.id"),
+                    otherProfile.asString());
+            assertEquals(403, attendanceClient.studentSummary(config.otherStudentId().toString(),
+                    config.courseId().toString(), student.accessToken()).statusCode());
+        } finally {
+            logout(otherStudent);
+            logout(student);
+        }
+    }
+
+    @Test
     void teacherCannotListSessionsForAnotherTeachersCourse() {
         AttendanceTestDataConfiguration config = AttendanceTestDataConfiguration.fromEnvironment();
         Assumptions.assumeTrue(config.courseId() != null,
@@ -63,6 +96,12 @@ class AttendanceAuthenticationIT extends AttendanceIntegrationTestSupport {
     private static boolean hasSecondaryTeacherCredentials() {
         String username = System.getenv("SECONDARY_TEACHER_TEST_USERNAME");
         String password = System.getenv("SECONDARY_TEACHER_TEST_PASSWORD");
+        return username != null && !username.isBlank() && password != null && !password.isBlank();
+    }
+
+    private static boolean hasSecondaryStudentCredentials() {
+        String username = System.getenv("SECONDARY_STUDENT_TEST_USERNAME");
+        String password = System.getenv("SECONDARY_STUDENT_TEST_PASSWORD");
         return username != null && !username.isBlank() && password != null && !password.isBlank();
     }
 }

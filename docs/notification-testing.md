@@ -35,10 +35,16 @@ Mark-read, read-all, and delete operations are scoped to the authenticated JWT s
 
 ## Event and email limitations
 
-The backend consumes Kafka notification events internally. Event tests must only be enabled when a deterministic
-publisher, broker, event schema, and cleanup strategy are available. Email tests must only be enabled with a local
-mail-capture provider; real email delivery and retry delays are out of scope. When these dependencies are missing,
-the related scenarios are documented and skipped rather than sent to external systems.
+The backend consumes Kafka notification events internally. `NotificationEventEmailWorkflowIT` is opt-in and publishes
+one synthetic `QUIZ_CREATED` event to the configured non-production broker. It verifies the user's HTTP notification
+and email status, and uses a random `example.invalid` recipient. Before enabling it, confirm that backend notification
+SMTP points only to local Mailpit; the test separately validates that the Mailpit API uses a local HTTP host. Real
+email addresses and external SMTP delivery are never used. The event and email checks remain skipped in static CI.
+
+Set `TEST_NOTIFICATION_EVENT_ENABLED=true`, `NOTIFICATION_EMAIL_TEST_MODE=true`,
+`NOTIFICATION_KAFKA_BOOTSTRAP_SERVERS`, and `MAILPIT_API_BASE_URL`. Optional Kafka SASL values are read from the
+environment and are not logged. The test removes only the notification it creates and Mailpit messages addressed to
+its unique synthetic recipient. It does not create or delete Kafka topics.
 
 ## Running
 

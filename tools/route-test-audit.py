@@ -187,8 +187,9 @@ def path_matches(route: str, client_path: str) -> bool:
 
 
 def route_response_assertion(body: str, client_variable: str, client_method: str) -> str:
-    """Return a concise assertion snippet tied to this client's response."""
+    """Return all concise assertion snippets tied to calls to this client method."""
     calls = list(re.finditer(r"\b" + re.escape(client_variable) + r"\." + re.escape(client_method) + r"\s*\(", body))
+    linked_assertions = []
     for call in calls:
         opening = body.find("(", call.start())
         depth, quoted, escaped, closing = 1, None, False, None
@@ -217,7 +218,10 @@ def route_response_assertion(body: str, client_variable: str, client_method: str
         statement_end = body.find(";", closing)
         statement = body[statement_start : statement_end if statement_end >= 0 else len(body)]
         if re.search(r"\bassertDenied\s*\(\s*" + re.escape(client_variable) + r"\." + re.escape(client_method) + r"\s*\(", statement):
-            return "assertDenied(401/403): assertTrue(Set.of(401, 403).contains(response.statusCode()))"
+            linked_assertions.append(
+                "assertDenied(401/403): assertTrue(Set.of(401, 403).contains(response.statusCode()))"
+            )
+            continue
         assignment = re.search(r"\b(?:Response|var)\s+(\w+)\s*=\s*[\w.$]*$", prefix.strip())
         if assignment:
             response_var = assignment.group(1)
@@ -227,11 +231,11 @@ def route_response_assertion(body: str, client_variable: str, client_method: str
                 re.S,
             )
             if assertion:
-                return re.sub(r"\s+", " ", assertion.group(0)).strip()[:180]
+                linked_assertions.append(re.sub(r"\s+", " ", assertion.group(0)).strip()[:180])
         else:
             if re.search(r"\bassert\w*\s*\(", statement) and re.search(r"\.statusCode\s*\(\s*\)", statement):
-                return re.sub(r"\s+", " ", statement).strip()[:180]
-    return ""
+                linked_assertions.append(re.sub(r"\s+", " ", statement).strip()[:180])
+    return " | ".join(linked_assertions)
 
 
 def main() -> int:
@@ -358,18 +362,19 @@ def main() -> int:
                 for variable in variables:
                     assertion = route_response_assertion(body, variable, client_method_name)
                     if assertion:
-                        expected = re.search(r"assertEquals\s*\(\s*(\d{3})", assertion)
-                        if not expected:
-                            expected = re.search(r"assertSuccessful\s*\([^,]+,\s*(\d{3})", assertion)
-                        if expected and 200 <= int(expected.group(1)) < 300:
-                            outcomes.add("success")
-                        elif expected and int(expected.group(1)) >= 400:
-                            outcomes.add("negative")
-                        elif "assertDenied(401/403)" in assertion:
-                            outcomes.add("negative")
-                        else:
-                            outcomes.add("other")
-                        evidence.append(f"{case_id}:{test_class}#{test_method} {client_class}.{client_method_name} [{request_verb} {client_path}]; assertion: {assertion}")
+                        for assertion_item in assertion.split(" | "):
+                            expected = re.search(r"assertEquals\s*\(\s*(\d{3})", assertion_item)
+                            if not expected:
+                                expected = re.search(r"assertSuccessful\s*\([^,]+,\s*(\d{3})", assertion_item)
+                            if expected and 200 <= int(expected.group(1)) < 300:
+                                outcomes.add("success")
+                            elif expected and int(expected.group(1)) >= 400:
+                                outcomes.add("negative")
+                            elif "assertDenied(401/403)" in assertion_item:
+                                outcomes.add("negative")
+                            else:
+                                outcomes.add("other")
+                            evidence.append(f"{case_id}:{test_class}#{test_method} {client_class}.{client_method_name} [{request_verb} {client_path}]; assertion: {assertion_item}")
                     elif re.search(r"\b" + re.escape(variable) + r"\." + re.escape(client_method_name) + r"\s*\(", body):
                         evidence.append(f"{case_id}:{test_class}#{test_method} {client_class}.{client_method_name} [{request_verb} {client_path}]; assertion not linked")
         if evidence and any("assertion:" in item for item in evidence):

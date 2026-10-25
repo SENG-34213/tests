@@ -3,13 +3,16 @@ package com.mentify.tests.attendance;
 import java.util.Map;
 import java.util.UUID;
 
-record AttendanceTestDataConfiguration(UUID courseId, UUID studentId, boolean writeEnabled) {
+record AttendanceTestDataConfiguration(
+        UUID courseId, UUID studentId, UUID otherStudentId, UUID emptySummaryStudentId, boolean writeEnabled) {
 
     static AttendanceTestDataConfiguration fromEnvironment() {
         Map<String, String> environment = System.getenv();
         return new AttendanceTestDataConfiguration(
                 uuidValue(environment, "TEST_ATTENDANCE_COURSE_ID"),
                 uuidValue(environment, "TEST_ATTENDANCE_STUDENT_ID"),
+                uuidValue(environment, "TEST_ATTENDANCE_OTHER_STUDENT_ID"),
+                uuidValue(environment, "TEST_ATTENDANCE_EMPTY_SUMMARY_STUDENT_ID"),
                 Boolean.parseBoolean(environment.getOrDefault("TEST_ATTENDANCE_WRITE_ENABLED", "false")));
     }
 

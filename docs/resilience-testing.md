@@ -28,6 +28,9 @@ contract supports it.
 ## Current limitations
 
 This repository does not provision a broker, provider double, or service fault
-proxy. `DownstreamFailureIT` and `ProviderFailureIT` therefore provide explicit
-skip gates until approved infrastructure is configured. A skipped test is not a
-passing product result; it records unavailable test infrastructure.
+proxy. `AiProviderFailureIT` exercises the API error contract only when the AI
+Service is configured to use a controlled provider double that returns a
+synthetic failure containing `CONTROLLED_PROVIDER_ERROR_SENTINEL`;
+`DownstreamFailureIT` remains a configuration gate because no downstream fault
+proxy is provisioned here. A skipped test is not a passing product result; it
+records unavailable test infrastructure.
