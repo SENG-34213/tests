@@ -85,6 +85,7 @@ def main():
         "teacher-facing; Gateway teacher route", "service root; Gateway discovery-locator route /course-service/**",
     }]
     report_counts = Counter()
+    success_gap_routes = []
     with OUT.open("w", encoding="utf-8-sig", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=FIELDS)
         writer.writeheader()
@@ -122,6 +123,8 @@ def main():
                 "validation_test": linked_assertions({400, 422}),
                 "ownership_test": linked_assertions(ownership=True),
             }
+            if not checks["success_test"]:
+                success_gap_routes.append((service, row["http_method"], row["effective_path"]))
             missing = [name.replace("_test", "") for name, linked in checks.items() if not linked]
             for item in missing:
                 report_counts[item] += 1
@@ -151,7 +154,10 @@ def main():
         for key in ("success", "unauthenticated", "wrong_role", "validation", "ownership", "role_contract_review"):
             stream.write(f"- Missing linked {key.replace('_', ' ')} assertion: **{report_counts[key]}** route rows\n")
         stream.write("\n## Required follow-up\n\n")
-        stream.write("1. Review rows with a missing linked success assertion against the SRS. Add a safe positive-path test where the endpoint contract defines success and the route currently has only negative evidence.\n")
+        if success_gap_routes == [("quiz", "POST", "/api/assignments/quizzes/ai/generate")]:
+            stream.write("1. AI quiz generation is the only public route without a linked automated positive assertion. The user reports manual verification and requested no AI tests; keep it manual-only. No public non-AI success-assertion gap remains in this source audit.\n")
+        else:
+            stream.write("1. Review rows with a missing linked success assertion against the SRS. Add a safe positive-path test where the endpoint contract defines success and the route currently has only negative evidence.\n")
         stream.write("2. Review authorization, validation, and ownership flags against the effective Gateway and service contracts. Add only the applicable missing scenarios; do not infer public access or ownership coverage from a generic status code.\n")
         stream.write("3. Keep internal routes in `backend-internal-route-auth-matrix.csv`; service-to-service identities and mutation effects need their specific contracts and approved fixtures.\n")
         stream.write("4. Execute the live suites against the approved non-production deployment and retain JUnit evidence before claiming runtime coverage.\n\n")

@@ -67,6 +67,47 @@ def blocks(source: str, declaration: re.Pattern[str]):
                     break
 
 
+def junit_test_bodies(source: str) -> list[tuple[str, str]]:
+    """Return annotated JUnit test bodies with same-class helper bodies expanded."""
+    declaration = re.compile(r"\bvoid\s+(\w+)\s*\([^)]*\)\s*(?:throws[^{]+)?\{")
+    methods = list(blocks(source, declaration))
+    method_bodies: dict[str, list[str]] = {}
+    for name, body in methods:
+        method_bodies.setdefault(name, []).append(body)
+
+    roots = []
+    for match in declaration.finditer(source):
+        prefix = source[max(0, match.start() - 600):match.start()]
+        annotations = list(re.finditer(r"@(Test|ParameterizedTest|RepeatedTest|TestFactory|TestTemplate)\b", prefix))
+        if not annotations:
+            continue
+        annotation = annotations[-1]
+        between = prefix[annotation.end():]
+        if "}" in between or ";" in between:
+            continue
+        roots.append((match.group(1), match.group(1)))
+
+    result = []
+    for test_name, root_name in roots:
+        pending = [root_name]
+        visited: set[str] = set()
+        expanded = []
+        while pending:
+            current = pending.pop()
+            if current in visited:
+                continue
+            visited.add(current)
+            bodies = method_bodies.get(current, [])
+            expanded.extend(bodies)
+            for body in bodies:
+                for helper_name in method_bodies:
+                    if helper_name not in visited and re.search(
+                            r"\b" + re.escape(helper_name) + r"\s*\(", body):
+                        pending.append(helper_name)
+        result.append((test_name, "\n".join(expanded)))
+    return result
+
+
 def split_arguments(text: str) -> list[str]:
     result, start, depth, quoted, escaped = [], 0, 0, None, False
     for index, char in enumerate(text):
@@ -307,7 +348,6 @@ def main() -> int:
             if variables:
                 client_variables.setdefault(path.parent.name, {}).setdefault(client_type, set()).update(variables)
 
-    test_decl = re.compile(r"\b(?:void)\s+(\w+)\s*\([^)]*\)\s*(?:throws[^{]+)?\{")
     tests = []
     for path in TEST_ROOT.rglob("*.java"):
         # Client unit tests verify local argument validation and must not count
@@ -315,7 +355,7 @@ def main() -> int:
         if not path.name.endswith("IT.java"):
             continue
         source = path.read_text(encoding="utf-8", errors="replace")
-        for name, body in blocks(source, test_decl):
+        for name, body in junit_test_bodies(source):
             tests.append((path.parent.name, path.stem, name, body, bool(ASSERTION.search(body))))
 
     total = len(routes)
