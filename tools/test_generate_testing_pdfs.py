@@ -77,13 +77,19 @@ class TestingPdfGenerationTests(unittest.TestCase):
             pdfs.summary_pdf(
                 register, routes, summary, output / "testing-summary.pdf", "a" * 40, "feature/test",
                 "40180383416", "8cb633c2c12868cb3239a8940e24cad1abd42746", "success",
+                "40181135024", "2f2e76a9f2abbcda0922a09e29deacf1c1462cac", "success",
             )
 
             expected = {
                 "test-register.pdf": ["TC-COURSE-001", "Passed", "Course readiness"],
                 "coverage-sprint8.pdf": ["53.28%", "33.73%", "40180383416", "conclusion: success"],
                 "performance-report.pdf": ["BLOCKED / NOT RUN", "PERFORMANCE_BASE_URL"],
-                "testing-summary.pdf": ["Route audit inventory", "NOT RUN", "90% branch gate", "40180383416"],
+                "testing-summary.pdf": [
+                    "235-row route matrix", "546 rows", "Not Run, with zero Failed",
+                    "80% line and branch target",
+                    "14 unit/coverage matrix jobs passed", "90% branch coverage independently",
+                    "40181135024", "Run the PR-triggered integration workflow", "not a failed test result",
+                ],
             }
             for name, markers in expected.items():
                 path = output / name
