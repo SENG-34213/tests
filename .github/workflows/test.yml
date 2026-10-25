@@ -92,6 +92,25 @@ jobs:
             exit 1
           fi
 
+      - name: Require unit and integration JaCoCo artifacts
+        if: ${{ inputs.include_backend_coverage == true }}
+        env:
+          GH_TOKEN: ${{ secrets.BACKEND_ARTIFACTS_TOKEN }}
+          BACKEND_RUN_ID: ${{ inputs.backend_workflow_run_id }}
+        shell: bash
+        run: |
+          artifacts="$(gh api "repos/SENG-34213/Mentify-backend/actions/runs/${BACKEND_RUN_ID}/artifacts?per_page=100")"
+          unit_count="$(jq '[.artifacts[] | select(.name | startswith("jacoco-unit-"))] | length' <<< "$artifacts")"
+          integration_count="$(jq '[.artifacts[] | select(.name | startswith("jacoco-integration-"))] | length' <<< "$artifacts")"
+          if (( unit_count == 0 )); then
+            echo "Backend run has no jacoco-unit-* artifacts. Ensure the backend unit job executes JaCoCo report generation."
+            exit 1
+          fi
+          if (( integration_count == 0 )); then
+            echo "Backend run has no jacoco-integration-* artifacts. Use a run that includes the backend integration job."
+            exit 1
+          fi
+
       - name: Download backend unit coverage reports
         if: ${{ inputs.include_backend_coverage == true }}
         uses: actions/download-artifact@v4
