@@ -36,10 +36,11 @@ Coverage percentages remain measurements; the backend CI check is authoritative
 for gate outcomes.
 
 To produce this evidence after backend CI publishes JaCoCo XML, dispatch **Test
-Repository CI** with backend coverage enabled, the successful backend Actions
-run ID, and its commit SHA. The repository must have `BACKEND_ARTIFACTS_TOKEN`
-with read access to backend workflow artifacts. Reports must come from the
-same backend run and commit.
+Repository CI** with backend unit coverage enabled, the successful backend
+Actions run ID, and its commit SHA. Select integration coverage only when that
+same backend run includes integration JaCoCo artifacts. The repository must
+have `BACKEND_ARTIFACTS_TOKEN` with read access to backend workflow artifacts.
+Reports must come from the same backend run and commit.
 
 ## Performance evidence
 

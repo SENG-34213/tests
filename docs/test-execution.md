@@ -176,12 +176,14 @@ configured for the measured module and source scope. The summary does
 not infer that a gate ran or passed. If no JaCoCo XML was supplied, it says
 coverage is unavailable, not zero.
 
-When the manual coverage option is enabled, CI verifies that the selected
+When the manual unit-coverage option is enabled, CI verifies that the selected
 backend workflow run succeeded and that its actual source SHA matches the
 provided commit SHA before downloading reports. It then requires at least one
-JaCoCo XML file. The generated coverage summary records the backend run ID and
-source SHA. This verifies artifact provenance and measurements; it does not
-replace the backend's own threshold gate.
+unit JaCoCo artifact and XML file. Integration JaCoCo reports can be selected
+separately; they are optional because backend development push runs do not run
+the pull-request/main integration job. The generated coverage summary records
+the backend run ID and source SHA. This verifies artifact provenance and
+measurements; it does not replace the backend's own threshold gate.
 
 ## Troubleshooting
 
