@@ -26,6 +26,7 @@
 | TC-CAL-022 | Event query requires a date range | `GET /api/v1/calendar/events` | Valid range returns `200`; missing required `start`/`end` returns `400` | Validation |
 | TC-CAL-023 | Event detail requires authentication | `GET /api/v1/calendar/events/{eventId}` | `401 Unauthorized` without a token | Security |
 | TC-CAL-025 | Admin creates a venue in an isolated database | `POST /api/v1/calendar/venues` | `201`; venue appears in authenticated venue listing | Integration (disposable database only) |
+| TC-CAL-026 | Administrator reads the venue list | `GET /api/v1/calendar/venues` | `200`; response contains a data field | Read-only integration |
 
 ## Preconditions
 

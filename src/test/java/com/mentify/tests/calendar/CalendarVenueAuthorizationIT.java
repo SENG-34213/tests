@@ -53,6 +53,19 @@ class CalendarVenueAuthorizationIT extends CalendarIntegrationTestSupport {
     }
 
     @Test
+    void administratorCanReadVenueList() {
+        AuthenticationSession admin = login(TestRole.ADMIN);
+        try {
+            Response response = calendarClient.venues(admin.accessToken());
+            assertEquals(200, response.statusCode(), response.asString());
+            assertEquals(200, response.jsonPath().getInt("statusCode"), response.asString());
+            assertNotNull(response.jsonPath().get("data"), response.asString());
+        } finally {
+            logout(admin);
+        }
+    }
+
+    @Test
     void shouldAllowAuthenticatedUsersToListVenues() {
         AuthenticationSession student = login(TestRole.STUDENT);
         try {

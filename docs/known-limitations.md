@@ -56,7 +56,7 @@
 - Automated backend-artifact download is available only on manual tests-CI runs
   and requires the selected backend run ID, commit SHA, and the
   `BACKEND_ARTIFACTS_TOKEN` repository secret. Routine static CI does not use it.
-- The test-case mapping CSV has 662 unique case rows targeting 404
+- The test-case mapping CSV has 663 unique case rows targeting 406
   class/method pairs. Notification Kafka event ingestion and email delivery
   now have a gated live workflow; static CI skips it, and a source mapping is
   not live-pass evidence. CI rejects executed test methods without a mapping.
